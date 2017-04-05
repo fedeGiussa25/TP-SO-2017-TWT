@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <commons/config.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
+#define PORT 5000 //Esto lo levanta del archivo de config en realidad, es solo para probar
+#define BACKLOG 5 //Cantidad maxima de conexiones pendientes en listener
 
 typedef struct{
 	char* puerto;
@@ -62,5 +70,128 @@ int main(int argc, char** argv){
 
 	config_destroy(config);
 	free(path);
+
+	//Sockets para hacer que la Memoria sea Servidor
+
+	//variables
+
+		fd_set master;   					//conjunto maestro de descriptores de fichero (contiene todos)
+		fd_set read_fds;					//conjunto de descriptores de fichero para select()
+		struct sockaddr_in myaddr; 			//Mis datos
+		struct sockaddr_in remoteaddr; 		//Datos del cliente
+		int fdmax, bytes_leidos;
+		int listener, newfd, j;
+		char buffer[256];
+		int yes = 1;
+		socklen_t addrlen = sizeof(struct sockaddr_in);
+		FD_ZERO(&master); 					//Me aseguro de que no tengan basura
+		FD_ZERO(&read_fds);
+		/*Inicializo el buffer*/
+		for(j=0;j<256;j++)
+		{
+			buffer[j]='\0';
+		}
+
+		//socket()
+		if ((listener = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		perror("socket");
+		exit(1);
+		}
+		//Para evitar problemas de address already in use:
+		if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes,
+		sizeof(int)) == -1) {
+		perror("setsockopt");
+		exit(1);
+		}
+		/*Aca relleno la estructura de esta manera, si no les gusta avisenme
+		 y lo hago con struct sockaddr hints*/
+		myaddr.sin_family=AF_INET;
+		myaddr.sin_addr.s_addr = INADDR_ANY;
+		myaddr.sin_port = htons(PORT);
+		memset(&(myaddr.sin_zero), '\0', 8);  /*Estos \0 agregados son para que tenga el mismo tamaño que
+												sockaddr y despues la puedo castear*/
+
+		//bind()
+		//&myaddr casteado porque bind recibe (struct sockaddr *)
+		if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) {
+		perror("bind");
+		exit(1);
+		}
+
+		// listen()
+		if (listen(listener, BACKLOG) == -1) {
+		perror("listen");
+		exit(1);
+		}
+		FD_SET(listener, &master);
+		fdmax = listener;
+		read_fds = master;
+
+		//select() para listener
+			if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+			perror("select");
+			exit(1);
+			}
+			//Si el listener esta listo, hago accept
+			if (FD_ISSET(listener,&read_fds))
+			{
+				//accept()
+				if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr,
+				&addrlen)) == -1)
+				{
+					perror("accept error");
+				}
+				else
+				{
+					FD_SET(newfd, &master);
+					FD_ZERO(&read_fds);
+					FD_SET(newfd,&read_fds);
+					if (newfd > fdmax)
+					{
+						fdmax=newfd;
+					}
+					printf("Se recibio conexion de: %s\n",inet_ntoa(remoteaddr.sin_addr));
+				}
+
+				//select() para newfd
+				if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+					perror("select");
+					exit(1);
+					}
+				else
+				{
+					//Si newfd esta listo, hago recv
+					if (FD_ISSET(newfd,&read_fds))
+					{
+						if ((bytes_leidos = recv(newfd, buffer, sizeof(buffer)-1, 0)) <= 0)
+						{
+							if (bytes_leidos == 0)
+							{
+								printf("Se desconecto");
+							}
+							else {
+							perror("recv");
+							}
+							close(newfd);
+						}
+						else
+						{
+							int k;
+							buffer[bytes_leidos]='\0';
+							printf("Se recibio:\n");
+							for(k=0;k<bytes_leidos;k++)
+							{
+								//Imprimo asi el buffer porque si no me imprime solo 4 bytes, no se por que
+							printf("%c",buffer[k]);
+							}
+						}
+					}
+					close(newfd);
+				}
+
+			 }
+			close(listener);
+
+
 	return 0;
 }
