@@ -5,7 +5,7 @@
 
 
 typedef struct{
-	int puerto;
+	char* puerto;
 	int marcos;
 	int marco_size;
 	int entradas_cache;
@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 
 	config = config_create(path);
 
-	data_config.puerto = config_get_int_value(config, key1);
+	data_config.puerto = config_get_string_value(config, key1);
 	data_config.marcos = config_get_int_value(config, key2);
 	data_config.marco_size = config_get_int_value(config, key3);
 	data_config.entradas_cache = config_get_int_value(config, key4);
@@ -52,7 +52,7 @@ int main(int argc, char** argv){
 	data_config.reemplazo_cache = config_get_string_value(config, key6);
 	data_config.retardo_memoria = config_get_int_value(config, key7);
 
-	printf("PORT = %d\n", data_config.puerto);
+	printf("PORT = %s\n", data_config.puerto);
 	printf("MARCOS = %d\n", data_config.marcos);
 	printf("MARCO_SIZE = %d\n", data_config.marco_size);
 	printf("ENTRADAS_CACHE = %d\n", data_config.entradas_cache);

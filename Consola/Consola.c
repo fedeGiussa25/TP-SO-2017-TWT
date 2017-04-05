@@ -15,7 +15,7 @@
 
 typedef struct{
 	char* ip_kernel;
-	int puerto_kernel;
+	char* puerto_kernel;
 }consola_config;
 
 
@@ -43,10 +43,10 @@ int main(int argc, char** argv) {
 		config = config_create(path);
 
 		data_config.ip_kernel = config_get_string_value(config, key1);
-		data_config.puerto_kernel = config_get_int_value(config, key2);
+		data_config.puerto_kernel = config_get_string_value(config, key2);
 
 		printf("IP_KERNEL = %s\n", data_config.ip_kernel);
-		printf("PUERTO_KERNEL = %d\n", data_config.puerto_kernel);
+		printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
 
 		config_destroy(config);
 		free(path);

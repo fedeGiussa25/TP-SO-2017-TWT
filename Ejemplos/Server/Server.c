@@ -127,8 +127,8 @@ int main(int argc, char** argv){
 						close(i); // bye!
 						FD_CLR(i, &master); // remove from master set
 					} else {
-						//printf("Cliente %d dice: %s\n", i, buf);
-						for(j = 0; j <= fdmax; j++) {
+						printf("Cliente %d dice: %s\n", i, buf);
+						/*for(j = 0; j <= fdmax; j++) {
 							// send to everyone!
 							if (FD_ISSET(j, &master)) {
 								// except the listener and ourselves
@@ -138,7 +138,7 @@ int main(int argc, char** argv){
 									}
 								}
 							}
-						}
+						}*/
 						memset(buf, 0, 256*sizeof(char));
 					}
 				} // END handle data from client
