@@ -6,8 +6,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 #define PORT 5000 //Esto lo levanta del archivo de config en realidad, es solo para probar
 #define BACKLOG 5 //Cantidad maxima de conexiones pendientes en listener
