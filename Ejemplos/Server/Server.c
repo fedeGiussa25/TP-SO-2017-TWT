@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#define PORT "9034"
+#define PORT "5004"
 #define MAX_DATA_PACKAGE 256
 
 fd_set master;

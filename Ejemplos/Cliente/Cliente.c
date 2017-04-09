@@ -55,11 +55,13 @@ int main(int argc, char** argv){
 	int rv;
 	char s[INET6_ADDRSTRLEN];
 
+	char *port = argv[1];
+
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -100,11 +102,11 @@ int main(int argc, char** argv){
 
 	printf("Ya podes tipear: \n");
 
-	for(;;){
-		memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-		fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-		send(sockfd, buf, strlen(buf),0);	//Lo mandamos :D
-	}
+	//for(;;){
+	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
+	fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
+	send(sockfd, buf, strlen(buf),0);	//Lo mandamos :D
+	//}
 /*
 	buf[numbytes] = '\0';
 	printf("client: received '%s'\n",buf);*/
