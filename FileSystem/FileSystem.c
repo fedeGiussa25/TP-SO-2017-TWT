@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PUERTO 5000 //5000 para probar, esto en realidad lo saca de su archivo de configuracion
+#define PORTNUM 4000 //4000 para probar, esto en realidad lo saca de su archivo de configuracion
 
 typedef struct{
 	char* puerto;
@@ -53,115 +53,78 @@ int main(int argc, char** argv)
 	free(path);		//liberamos lo que alocamos previamente
 
 
-	//Sockets para recibir mensaje del Kernel
+	/*Sockets para recibir mensaje del Kernel*/
 
-	//variables
-	int listener, newfd, i, bytes_leidos, fdmax;
-	int yes=1;
-	struct sockaddr_in server;
-	struct sockaddr_in cliente;
-	server.sin_addr.s_addr=INADDR_ANY;
-	server.sin_port=htons(PUERTO);
-	server.sin_family=AF_INET;
-	memset(&(server.sin_zero),'\0',8);
+	int listener, newfd, i, bytes_leidos;
 	char buffer[256];
-	fd_set master, ready;
+	struct sockaddr_in server, cliente;
+
+	/*inicializo el buffer*/
 
 	for(i=0;i<256;i++)
 	{
 		buffer[i]='\0';
 	}
-	FD_ZERO(&master);
-	FD_ZERO(&ready);
 
-	//socket()
+	server.sin_family=AF_INET;
+	server.sin_port=htons(PORTNUM);
+	server.sin_addr.s_addr=INADDR_ANY;
+	memset(&(server.sin_zero),'\0',8);
+	memset(&(cliente.sin_zero),'\0',8);
+
+	/*socket()*/
+
 	if((listener=socket(AF_INET,SOCK_STREAM,0))==-1)
 	{
 		perror("socket");
 		exit(1);
 	}
 
-	//Prevenimos error de addres already in use blablabla..
-	if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes,sizeof(int)) == -1)
-	{
-		perror("setsockopt");
-		exit(1);
-	}
-	//bind()
-	if((bind(listener,(struct sockaddr *)&server,sizeof(struct sockaddr_in)))==-1)
+	/*bind()*/
+
+	if((bind(listener,(struct sockaddr *) &server,sizeof(struct sockaddr)))==-1)
 	{
 		perror("bind");
 		exit(1);
 	}
 
-	//listen()
-	if((listen(listener,5))==-1)
+	/*listen()*/
+
+	if(listen(listener,1)==-1)
 	{
 		perror("listen");
 		exit(1);
 	}
-	FD_SET(listener, &master); //Se agrega listener al conjunto maestro de file descriptors
-	fdmax=listener;
-	ready = master;
 
-	//select() para listener
-	if (select(fdmax+1, &ready, NULL, NULL, NULL) == -1)
+	/*accept()*/
+
+	socklen_t clie_len=sizeof(struct sockaddr_in);
+
+	if((newfd=accept(listener,(struct sockaddr *) &cliente,&clie_len))==-1)
 	{
-		perror("select");
-		exit(1);
+		perror("accept");
 	}
 
-	//Luego del select preguntamos si listener esta listo para gestionar alguna conexion
-	if (FD_ISSET(listener,&ready))
+	/*recv()*/
+
+	if((bytes_leidos=recv(newfd,buffer,255,0))<=0)
 	{
-		//accept()
-		socklen_t cliesize = sizeof(struct sockaddr_in);
-		if((newfd=accept(listener,(struct sockaddr*)&cliente,&cliesize))==-1)
+		if(bytes_leidos==0)
 		{
-			perror("accept");
+			printf("Se desconecto el cliente");
+			return 1;
 		}
 		else
 		{
-			FD_SET(newfd,&master);
-			FD_ZERO(&ready);
-			FD_SET(newfd,&ready); //En ready dejo solo el newfd que es quien me interesa saber si esta listo para recibir
-
-			if (newfd > fdmax)
-			{
-				fdmax=newfd;
-			}
-		}
-
-		//select() para newfd
-		if (select(fdmax+1, &ready, NULL, NULL, NULL) == -1)
-		{
-			perror("select");
+			perror("recv");
 			exit(1);
 		}
-
-		//Luego del select pregunto si newfd esta listo para recibir un mensaje
-		if(FD_ISSET(newfd,&ready))
-		{
-			if((bytes_leidos=recv(newfd,buffer,255,0))<=0)
-			{
-				if(bytes_leidos==0)
-				{
-					printf("Conexion cerrada\n");
-				}
-				else
-				{
-					perror("recv");
-				}
-				close(newfd);
-			}
-
-			buffer[bytes_leidos]='\0';
-			printf("%s\n",buffer);
-			close(newfd);
-		}
-
-	close(listener);
 	}
+
+	/*Mostramos el mensaje recibido*/
+
+	buffer[bytes_leidos]='\0';
+	printf("%s",buffer);
 
 	return 0;
 }
