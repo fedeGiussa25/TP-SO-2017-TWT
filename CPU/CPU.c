@@ -20,13 +20,28 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <commons/config.h>
+#include "../config_shortcuts/config_shortcuts.h"
 
-#define IP_KERNEL "127.0.0.1"
-#define PUERTO_KERNEL "9034"
 
-void handshake(){};
+int main(int argc, char **argv) {
 
-int main(void) {
+	// SETTEO DESDE ARCHIVO DE CONFIGURACION
+
+	//Variables para config
+	t_config *config_file;
+	cpu_config data_config;
+
+	config_file = config_create_from_relative_with_check(argc,argv);
+
+	data_config.ip_kernel = config_get_string_value(config_file, "IP_KERNEL");
+	data_config.puerto_kernel = config_get_string_value(config_file, "PUERTO_KERNEL");
+
+	printf("IP Kernel: %s\n",data_config.ip_kernel);
+	printf("Puerto Kernel: %s\n\n",data_config.puerto_kernel);
+
+	// CONEXION A KERNEL
+
 	char buf[256];
 	int statusgetaddrinfo, fd, bytes;
 	struct addrinfo hints, *sockinfo, *aux;
@@ -40,7 +55,7 @@ int main(void) {
 
 	//Esta funcion settea sockinfo con una lista de addrinfos que voy a usar despues.
 	//statusgetaddrinfo solo me sirve para saber si se ejecuto la funcion correctamente.
-	statusgetaddrinfo = getaddrinfo(IP_KERNEL,PUERTO_KERNEL,&hints,&sockinfo);
+	statusgetaddrinfo = getaddrinfo(data_config.ip_kernel,data_config.puerto_kernel,&hints,&sockinfo);
 	if(statusgetaddrinfo != 0)
 	{
 		//Si me da distinto de 0 => Hubo un error y lo printeo, gai_strerror me indica el tipo de error.
@@ -82,8 +97,13 @@ int main(void) {
 	//Sockinfo debe irse, su planeta lo necesita
 	free(sockinfo);
 
-	//Esto no se hace nada por ahora, es un placeholder
-	handshake();
+	//Esto es el handshake, solo envia basura
+	char* basura = "krgr";
+	if(send(fd,basura,sizeof(basura),0)==-1)
+	{
+		perror("send");
+		exit(3);
+	}
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa

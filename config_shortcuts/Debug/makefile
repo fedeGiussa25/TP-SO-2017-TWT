@@ -8,8 +8,6 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include config_shortcuts/Debug/subdir.mk
--include config_shortcuts/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -24,19 +22,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: CPU
+all: config_shortcuts
 
 # Tool invocations
-CPU: $(OBJS) $(USER_OBJS)
+config_shortcuts: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc  -o "CPU" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "config_shortcuts" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) CPU
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) config_shortcuts
 	-@echo ' '
 
 .PHONY: all clean dependents

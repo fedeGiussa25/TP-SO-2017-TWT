@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>CPU</name>
+	<name>config_shortcuts</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -23,11 +23,4 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>config_shortcuts</name>
-			<type>2</type>
-			<location>/home/utnso/tp-2017-1c-The-Walking-Thread/config_shortcuts</location>
-		</link>
-	</linkedResources>
 </projectDescription>
