@@ -92,14 +92,15 @@ int main(int argc, char **argv) {
 	{
 		printf("connection status: failed");
 		exit(2);
-	} else fprintf(stderr,"connection status: success");
+	} else fprintf(stderr,"connection status: success\n");
 
 	//Sockinfo debe irse, su planeta lo necesita
 	free(sockinfo);
 
 	//Esto es el handshake, solo envia basura
-	char* basura = "krgr";
-	if(send(fd,basura,sizeof(basura),0)==-1)
+	char basura[256];
+	memcpy(basura, "krgr", strlen("krgr"));
+	if(send(fd,basura,sizeof buf,0)==-1)
 	{
 		perror("send");
 		exit(3);
@@ -108,18 +109,16 @@ int main(int argc, char **argv) {
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
-	while(1)
-	{
-		bytes = recv(fd,buf,strlen(buf),0);
+	//while(1)
+	//{
+		bytes = recv(fd,buf,sizeof buf,0);
 		if(bytes == -1)
 		{
 			perror("recieve");
 			exit(3);
 		}
-		sleep(3);
 		printf("%s\n",buf);
-		sleep(3);
-	}
+	//}
 
 	close(fd);
 

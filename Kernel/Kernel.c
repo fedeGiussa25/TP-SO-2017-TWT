@@ -90,17 +90,16 @@ void *hilo_CPUs(){
 				} else {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
 					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-
 						if (nbytes == 0) {
 							printf("selectserver: socket %d hung up\n", i);
 						} else {
-							perror("recv");
+							perror("recv_cpu");
 						}
 						close(i);
 						FD_CLR(i, &fd_CPUs); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
-
+						send(i, buf, sizeof buf, 0);
 					}
 				}
 			}
@@ -301,7 +300,7 @@ int main(int argc, char** argv) {
 	//Servidores
 
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
 	//fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
@@ -337,7 +336,7 @@ int main(int argc, char** argv) {
 					newfd = sock_accept_new_connection(listener_programa, &fdmax, &fd_programas);
 				} else {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+					if ((nbytes = recv(i, buf, strlen(buf), 0)) <= 0) {
 
 						if (nbytes == 0) {
 							printf("selectserver: socket %d hung up\n", i);
@@ -349,7 +348,7 @@ int main(int argc, char** argv) {
 					} else {
 						printf("Se recibio: %s\n", buf);
 						send(sockfd_memoria, buf, strlen(buf),0);	//Le mandamos a la memoria
-						send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
+						//send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
 						//pthread_mutex_lock(&mutex_fd_cpus);
 						/*for(j = 0; j <= fdmax_cpu; j++) {
 							if (FD_ISSET(j, &fd_CPUs)) {
