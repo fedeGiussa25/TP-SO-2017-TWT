@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PORTNUM 5000 //Esto lo levanta del archivo de config en realidad, es solo para probar
+#define PORTNUM 5004 //Esto lo levanta del archivo de config en realidad, es solo para probar
 
 
 typedef struct{

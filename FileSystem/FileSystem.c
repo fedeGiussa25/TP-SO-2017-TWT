@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PORTNUM 4000 //4000 para probar, esto en realidad lo saca de su archivo de configuracion
+#define PORTNUM 5003
 
 typedef struct{
 	char* puerto;

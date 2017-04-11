@@ -100,9 +100,7 @@ void *hilo_CPUs(){
 						FD_CLR(i, &fd_CPUs); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
-						memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-						fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-						send(i, buf, strlen(buf),0);
+
 					}
 				}
 			}
@@ -303,12 +301,12 @@ int main(int argc, char** argv) {
 	//Servidores
 
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-	send(sockfd_memoria, buf, strlen(buf),0);	//Le mandamos a la memoria
-	//send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
+	//fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
+	//send(sockfd_memoria, "handshake", strlen(buf),0);	//Le mandamos a la memoria
+	//send(sockfd_fs, "handshake", strlen(buf),0);	//Le mandamos al filesystem
 
 	//CPUs
 	pthread_t hiloProgramas;
@@ -350,6 +348,8 @@ int main(int argc, char** argv) {
 						FD_CLR(i, &fd_programas); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
+						send(sockfd_memoria, buf, strlen(buf),0);	//Le mandamos a la memoria
+						send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
 						//pthread_mutex_lock(&mutex_fd_cpus);
 						/*for(j = 0; j <= fdmax_cpu; j++) {
 							if (FD_ISSET(j, &fd_CPUs)) {
