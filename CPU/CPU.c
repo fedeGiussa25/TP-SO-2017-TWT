@@ -22,7 +22,7 @@
 #include <signal.h>
 #include <commons/config.h>
 #include "../config_shortcuts/config_shortcuts.h"
-
+#include "../config_shortcuts/config_shortcuts.c"
 
 int main(int argc, char **argv) {
 
@@ -110,14 +110,15 @@ int main(int argc, char **argv) {
 	//Lo que pase primero
 	while(1)
 	{
-		bytes = recv(fd,buf,sizeof(buf)-1,0);
+		bytes = recv(fd,buf,strlen(buf),0);
 		if(bytes == -1)
 		{
 			perror("recieve");
 			exit(3);
 		}
-		buf[bytes]='\0';
-		printf("%s",buf);
+		sleep(3);
+		printf("%s\n",buf);
+		sleep(3);
 	}
 
 	close(fd);
