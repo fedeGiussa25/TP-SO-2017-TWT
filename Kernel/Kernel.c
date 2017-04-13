@@ -73,7 +73,7 @@ void remove_by_fd_socket(t_list *lista, int sockfd){
 	max = list_size(lista);
 	cpu_conexion *unaCPU, *CPU_encontrada;
 
-	for(i=0; i<= max; i++){
+	for(i=0; i < max; i++){
 		unaCPU = list_get(lista, i);
 		if(unaCPU->sock_fd == sockfd){
 			CPU_encontrada = list_remove(lista, i);
@@ -227,11 +227,11 @@ void *hilo_CPUs(){
 						} else {
 							perror("recv_cpu");
 						}
-						close(i);
-						FD_CLR(i, &fd_CPUs); // remove from master set
 						pthread_mutex_lock(&mutex_fd_cpus);
 						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
+						close(i);
+						FD_CLR(i, &fd_CPUs); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
 						send(i, buf, sizeof buf, 0);
@@ -327,7 +327,7 @@ int main(int argc, char** argv) {
 	//Servidores
 
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
 	//fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
@@ -376,13 +376,14 @@ int main(int argc, char** argv) {
 						printf("Se recibio: %s\n", buf);
 						send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 
-						//send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
+						send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
 
 						pthread_mutex_lock(&mutex_fd_cpus);
 						cpu_max = list_size(lista_cpus);
 						pthread_mutex_unlock(&mutex_fd_cpus);
 
-						for(j = 0; j <= cpu_max; j++){
+						//Le mandamos a las cpus
+						for(j = 0; j < cpu_max; j++){
 							pthread_mutex_lock(&mutex_fd_cpus);
 							unaCPU = list_get(lista_cpus, j);
 							pthread_mutex_unlock(&mutex_fd_cpus);
