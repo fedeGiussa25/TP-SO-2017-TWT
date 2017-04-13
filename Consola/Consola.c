@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 		while(1){
 			memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
 			fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-			send(sockfd_kernel, buf, strlen(buf),0);
+			send(sockfd_kernel, buf, sizeof buf,0);
 		}
 
 		config_destroy(config);

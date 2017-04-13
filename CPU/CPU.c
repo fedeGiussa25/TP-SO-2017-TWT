@@ -109,16 +109,23 @@ int main(int argc, char **argv) {
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
-	//while(1)
-	//{
+	while(1)
+	{
+		memset(buf, 0, sizeof buf);
 		bytes = recv(fd,buf,sizeof buf,0);
-		if(bytes == -1)
-		{
-			perror("recieve");
-			exit(3);
+		if(bytes > 0){
+					printf("%s\n",buf);
+		}else{
+			if(bytes == -1){
+
+				perror("recieve");
+				exit(3);
+				}
+			if(bytes == 0){
+				close(fd);
+			}
 		}
-		printf("%s\n",buf);
-	//}
+	}
 
 	close(fd);
 

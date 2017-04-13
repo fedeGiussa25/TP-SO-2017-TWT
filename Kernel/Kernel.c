@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/collections/list.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -41,16 +42,22 @@ typedef struct {
 
 pthread_mutex_t mutex_fd_cpus;
 
+typedef struct{
+	int sock_fd;
+	int pid_asignado;
+}cpu_conexion;
+
 //VARIABLES GLOBALES
 int mem_sock;
 int listener_cpu;
-int listener_programa;
 int fdmax_cpu;
 
 fd_set fd_programas;
 fd_set fd_CPUs;
 
 kernel_config data_config;
+
+t_list* lista_cpus;
 
 //FUNCIONES
 void *get_in_addr(struct sockaddr *sa)
@@ -61,53 +68,19 @@ return &(((struct sockaddr_in*)sa)->sin_addr);
 return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void *hilo_CPUs(){
-	//variables para conexiones con CPUs
-	int listener_programa, newfd, nbytes, i;
-	fd_set read_fds;
-	char remoteIP[INET6_ADDRSTRLEN];
-	char buf[256];
-	char* algo = "Algo";
+void remove_by_fd_socket(t_list *lista, int sockfd){
+	int i, max;
+	max = list_size(lista);
+	cpu_conexion *unaCPU, *CPU_encontrada;
 
-	listener_programa = get_fd_listener(data_config.puerto_cpu);
-
-	//pthread_mutex_lock(&mutex_fd_cpus);
-	FD_SET(listener_programa, &fd_CPUs);
-	fdmax_cpu = listener_programa;
-	//pthread_mutex_unlock(&mutex_fd_cpus);
-
-	for(;;) {
-		read_fds = fd_CPUs;
-		if (select(fdmax_cpu+1, &read_fds, NULL, NULL, NULL) == -1) {
-			perror("select");
-			exit(4);
-		}
-		for(i = 0; i <= fdmax_cpu; i++) {
-			//pthread_mutex_lock(&mutex_fd_cpus);
-			if (FD_ISSET(i, &read_fds)) {
-				if (i == listener_programa) {
-					newfd = sock_accept_new_connection(listener_programa, &fdmax_cpu, &fd_CPUs);
-				} else {
-					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-						if (nbytes == 0) {
-							printf("selectserver: socket %d hung up\n", i);
-						} else {
-							perror("recv_cpu");
-						}
-						close(i);
-						FD_CLR(i, &fd_CPUs); // remove from master set
-					} else {
-						printf("Se recibio: %s\n", buf);
-						send(i, buf, sizeof buf, 0);
-					}
-				}
-			}
-			//pthread_mutex_unlock(&mutex_fd_cpus);
+	for(i=0; i<= max; i++){
+		unaCPU = list_get(lista, i);
+		if(unaCPU->sock_fd == sockfd){
+			CPU_encontrada = list_remove(lista, i);
+			free(CPU_encontrada);
 		}
 	}
 }
-
 
 int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
 	int newfd, addrlen;
@@ -216,6 +189,59 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
+void *hilo_CPUs(){
+	//variables para conexiones con CPUs
+	int listener_cpu, newfd, nbytes, i;
+	fd_set read_fds;
+	cpu_conexion *nueva_conexion;
+	char remoteIP[INET6_ADDRSTRLEN];
+	char buf[256];
+
+	lista_cpus = list_create();
+
+	listener_cpu = get_fd_listener(data_config.puerto_cpu);
+
+	FD_SET(listener_cpu, &fd_CPUs);
+	fdmax_cpu = listener_cpu;
+
+	for(;;) {
+		read_fds = fd_CPUs;
+		if (select(fdmax_cpu+1, &read_fds, NULL, NULL, NULL) == -1) {
+			perror("select");
+			exit(4);
+		}
+		for(i = 0; i <= fdmax_cpu; i++) {
+			if (FD_ISSET(i, &read_fds)) {
+				if (i == listener_cpu) {
+					newfd = sock_accept_new_connection(listener_cpu, &fdmax_cpu, &fd_CPUs);
+					nueva_conexion = malloc(sizeof(cpu_conexion));
+					nueva_conexion->sock_fd = newfd;
+					pthread_mutex_lock(&mutex_fd_cpus);
+					list_add(lista_cpus, nueva_conexion);
+					pthread_mutex_unlock(&mutex_fd_cpus);
+				} else {
+					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
+					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+						if (nbytes == 0) {
+							printf("selectserver: socket %d hung up\n", i);
+						} else {
+							perror("recv_cpu");
+						}
+						close(i);
+						FD_CLR(i, &fd_CPUs); // remove from master set
+						pthread_mutex_lock(&mutex_fd_cpus);
+						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
+						pthread_mutex_unlock(&mutex_fd_cpus);
+					} else {
+						printf("Se recibio: %s\n", buf);
+						send(i, buf, sizeof buf, 0);
+					}
+				}
+			}
+		}
+	}
+}
+
 int main(int argc, char** argv) {
 
 	if(argc == 0){
@@ -232,9 +258,10 @@ int main(int argc, char** argv) {
 	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
 
 	//variiables para conexiones con clientes
-	int listener_programa, fdmax, newfd, addrlen, nbytes, j;
+	int listener_programa, fdmax, newfd, addrlen, nbytes, j, cpu_max;
 	fd_set read_fds;
 	char remoteIP[INET6_ADDRSTRLEN];
+	cpu_conexion *unaCPU;
 
 	FD_ZERO(&fd_programas);
 	FD_ZERO(&fd_CPUs);
@@ -336,7 +363,7 @@ int main(int argc, char** argv) {
 					newfd = sock_accept_new_connection(listener_programa, &fdmax, &fd_programas);
 				} else {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, buf, strlen(buf), 0)) <= 0) {
+					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
 
 						if (nbytes == 0) {
 							printf("selectserver: socket %d hung up\n", i);
@@ -347,19 +374,20 @@ int main(int argc, char** argv) {
 						FD_CLR(i, &fd_programas); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
-						send(sockfd_memoria, buf, strlen(buf),0);	//Le mandamos a la memoria
+						send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
+
 						//send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
-						//pthread_mutex_lock(&mutex_fd_cpus);
-						/*for(j = 0; j <= fdmax_cpu; j++) {
-							if (FD_ISSET(j, &fd_CPUs)) {
-								if (j != listener_cpu) {
-									if (send(j, buf, nbytes, 0) == -1) {
-										perror("send");
-										}
-									}
-								}
-							}*/
-						//pthread_mutex_unlock(&mutex_fd_cpus);
+
+						pthread_mutex_lock(&mutex_fd_cpus);
+						cpu_max = list_size(lista_cpus);
+						pthread_mutex_unlock(&mutex_fd_cpus);
+
+						for(j = 0; j <= cpu_max; j++){
+							pthread_mutex_lock(&mutex_fd_cpus);
+							unaCPU = list_get(lista_cpus, j);
+							pthread_mutex_unlock(&mutex_fd_cpus);
+							send(unaCPU->sock_fd, buf, sizeof buf, 0);
+						}
 						memset(buf, 0, 256*sizeof(char));
 					}
 				}

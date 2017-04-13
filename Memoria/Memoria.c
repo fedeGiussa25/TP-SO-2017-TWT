@@ -73,16 +73,13 @@ int main(int argc, char** argv){
 
 	/*Sockets para recibir mensaje del Kernel*/
 
-	int listener, newfd, i, bytes_leidos;
-	char buffer[256];
+	int listener, newfd, i, bytes_leidos, bytes;
+	char buf[256];
 	struct sockaddr_in server, cliente;
 
 	/*inicializo el buffer*/
 
-	for(i=0;i<256;i++)
-	{
-		buffer[i]='\0';
-	}
+	memset(buf, 0, sizeof buf);
 
 	server.sin_family=AF_INET;
 	server.sin_port=htons(PORTNUM);
@@ -124,25 +121,44 @@ int main(int argc, char** argv){
 	}
 
 	/*recv()*/
+	/*while(1){
+		if((bytes_leidos=recv(newfd,buffer,sizeof buffer,0))<=0)
+		{
+			if(bytes_leidos==0)
+			{
+				printf("Se desconecto el cliente");
+				return 1;
+			}
+			else
+			{
+				perror("recv");
+				exit(1);
+			}
+		}
+	}*/
 
-	if((bytes_leidos=recv(newfd,buffer,255,0))<=0)
-	{
-		if(bytes_leidos==0)
+	while(1)
 		{
-			printf("Se desconecto el cliente");
-			return 1;
+			memset(buf, 0, sizeof buf);
+			bytes = recv(newfd,buf,sizeof buf,0);
+			if(bytes > 0){
+						printf("%s\n",buf);
+			}else{
+				if(bytes == -1){
+					perror("recieve");
+					exit(3);
+					}
+				if(bytes == 0){
+					printf("Se desconecto el socket: %d\n", newfd);
+					close(newfd);
+				}
+			}
 		}
-		else
-		{
-			perror("recv");
-			exit(1);
-		}
-	}
 
 	/*Mostramos el mensaje recibido*/
 
-	buffer[bytes_leidos]='\0';
-	printf("%s",buffer);
+	buf[bytes_leidos]='\0';
+	printf("%s",buf);
 
 	return 0;
 }
