@@ -44,7 +44,7 @@ pthread_mutex_t mutex_fd_cpus;
 
 typedef struct{
 	int sock_fd;
-	int pid_asignado;
+	int pid;
 }cpu_conexion;
 
 //VARIABLES GLOBALES
@@ -196,6 +196,7 @@ void *hilo_CPUs(){
 	cpu_conexion *nueva_conexion;
 	char remoteIP[INET6_ADDRSTRLEN];
 	char buf[256];
+	int pid = getpid();
 
 	lista_cpus = list_create();
 
@@ -234,7 +235,9 @@ void *hilo_CPUs(){
 						FD_CLR(i, &fd_CPUs); // remove from master set
 					} else {
 						printf("Se recibio: %s\n", buf);
-						send(i, buf, sizeof buf, 0);
+						memset(buf, 0, sizeof buf);
+						sprintf(buf, "Te has conectado a Kernel %d", pid);
+						send(newfd, buf, sizeof buf, 0);
 					}
 				}
 			}
@@ -256,11 +259,15 @@ int main(int argc, char** argv) {
 	//Variables para conexiones con servidores
 	char buf[256];
 	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
+	int bytes_mem, bytes_fs;
 
 	//variiables para conexiones con clientes
 	int listener_programa, fdmax, newfd, addrlen, nbytes, j, cpu_max;
 	fd_set read_fds;
 	char remoteIP[INET6_ADDRSTRLEN];
+
+	int pid = getpid();
+
 	cpu_conexion *unaCPU;
 
 	FD_ZERO(&fd_programas);
@@ -330,9 +337,43 @@ int main(int argc, char** argv) {
 	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	//fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-	//send(sockfd_memoria, "handshake", strlen(buf),0);	//Le mandamos a la memoria
-	//send(sockfd_fs, "handshake", strlen(buf),0);	//Le mandamos al filesystem
+	sprintf(buf, "Kernel %d conectado!", pid);
+	send(sockfd_memoria, buf, sizeof buf, 0);
+	send(sockfd_fs, buf, sizeof buf, 0);
+
+	/*Handshake*/
+
+	bytes_mem = recv(sockfd_memoria,buf,sizeof buf,0);
+	if(bytes_mem > 0){
+		printf("%s\n",buf);
+		}else{
+			if(bytes_mem == -1){
+				perror("recieve");
+				exit(3);
+				}
+			if(bytes_mem == 0){
+				printf("Se desconecto el socket: %d\n", sockfd_memoria);
+				close(sockfd_memoria);
+				}
+		}
+
+	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
+
+	bytes_fs = recv(sockfd_fs,buf,sizeof buf,0);
+	if(bytes_fs > 0){
+		printf("%s\n",buf);
+		}else{
+			if(bytes_fs == -1){
+				perror("recieve");
+				exit(3);
+				}
+			if(bytes_fs == 0){
+				printf("Se desconecto el socket: %d\n", sockfd_fs);
+				close(sockfd_fs);
+				}
+		}
+
+	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
 
 	//CPUs
 	pthread_t hiloProgramas;
@@ -389,7 +430,7 @@ int main(int argc, char** argv) {
 							pthread_mutex_unlock(&mutex_fd_cpus);
 							send(unaCPU->sock_fd, buf, sizeof buf, 0);
 						}
-						memset(buf, 0, 256*sizeof(char));
+						memset(buf, 0, sizeof buf);
 					}
 				}
 			}

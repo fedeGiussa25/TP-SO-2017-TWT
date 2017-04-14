@@ -58,6 +58,7 @@ int main(int argc, char** argv)
 	int listener, newfd, i, bytes_leidos, bytes;
 	char buf[256];
 	struct sockaddr_in server, cliente;
+	int pid = getpid();
 
 	/*inicializo el buffer*/
 
@@ -104,6 +105,26 @@ int main(int argc, char** argv)
 	{
 		perror("accept");
 	}
+
+	/*Handshake*/
+
+	bytes = recv(newfd,buf,sizeof buf,0);
+	if(bytes > 0){
+		printf("%s\n",buf);
+		}else{
+			if(bytes == -1){
+				perror("recieve");
+				exit(3);
+				}
+			if(bytes == 0){
+				printf("Se desconecto el socket: %d\n", newfd);
+				close(newfd);
+				}
+		}
+	memset(buf, 0, sizeof buf);
+	sprintf(buf, "Te has conectado a FS %d", pid);
+	send(newfd, buf, sizeof buf, 0);
+
 
 	/*recv()*/
 

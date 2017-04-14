@@ -75,7 +75,8 @@ int main(int argc, char** argv) {
 
 		//Variables para la conexion con kernel
 		char buf[256];
-		int sockfd_kernel;
+		int sockfd_kernel, bytes;
+		int pid = getpid();
 
 		ruta = argv[1];
 		nombre_archivo = argv[2];

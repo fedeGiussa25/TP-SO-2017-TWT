@@ -97,9 +97,11 @@ int main(int argc, char **argv) {
 	//Sockinfo debe irse, su planeta lo necesita
 	free(sockinfo);
 
+	int pid = getpid();
+
 	//Esto es el handshake, solo envia basura
 	char basura[256];
-	memcpy(basura, "krgr", strlen("krgr"));
+	sprintf(basura, "CPU %d conectado!", pid);
 	if(send(fd,basura,sizeof buf,0)==-1)
 	{
 		perror("send");
