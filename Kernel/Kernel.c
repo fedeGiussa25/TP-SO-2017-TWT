@@ -47,7 +47,52 @@ typedef struct{
 	int pid;
 }cpu_conexion;
 
+// STRUCTS DE PCB - TAL VEZ DEBERIAMOS PONERLOS EN UN .h
+
+
+typedef struct{
+	int offset;
+	int size;
+}code_index_line;
+
+typedef struct{
+	int page;
+	int offset;
+	int size;
+}pagoffsize;
+
+typedef struct{
+	char* id;
+	int page;
+	int offset;
+	int size;
+}idpagoffsize;
+
+typedef struct{
+	idpagoffsize args;
+	idpagoffsize vars;
+	int ret_pos;
+	pagoffsize ret_var;
+}stack_index_line;
+
+//Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
+//despues. Asi que lo hago ahora ¯\_(ツ)_/¯
+
+typedef struct{
+	u_int32_t pid;
+	//int ip;
+	int page_counter;
+	//aca iria una referencia a la tabla de archivos del proceso
+	//code_index_line code_index[];
+	//char* tag_index;
+	//stack_index_line stack_index[];
+	//int exit_code;
+}PCB;
+
+// SI, HAY VARIOS PARECIDOS PERO VA A SER MUY MOLESTO USARLOS SI LOS ANIDO
+
 //VARIABLES GLOBALES
+int pid = 0;
 int mem_sock;
 int listener_cpu;
 int fdmax_cpu;
@@ -59,7 +104,20 @@ kernel_config data_config;
 
 t_list* lista_cpus;
 
+
 //FUNCIONES
+PCB* create_PCB(char* a_whole_bunch_of_serialized_code){
+	PCB* nuevo_PCB = malloc(sizeof(PCB));
+	/* M A G I A */
+	/* A         */  //Aca sacaria toda la posta del PCB pero todavia no lo necesitamos.
+	/* G         */  //Asi que no lo hice.
+	/* I         */
+	/* A / / / / */
+	nuevo_PCB->pid = ++pid;
+	nuevo_PCB->page_counter = 0; //Se updatearia cuando pedimos espacio a memoria
+	return nuevo_PCB;
+}
+
 void *get_in_addr(struct sockaddr *sa)
 {
 if (sa->sa_family == AF_INET) {
