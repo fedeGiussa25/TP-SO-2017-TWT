@@ -9,9 +9,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PORTNUM 5004 //Esto lo levanta del archivo de config en realidad, es solo para probar
-
-
 typedef struct{
 	char* puerto;
 	int marcos;
@@ -68,14 +65,18 @@ int main(int argc, char** argv){
 	printf("REEMPLAZO_CACHE = %s\n", data_config.reemplazo_cache);
 	printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
 
+	int portnum;
+	portnum=atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
+
 	config_destroy(config);
 	free(path);
 
 	/*Sockets para recibir mensaje del Kernel*/
 
-	int listener, newfd, i, bytes_leidos, bytes;
+	int listener, newfd, bytes_leidos, bytes;
 	char buf[256];
 	struct sockaddr_in server, cliente;
+
 	int pid = getpid();
 
 	/*inicializo el buffer*/
@@ -83,7 +84,7 @@ int main(int argc, char** argv){
 	memset(buf, 0, sizeof buf);
 
 	server.sin_family=AF_INET;
-	server.sin_port=htons(PORTNUM);
+	server.sin_port=htons(portnum);
 	server.sin_addr.s_addr=INADDR_ANY;
 	memset(&(server.sin_zero),'\0',8);
 	memset(&(cliente.sin_zero),'\0',8);

@@ -9,7 +9,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PORTNUM 5003
 
 typedef struct{
 	char* puerto;
@@ -49,6 +48,9 @@ int main(int argc, char** argv)
 	printf("PORT = %s\n", data_config.puerto);
 	printf("Montaje = %s\n", data_config.montaje);
 
+	int portnum;
+	portnum=atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
+
 	config_destroy(config);		//Eliminamos fs_config, linberamos la memoria que utiliza
 	free(path);		//liberamos lo que alocamos previamente
 
@@ -68,7 +70,7 @@ int main(int argc, char** argv)
 	}
 
 	server.sin_family=AF_INET;
-	server.sin_port=htons(PORTNUM);
+	server.sin_port=htons(portnum);
 	server.sin_addr.s_addr=INADDR_ANY;
 	memset(&(server.sin_zero),'\0',8);
 	memset(&(cliente.sin_zero),'\0',8);
