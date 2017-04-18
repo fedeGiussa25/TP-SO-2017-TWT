@@ -73,6 +73,47 @@ int main(int argc, char** argv){
 
 	/*Sockets para recibir mensaje del Kernel*/
 
+	/*Funciones*/
+
+	//Backlog es la cantidad maxima que quiero de conexiones pendientes
+
+	void poner_a_escuchar(int sockfd, struct sockaddr* server, int backlog)
+	{
+		if((bind(sockfd, server, sizeof(struct sockaddr)))==-1)
+			{
+				perror("bind");
+				exit(1);
+			}
+		if(listen(sockfd,backlog)==-1)
+			{
+				perror("listen");
+				exit(1);
+			}
+		return;
+	}
+
+	struct sockaddr_in crear_estructura_server (int puerto)
+	{
+		struct sockaddr_in server;
+		server.sin_family=AF_INET;
+		server.sin_port=htons(puerto);
+		server.sin_addr.s_addr=INADDR_ANY;
+		memset(&(server.sin_zero),'\0',8);
+		return server;
+	}
+
+	int aceptar_conexion(int sockfd, struct sockaddr* clien)
+	{
+		int socknuevo;
+		socklen_t clie_len=sizeof(struct sockaddr_in);
+		if((socknuevo=accept(sockfd, clien, &clie_len))==-1)
+		{
+			perror("accept");
+		}
+		return socknuevo;
+	}
+
+
 	int listener, newfd, bytes_leidos, bytes;
 	char buf[256];
 	struct sockaddr_in server, cliente;
@@ -82,12 +123,11 @@ int main(int argc, char** argv){
 	/*inicializo el buffer*/
 
 	memset(buf, 0, sizeof buf);
-
-	server.sin_family=AF_INET;
-	server.sin_port=htons(portnum);
-	server.sin_addr.s_addr=INADDR_ANY;
-	memset(&(server.sin_zero),'\0',8);
 	memset(&(cliente.sin_zero),'\0',8);
+
+	/*Creo estructura server*/
+
+	server = crear_estructura_server(portnum);
 
 	/*socket()*/
 
@@ -97,30 +137,13 @@ int main(int argc, char** argv){
 		exit(1);
 	}
 
-	/*bind()*/
+	/*bind() y listen()*/
 
-	if((bind(listener,(struct sockaddr *) &server,sizeof(struct sockaddr)))==-1)
-	{
-		perror("bind");
-		exit(1);
-	}
-
-	/*listen()*/
-
-	if(listen(listener,1)==-1)
-	{
-		perror("listen");
-		exit(1);
-	}
+	poner_a_escuchar(listener, (struct sockaddr *) &server, 1);
 
 	/*accept()*/
 
-	socklen_t clie_len=sizeof(struct sockaddr_in);
-
-	if((newfd=accept(listener,(struct sockaddr *) &cliente,&clie_len))==-1)
-	{
-		perror("accept");
-	}
+	newfd = aceptar_conexion(listener, (struct sockaddr*) &cliente);
 
 	/*Handshake*/
 
