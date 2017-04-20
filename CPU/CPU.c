@@ -23,8 +23,161 @@
 #include <commons/config.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
+#include "parser/parser.h"
+
+
+/*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
+
+/*Aca defino las primitivas que aparecen en la estructura AnSISOP_funciones adentro del
+ * archivo parser.h. Lo unico que hace cada una es decir "soy tal primitiva" asi sabemos
+ * a que primitivas se llamaron cuando le mandamos una instruccion a analizadorLinea()
+ * (el twt es por the walking thread :))
+ */
+
+t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
+{
+	printf("Definir Variable: %c\n",identificador_variable);
+	return 0;
+}
+t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
+{
+	printf("Soy obtenerPosicionVariable\n");
+	return 0;
+}
+t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
+{
+	printf("Soy dereferenciar\n");
+	return 0;
+}
+void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
+{
+	printf("Soy asignar\n");
+	return;
+}
+t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
+{
+	printf("Soy obtenerValorCompartida\n");
+	return 0;
+}
+t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_valor_variable valor)
+{
+	printf("Soy asignarValorCompartida\n");
+	return 0;
+}
+void twt_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta)
+{
+	printf("Soy irAlLabel\n");
+	return;
+}
+void twt_llamarSinRetorno(t_nombre_etiqueta etiqueta)
+{
+	printf("Soy llamarSinRetorno\n");
+	return;
+}
+void twt_llamarConRetorno (t_nombre_etiqueta etiqueta, t_puntero donde_retornar)
+{
+	printf("Soy llamarConRetorno\n");
+	return;
+}
+void twt_finalizar (void)
+{
+	printf("Soy finalizar\n");
+	return;
+}
+void twt_retornar(t_valor_variable retorno)
+{
+	printf("Soy retornar\n");
+	return;
+}
+
+/*Y aca abajo defino las primitivas para las operaciones que ejecuta el Kernel
+ * Estan en la estructura AnSISOP_kernel
+ */
+void twt_wait(t_nombre_semaforo identificador_semaforo)
+{
+	printf("Soy wait\n");
+	return;
+}
+void twt_signal (t_nombre_semaforo identificador_semaforo)
+{
+	printf("Soy signal\n");
+	return;
+}
+t_puntero twt_reservar (t_valor_variable espacio)
+{
+	printf("Soy reservar memoria\n");
+	return 0;
+}
+void twt_liberar(t_puntero puntero)
+{
+	printf("Soy liberar memoria\n");
+	return;
+}
+t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
+{
+	printf("Soy abrir archivo\n");
+	return 0;
+}
+void twt_borrar (t_descriptor_archivo direccion)
+{
+	printf("Soy borrar archivo\n");
+	return;
+}
+void twt_cerrar (t_descriptor_archivo descriptor_archivo)
+{
+	printf("Soy cerrar archivo\n");
+	return;
+}
+void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable posicion)
+{
+	printf("Soy moverCursor\n");
+	return;
+}
+void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t_valor_variable tamanio)
+{
+	printf("Soy escribir archivo\n");
+	return;
+}
+void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t_valor_variable tamanio)
+{
+	printf("Soy leer archivo\n");
+	return;
+}
+
+/*Lo que hay en AnSISOP_funciones y AnSISOP_kernel son punteros a funciones, entonces
+ * los hago apuntar a mis funciones twt
+ */
+AnSISOP_funciones funciones =
+	{
+			.AnSISOP_definirVariable=twt_definirVariable,
+			.AnSISOP_obtenerPosicionVariable=twt_obtenerPosicionVariable,
+			.AnSISOP_dereferenciar=twt_dereferenciar,
+			.AnSISOP_asignar=twt_asignar,
+			.AnSISOP_obtenerValorCompartida=twt_obtenerValorCompartida,
+			.AnSISOP_asignarValorCompartida=twt_asignarValorCompartida,
+			.AnSISOP_irAlLabel=twt_irAlLabel,
+			.AnSISOP_llamarConRetorno=twt_llamarConRetorno,
+			.AnSISOP_finalizar=twt_finalizar,
+			.AnSISOP_retornar=twt_retornar
+	};
+AnSISOP_kernel fcs_kernel =
+	{
+			.AnSISOP_wait=twt_wait,
+			.AnSISOP_signal=twt_signal,
+			.AnSISOP_reservar=twt_reservar,
+			.AnSISOP_liberar=twt_liberar,
+			.AnSISOP_abrir=twt_abrir,
+			.AnSISOP_borrar=twt_borrar,
+			.AnSISOP_cerrar=twt_cerrar,
+			.AnSISOP_moverCursor=twt_moverCursor,
+			.AnSISOP_escribir=twt_escribir,
+			.AnSISOP_leer=twt_leer
+	};
 
 int main(int argc, char **argv) {
+
+	//analizadorLinea la pongo solo para probar si llama a las primitivas
+	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 
 	// SETTEO DESDE ARCHIVO DE CONFIGURACION
 
@@ -130,6 +283,7 @@ int main(int argc, char **argv) {
 	}
 
 	close(fd);
-
+	//analizadorLinea la pongo solo para probar si llama a las primitivas
+	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 	return 0;
 }
