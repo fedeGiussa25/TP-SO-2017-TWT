@@ -8,42 +8,20 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include "../config_shortcuts/config_shortcuts.h"
+#include "../config_shortcuts/config_shortcuts.c"
 
-
-typedef struct{
-	char* puerto;
-	char *montaje;
-}fs_config;
 
 int main(int argc, char** argv)
 {
-
-	if(argc == 0){
-		printf("Debe ingresar ruta de .config y archivo\n");
-		exit(1);
-	}
-
 	t_config *config;
 	fs_config data_config;
-	char *montaje, *path, *ruta, *nombre_archivo, *puerto;
 
-	ruta = argv[1];		//Guardamos el primer parametro que es la ruta del archivo
-	nombre_archivo = argv[2];		//Guardamos el segundo parametro que es el nombre del archivo
-
-	//Formamos la path del config
-	path = malloc(strlen("../../")+strlen(ruta)+strlen(nombre_archivo)+1);
-	strcpy(path, "../../");
-	strcat(path,ruta);
-	strcat(path, nombre_archivo);
-
-	char *key1 = "PUERTO";
-	char *key2 = "PUNTO_MONTAJE";
-
-	config = config_create(path);		//Creamos el t_config
+	config = config_create_from_relative_with_check(argc,argv);
 
 	//Leemos los datos
-	data_config.puerto = config_get_string_value(config, key1);
-	data_config.montaje = config_get_string_value(config, key2);
+	data_config.puerto = config_get_string_value(config, "PUERTO");
+	data_config.montaje = config_get_string_value(config, "PUNTO_MONTAJE");
 
 	printf("PORT = %s\n", data_config.puerto);
 	printf("Montaje = %s\n", data_config.montaje);
@@ -52,7 +30,6 @@ int main(int argc, char** argv)
 	portnum=atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
 
 	config_destroy(config);		//Eliminamos fs_config, linberamos la memoria que utiliza
-	free(path);		//liberamos lo que alocamos previamente
 
 
 	/*Sockets para recibir mensaje del Kernel*/

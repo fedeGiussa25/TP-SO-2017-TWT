@@ -17,11 +17,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "../config_shortcuts/config_shortcuts.h"
+#include "../config_shortcuts/config_shortcuts.c"
 
-typedef struct{
-	char* ip_kernel;
-	char* puerto_kernel;
-}consola_config;
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
 int get_fd_server(char* ip, char* puerto){
@@ -64,35 +62,16 @@ int get_fd_server(char* ip, char* puerto){
 
 
 int main(int argc, char** argv) {
-	if(argc == 0){
-			printf("Debe ingresar ruta de .config y archivo\n");
-			exit(1);
-		}
 
 		t_config *config;
 		consola_config data_config;
-		char *path, *ruta, *nombre_archivo;
-
-		//Variables para la conexion con kernel
 		char buf[256];
-		int sockfd_kernel, bytes;
-		int pid = getpid();
+		int sockfd_kernel;
 
-		ruta = argv[1];
-		nombre_archivo = argv[2];
+		config = config_create_from_relative_with_check(argc,argv);
 
-		path = malloc(strlen("../../")+strlen(ruta)+strlen(nombre_archivo)+1);
-		strcpy(path, "../../");
-		strcat(path,ruta);
-		strcat(path, nombre_archivo);
-
-		char *key1 = "IP_KERNEL";
-		char *key2 = "PUERTO_KERNEL";
-
-		config = config_create(path);
-
-		data_config.ip_kernel = config_get_string_value(config, key1);
-		data_config.puerto_kernel = config_get_string_value(config, key2);
+		data_config.ip_kernel = config_get_string_value(config, "IP_KERNEL");
+		data_config.puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 
 		printf("IP_KERNEL = %s\n", data_config.ip_kernel);
 		printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
@@ -107,6 +86,5 @@ int main(int argc, char** argv) {
 		}
 
 		config_destroy(config);
-		free(path);
 		return 0;
 }

@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 	//Si aux es NULL entonces no me pude conectar con ninguno de los sockaddr y aborto el programa.
 	if(aux == NULL)
 	{
-		printf("connection status: failed");
+		printf("connection status: failed\n");
 		exit(2);
 	} else fprintf(stderr,"connection status: success\n");
 

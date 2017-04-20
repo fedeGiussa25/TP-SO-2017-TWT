@@ -22,23 +22,8 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <semaphore.h>
-
-typedef struct {
-	char* puerto_prog;
-	char* puerto_cpu;
-	char* ip_memoria;
-	char* puerto_memoria;
-	char* ip_fs;
-	char* puerto_fs;
-	int quantum;
-	int quantum_sleep;
-	char* algoritmo;
-	int grado_multiprog;
-	char** sem_ids;
-	int* sem_init;
-	char** shared_vars;
-	int stack_size;
-}kernel_config;
+#include "../config_shortcuts/config_shortcuts.h"
+#include "../config_shortcuts/config_shortcuts.c"
 
 pthread_mutex_t mutex_fd_cpus;
 
@@ -311,7 +296,6 @@ int main(int argc, char** argv) {
 	}
 	//Variables para config
 	t_config *config_file;
-	char *path, *ruta, *nombre_archivo;
 	int i=0, k=0, y=0;
 
 	//Variables para conexiones con servidores
@@ -334,14 +318,7 @@ int main(int argc, char** argv) {
 
 	struct sockaddr_in direcServ;
 
-	ruta = argv[1];
-	nombre_archivo = argv[2];
-	path = malloc(strlen("../../")+strlen(ruta)+strlen(nombre_archivo)+1);
-	strcpy(path, "../../");
-	strcat(path,ruta);
-	strcat(path, nombre_archivo);
-
-	config_file = config_create(path);
+	config_file = config_create_from_relative_with_check(argc,argv);
 
 	//Configuro al kernel
 	data_config.puerto_prog = config_get_string_value(config_file, "PUERTO_PROG");
@@ -497,6 +474,5 @@ int main(int argc, char** argv) {
 
 	close(sockfd_memoria);
 	config_destroy(config_file);
-	free(path);
 	return EXIT_SUCCESS;
 }
