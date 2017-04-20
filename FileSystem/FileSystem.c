@@ -12,6 +12,48 @@
 #include "../config_shortcuts/config_shortcuts.c"
 
 
+/*Sockets para recibir mensaje del Kernel*/
+
+	/*Funciones*/
+
+	//Backlog es la cantidad maxima que quiero de conexiones pendientes
+
+	void poner_a_escuchar(int sockfd, struct sockaddr* server, int backlog)
+	{
+		if((bind(sockfd, server, sizeof(struct sockaddr))) == -1)
+			{
+				perror("bind");
+				exit(1);
+			}
+		if(listen(sockfd,backlog) == -1)
+			{
+				perror("listen");
+				exit(1);
+			}
+		return;
+	}
+
+	struct sockaddr_in crear_estructura_server (int puerto)
+	{
+		struct sockaddr_in server;
+		server.sin_family = AF_INET;
+		server.sin_port = htons(puerto);
+		server.sin_addr.s_addr = INADDR_ANY;
+		memset(&(server.sin_zero),'\0',8);
+		return server;
+	}
+
+	int aceptar_conexion(int sockfd, struct sockaddr* clien)
+	{
+		int socknuevo;
+		socklen_t clie_len=sizeof(struct sockaddr_in);
+		if((socknuevo = accept(sockfd, clien, &clie_len)) == -1)
+		{
+			perror("accept");
+		}
+		return socknuevo;
+	}
+
 int main(int argc, char** argv)
 {
 	t_config *config;
@@ -29,50 +71,7 @@ int main(int argc, char** argv)
 	int portnum;
 	portnum=atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
 
-	config_destroy(config);		//Eliminamos fs_config, linberamos la memoria que utiliza
-
-
-	/*Sockets para recibir mensaje del Kernel*/
-
-	/*Funciones*/
-
-	//Backlog es la cantidad maxima que quiero de conexiones pendientes
-
-	void poner_a_escuchar(int sockfd, struct sockaddr* server, int backlog)
-	{
-		if((bind(sockfd, server, sizeof(struct sockaddr)))==-1)
-			{
-				perror("bind");
-				exit(1);
-			}
-		if(listen(sockfd,backlog)==-1)
-			{
-				perror("listen");
-				exit(1);
-			}
-		return;
-	}
-
-	struct sockaddr_in crear_estructura_server (int puerto)
-	{
-		struct sockaddr_in server;
-		server.sin_family=AF_INET;
-		server.sin_port=htons(puerto);
-		server.sin_addr.s_addr=INADDR_ANY;
-		memset(&(server.sin_zero),'\0',8);
-		return server;
-	}
-
-	int aceptar_conexion(int sockfd, struct sockaddr* clien)
-	{
-		int socknuevo;
-		socklen_t clie_len=sizeof(struct sockaddr_in);
-		if((socknuevo=accept(sockfd, clien, &clie_len))==-1)
-		{
-			perror("accept");
-		}
-		return socknuevo;
-	}
+	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 
 	int listener, newfd, bytes_leidos, bytes;
 	char buf[256];

@@ -11,37 +11,8 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 
-int main(int argc, char** argv){
 
-	t_config *config;
-	mem_config data_config;
-
-	config = config_create_from_relative_with_check(argc,argv);
-
-	data_config.puerto = config_get_string_value(config, "PUERTO");
-	data_config.marcos = config_get_int_value(config, "MARCOS");
-	data_config.marco_size = config_get_int_value(config, "MARCO_SIZE");
-	data_config.entradas_cache = config_get_int_value(config, "ENTRADAS_CACHE");
-	data_config.cache_x_proceso = config_get_int_value(config, "CACHE_X_PROC");
-	data_config.reemplazo_cache = config_get_string_value(config, "REEMPLAZO_CACHE");
-	data_config.retardo_memoria = config_get_int_value(config, "RETARDO_MEMORIA");
-
-	printf("PORT = %s\n", data_config.puerto);
-	printf("MARCOS = %d\n", data_config.marcos);
-	printf("MARCO_SIZE = %d\n", data_config.marco_size);
-	printf("ENTRADAS_CACHE = %d\n", data_config.entradas_cache);
-	printf("CACHE_X_PROCESO = %d\n", data_config.cache_x_proceso);
-	printf("REEMPLAZO_CACHE = %s\n", data_config.reemplazo_cache);
-	printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
-
-	int portnum;
-	portnum=atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
-
-	config_destroy(config);
-
-	/*Sockets para recibir mensaje del Kernel*/
-
-	/*Funciones*/
+/*Funciones*/
 
 	//Backlog es la cantidad maxima que quiero de conexiones pendientes
 
@@ -81,6 +52,36 @@ int main(int argc, char** argv){
 		return socknuevo;
 	}
 
+
+int main(int argc, char** argv){
+
+	t_config *config;
+	mem_config data_config;
+
+	config = config_create_from_relative_with_check(argc,argv);
+
+	data_config.puerto = config_get_string_value(config, "PUERTO");
+	data_config.marcos = config_get_int_value(config, "MARCOS");
+	data_config.marco_size = config_get_int_value(config, "MARCO_SIZE");
+	data_config.entradas_cache = config_get_int_value(config, "ENTRADAS_CACHE");
+	data_config.cache_x_proceso = config_get_int_value(config, "CACHE_X_PROC");
+	data_config.reemplazo_cache = config_get_string_value(config, "REEMPLAZO_CACHE");
+	data_config.retardo_memoria = config_get_int_value(config, "RETARDO_MEMORIA");
+
+	printf("PORT = %s\n", data_config.puerto);
+	printf("MARCOS = %d\n", data_config.marcos);
+	printf("MARCO_SIZE = %d\n", data_config.marco_size);
+	printf("ENTRADAS_CACHE = %d\n", data_config.entradas_cache);
+	printf("CACHE_X_PROCESO = %d\n", data_config.cache_x_proceso);
+	printf("REEMPLAZO_CACHE = %s\n", data_config.reemplazo_cache);
+	printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
+
+	int portnum;
+	portnum = atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
+
+	config_destroy(config);
+
+	/*Sockets para recibir mensaje del Kernel*/
 
 	int listener, newfd, bytes_leidos, bytes;
 	char buf[256];

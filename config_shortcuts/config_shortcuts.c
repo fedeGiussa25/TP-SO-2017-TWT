@@ -10,10 +10,22 @@
 #include "config_shortcuts.h"
 
 	t_config* config_create_from_relative_with_check(int argc, char** argv){
-		if(argc == 0){
-			printf("Debe ingresar ruta de .config y archivo\n");
+		
+		if(argc == 1){
+			printf("Debe ingresar la ruta del archivo de configuracion y su nombre\n");
 			exit(1);
 		}
+	
+		if(argc == 2){
+			printf("Debe ingresar el nombre del archivo de configuracion\n");
+			exit(1);
+		}
+		
+		if(argc != 3){
+			printf("Numero incorrecto de argumentos\n");
+			exit(1);
+		}
+		
 		char *path, *ruta, *nombre_archivo;
 		ruta = argv[1];
 		nombre_archivo = argv[2];
