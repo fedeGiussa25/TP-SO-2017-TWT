@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 		t_config *config;
 		consola_config data_config;
 		char buf[256];
-		int sockfd_kernel;
+		int sockfd_kernel, codigo;
 
 		config = config_create_from_relative_with_check(argc,argv);
 
@@ -78,6 +78,13 @@ int main(int argc, char** argv) {
 
 		//Nos conectamos
 		sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+
+		codigo = 2;
+		if(send(sockfd_kernel,&codigo,sizeof(int),0)==-1)
+			{
+				perror("send");
+				exit(3);
+			}
 
 		while(1){
 			memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer

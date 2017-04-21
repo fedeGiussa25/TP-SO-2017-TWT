@@ -22,19 +22,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: consolaproto2
+all: Consola
 
 # Tool invocations
-consolaproto2: $(OBJS) $(USER_OBJS)
+Consola: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc  -o "consolaproto2" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "Consola" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) consolaproto2
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Consola
 	-@echo ' '
 
 .PHONY: all clean dependents

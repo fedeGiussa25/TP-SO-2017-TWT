@@ -26,14 +26,18 @@
 #include "../config_shortcuts/config_shortcuts.c"
 
 pthread_mutex_t mutex_fd_cpus;
+pthread_mutex_t mutex_fd_consolas;
+
+// Structs de conexiones
+typedef struct{
+	int sock_fd;
+}cpu_conexion;
 
 typedef struct{
 	int sock_fd;
-	int pid;
-}cpu_conexion;
+}consola_conexion;
 
 // STRUCTS DE PCB - TAL VEZ DEBERIAMOS PONERLOS EN UN .h
-
 
 typedef struct{
 	int offset;
@@ -82,13 +86,13 @@ int mem_sock;
 int listener_cpu;
 int fdmax_cpu;
 
-fd_set fd_programas;
-fd_set fd_CPUs;
+fd_set fd_procesos;
 
 kernel_config data_config;
 
+//Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
-
+t_list* lista_consolas;
 
 //FUNCIONES
 PCB* create_PCB(char* a_whole_bunch_of_serialized_code){
@@ -114,13 +118,13 @@ return &(((struct sockaddr_in6*)sa)->sin6_addr);
 void remove_by_fd_socket(t_list *lista, int sockfd){
 	int i, max;
 	max = list_size(lista);
-	cpu_conexion *unaCPU, *CPU_encontrada;
+	cpu_conexion *unaConexion, *conexion_encontrada;
 
 	for(i=0; i < max; i++){
-		unaCPU = list_get(lista, i);
-		if(unaCPU->sock_fd == sockfd){
-			CPU_encontrada = list_remove(lista, i);
-			free(CPU_encontrada);
+		unaConexion = list_get(lista, i);
+		if(unaConexion->sock_fd == sockfd){
+			conexion_encontrada = list_remove(lista, i);
+			free(conexion_encontrada);
 		}
 	}
 }
@@ -232,67 +236,14 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
-void *hilo_CPUs(){
-	//variables para conexiones con CPUs
-	int listener_cpu, newfd, nbytes, i;
-	fd_set read_fds;
-	cpu_conexion *nueva_conexion;
-	char remoteIP[INET6_ADDRSTRLEN];
-	char buf[256];
-	int pid = getpid();
+void cargar_config(){
 
-	lista_cpus = list_create();
-
-	listener_cpu = get_fd_listener(data_config.puerto_cpu);
-
-	FD_SET(listener_cpu, &fd_CPUs);
-	fdmax_cpu = listener_cpu;
-
-	for(;;) {
-		read_fds = fd_CPUs;
-		if (select(fdmax_cpu+1, &read_fds, NULL, NULL, NULL) == -1) {
-			perror("select");
-			exit(4);
-		}
-		for(i = 0; i <= fdmax_cpu; i++) {
-			if (FD_ISSET(i, &read_fds)) {
-				if (i == listener_cpu) {
-					newfd = sock_accept_new_connection(listener_cpu, &fdmax_cpu, &fd_CPUs);
-					nueva_conexion = malloc(sizeof(cpu_conexion));
-					nueva_conexion->sock_fd = newfd;
-					pthread_mutex_lock(&mutex_fd_cpus);
-					list_add(lista_cpus, nueva_conexion);
-					pthread_mutex_unlock(&mutex_fd_cpus);
-				} else {
-					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-						if (nbytes == 0) {
-							printf("selectserver: socket %d hung up\n", i);
-						} else {
-							perror("recv_cpu");
-						}
-						pthread_mutex_lock(&mutex_fd_cpus);
-						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
-						pthread_mutex_unlock(&mutex_fd_cpus);
-						close(i);
-						FD_CLR(i, &fd_CPUs); // remove from master set
-					} else {
-						printf("Se recibio: %s\n", buf);
-						memset(buf, 0, sizeof buf);
-						sprintf(buf, "Te has conectado a Kernel %d", pid);
-						send(newfd, buf, sizeof buf, 0);
-					}
-				}
-			}
-		}
-	}
 }
 
 int main(int argc, char** argv) {
-
 	if(argc == 0){
-		printf("Debe ingresar ruta de .config y archivo\n");
-		exit(1);
+	printf("Debe ingresar ruta de .config y archivo\n");
+	exit(1);
 	}
 	//Variables para config
 	t_config *config_file;
@@ -304,16 +255,19 @@ int main(int argc, char** argv) {
 	int bytes_mem, bytes_fs;
 
 	//variiables para conexiones con clientes
-	int listener_programa, fdmax, newfd, addrlen, nbytes, j, cpu_max;
+	int listener, fdmax, newfd, nbytes;
 	fd_set read_fds;
-	char remoteIP[INET6_ADDRSTRLEN];
+	int codigo;
+	int list_cpu_size, list_consola_size;
 
-	int pid = getpid();
+	//consolas y cpus
 
-	cpu_conexion *unaCPU;
+	lista_cpus = list_create();
+	lista_consolas = list_create();
+	cpu_conexion *nueva_conexion_cpu;
+	consola_conexion *nueva_conexion_consola;
 
-	FD_ZERO(&fd_programas);
-	FD_ZERO(&fd_CPUs);
+	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
 
 	struct sockaddr_in direcServ;
@@ -365,106 +319,82 @@ int main(int argc, char** argv) {
 	}
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 
-	//********************************Conexiones***************************************//
+//********************************Conexiones***************************************//
 	//Servidores
 
-	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	//sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
+	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
-	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	sprintf(buf, "Kernel %d conectado!", pid);
-	send(sockfd_memoria, buf, sizeof buf, 0);
-	send(sockfd_fs, buf, sizeof buf, 0);
+	//memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
+	//sprintf(buf, "Kernel %d conectado!", pid);
+	//send(sockfd_memoria, buf, sizeof buf, 0);
+	//send(sockfd_fs, buf, sizeof buf, 0);
 
-	/*Handshake*/
+	//Consolas y CPUs
+	listener = get_fd_listener(data_config.puerto_prog);
 
-	bytes_mem = recv(sockfd_memoria,buf,sizeof buf,0);
-	if(bytes_mem > 0){
-		printf("%s\n",buf);
-		}else{
-			if(bytes_mem == -1){
-				perror("recieve");
-				exit(3);
-				}
-			if(bytes_mem == 0){
-				printf("Se desconecto el socket: %d\n", sockfd_memoria);
-				close(sockfd_memoria);
-				}
-		}
+	FD_SET(listener, &fd_procesos);
 
-	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-
-	bytes_fs = recv(sockfd_fs,buf,sizeof buf,0);
-	if(bytes_fs > 0){
-		printf("%s\n",buf);
-		}else{
-			if(bytes_fs == -1){
-				perror("recieve");
-				exit(3);
-				}
-			if(bytes_fs == 0){
-				printf("Se desconecto el socket: %d\n", sockfd_fs);
-				close(sockfd_fs);
-				}
-		}
-
-	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-
-	//CPUs
-	pthread_t hiloProgramas;
-	int valorHilo = -1;
-
-	valorHilo = pthread_create(&hiloProgramas, NULL, (void *) hilo_CPUs, NULL);
-
-	if(valorHilo != 0){
-			printf("Error al crear el hilo receptor");
-		}
-
-	//Consolas
-	listener_programa = get_fd_listener(data_config.puerto_prog);
-
-	FD_SET(listener_programa, &fd_programas);
-
-	fdmax = listener_programa;
+	fdmax = listener;
 
 	for(;;) {
-		read_fds = fd_programas;
+		read_fds = fd_procesos;
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
 			perror("select");
 			exit(4);
 		}
 		for(i = 0; i <= fdmax; i++) {
 			if (FD_ISSET(i, &read_fds)) {
-				if (i == listener_programa) {
-					newfd = sock_accept_new_connection(listener_programa, &fdmax, &fd_programas);
+				if (i == listener) {
+					newfd = sock_accept_new_connection(listener, &fdmax, &fd_procesos);
 				} else {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+					if ((nbytes = recv(i, &codigo, sizeof(int), 0)) <= 0) {
 
 						if (nbytes == 0) {
 							printf("selectserver: socket %d hung up\n", i);
 						} else {
 							perror("recv");
 						}
-						close(i);
-						FD_CLR(i, &fd_programas); // remove from master set
-					} else {
-						printf("Se recibio: %s\n", buf);
-						send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
-
-						send(sockfd_fs, buf, strlen(buf),0);	//Le mandamos al filesystem
-
+						//Dado que no sabemos a que proceso pertenece dicho socket, hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
 						pthread_mutex_lock(&mutex_fd_cpus);
-						cpu_max = list_size(lista_cpus);
+						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
 
-						//Le mandamos a las cpus
-						for(j = 0; j < cpu_max; j++){
+						pthread_mutex_lock(&mutex_fd_consolas);
+						remove_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
+						pthread_mutex_unlock(&mutex_fd_consolas);
+
+						close(i);
+						FD_CLR(i, &fd_procesos); // remove from master set
+
+						printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
+						printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+					} else {
+						printf("Se recibio: %d\n", codigo);	//Si recibio un 1 significa que el que lo envio es una CPU, si es 2, una consola.
+
+						if(codigo == 1){
+							nueva_conexion_cpu = malloc(sizeof(cpu_conexion));
+							nueva_conexion_cpu->sock_fd = newfd;
 							pthread_mutex_lock(&mutex_fd_cpus);
-							unaCPU = list_get(lista_cpus, j);
+							list_add(lista_cpus, nueva_conexion_cpu);
 							pthread_mutex_unlock(&mutex_fd_cpus);
-							send(unaCPU->sock_fd, buf, sizeof buf, 0);
+
+							printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
 						}
+						if(codigo == 2){
+							nueva_conexion_consola = malloc(sizeof(consola_conexion));
+							nueva_conexion_consola->sock_fd = newfd;
+							pthread_mutex_lock(&mutex_fd_consolas);
+							list_add(lista_consolas, nueva_conexion_consola);
+							pthread_mutex_unlock(&mutex_fd_consolas);
+
+							printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+						}
+						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
+						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
+
+
 						memset(buf, 0, sizeof buf);
 					}
 				}
