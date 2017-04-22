@@ -29,13 +29,10 @@ pthread_mutex_t mutex_fd_cpus;
 pthread_mutex_t mutex_fd_consolas;
 
 // Structs de conexiones
-typedef struct{
-	int sock_fd;
-}cpu_conexion;
 
 typedef struct{
 	int sock_fd;
-}consola_conexion;
+}proceso_conexion;
 
 // STRUCTS DE PCB - TAL VEZ DEBERIAMOS PONERLOS EN UN .h
 
@@ -116,17 +113,12 @@ return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 void remove_by_fd_socket(t_list *lista, int sockfd){
-	int i, max;
-	max = list_size(lista);
-	cpu_conexion *unaConexion, *conexion_encontrada;
-
-	for(i=0; i < max; i++){
-		unaConexion = list_get(lista, i);
-		if(unaConexion->sock_fd == sockfd){
-			conexion_encontrada = list_remove(lista, i);
-			free(conexion_encontrada);
-		}
-	}
+	bool _remove_socket(proceso_conexion* unaConex)
+	    {
+	        return unaConex->sock_fd == sockfd;
+	    }
+	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,_remove_socket);
+	free(conexion_encontrada);
 }
 
 int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
@@ -264,13 +256,11 @@ int main(int argc, char** argv) {
 
 	lista_cpus = list_create();
 	lista_consolas = list_create();
-	cpu_conexion *nueva_conexion_cpu;
-	consola_conexion *nueva_conexion_consola;
+	proceso_conexion *nueva_conexion_cpu;
+	proceso_conexion *nueva_conexion_consola;
 
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
-
-	struct sockaddr_in direcServ;
 
 	config_file = config_create_from_relative_with_check(argc,argv);
 
@@ -319,15 +309,15 @@ int main(int argc, char** argv) {
 	}
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 
-//********************************Conexiones***************************************//
+	//********************************Conexiones***************************************//
 	//Servidores
 
-	//sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
+	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
 	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
-	//memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	//sprintf(buf, "Kernel %d conectado!", pid);
-	//send(sockfd_memoria, buf, sizeof buf, 0);
+	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
+	sprintf(buf, "Kernel %d conectado!", pid);
+	send(sockfd_memoria, buf, sizeof buf, 0);
 	//send(sockfd_fs, buf, sizeof buf, 0);
 
 	//Consolas y CPUs
@@ -356,7 +346,8 @@ int main(int argc, char** argv) {
 						} else {
 							perror("recv");
 						}
-						//Dado que no sabemos a que proceso pertenece dicho socket, hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
+						//Dado que no sabemos a que proceso pertenece dicho socket,
+						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
 						pthread_mutex_lock(&mutex_fd_cpus);
 						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
@@ -374,7 +365,7 @@ int main(int argc, char** argv) {
 						printf("Se recibio: %d\n", codigo);	//Si recibio un 1 significa que el que lo envio es una CPU, si es 2, una consola.
 
 						if(codigo == 1){
-							nueva_conexion_cpu = malloc(sizeof(cpu_conexion));
+							nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
 							nueva_conexion_cpu->sock_fd = newfd;
 							pthread_mutex_lock(&mutex_fd_cpus);
 							list_add(lista_cpus, nueva_conexion_cpu);
@@ -383,7 +374,7 @@ int main(int argc, char** argv) {
 							printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
 						}
 						if(codigo == 2){
-							nueva_conexion_consola = malloc(sizeof(consola_conexion));
+							nueva_conexion_consola = malloc(sizeof(proceso_conexion));
 							nueva_conexion_consola->sock_fd = newfd;
 							pthread_mutex_lock(&mutex_fd_consolas);
 							list_add(lista_consolas, nueva_conexion_consola);
