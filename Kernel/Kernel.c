@@ -34,8 +34,9 @@ typedef struct{
 	int sock_fd;
 }proceso_conexion;
 
-// STRUCTS DE PCB - TAL VEZ DEBERIAMOS PONERLOS EN UN .h
-
+// STRUCTS DE PCB
+//VOLO: "TAL VEZ DEBERIAMOS PONERLOS EN UN .h"
+//GIUSSA: "Tal vez deberias hacerlo :D"
 typedef struct{
 	int offset;
 	int size;
@@ -228,43 +229,8 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
-void cargar_config(){
-
-}
-
-int main(int argc, char** argv) {
-	if(argc == 0){
-	printf("Debe ingresar ruta de .config y archivo\n");
-	exit(1);
-	}
-	//Variables para config
-	t_config *config_file;
-	int i=0, k=0, y=0;
-
-	//Variables para conexiones con servidores
-	char buf[256];
-	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
-	int bytes_mem, bytes_fs;
-
-	//variiables para conexiones con clientes
-	int listener, fdmax, newfd, nbytes;
-	fd_set read_fds;
-	int codigo;
-	int list_cpu_size, list_consola_size;
-
-	//consolas y cpus
-
-	lista_cpus = list_create();
-	lista_consolas = list_create();
-	proceso_conexion *nueva_conexion_cpu;
-	proceso_conexion *nueva_conexion_consola;
-
-	FD_ZERO(&fd_procesos);
-	FD_ZERO(&read_fds);
-
-	config_file = config_create_from_relative_with_check(argc,argv);
-
-	//Configuro al kernel
+void cargar_config(t_config *config_file){
+	int y = 0;
 	data_config.puerto_prog = config_get_string_value(config_file, "PUERTO_PROG");
 	data_config.puerto_cpu = config_get_string_value(config_file, "PUERTO_CPU");
 	data_config.ip_memoria = config_get_string_value(config_file,"IP_MEMORIA");
@@ -287,8 +253,12 @@ int main(int argc, char** argv) {
 
 	data_config.shared_vars = config_get_array_value(config_file, "SHARED_VARS");
 	data_config.stack_size = config_get_int_value(config_file, "STACK_SIZE");
+}
 
-	//Imprimo los datos
+void print_config(){
+	int k = 0;
+	int i =0;
+
 	printf("Puerto Programas: %s\n", data_config.puerto_prog);
 	printf("Puerto CPUs: %s\n", data_config.puerto_cpu);
 	printf("IP Memoria: %s\n", data_config.ip_memoria);
@@ -308,6 +278,41 @@ int main(int argc, char** argv) {
 		k++;
 	}
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
+}
+
+
+int main(int argc, char** argv) {
+	if(argc == 0){
+	printf("Debe ingresar ruta de .config y archivo\n");
+	exit(1);
+	}
+	//Variables para config
+	t_config *config_file;
+	int i=0;
+
+	//Variables para conexiones con servidores
+	char buf[256];
+	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
+	int bytes_mem, bytes_fs;
+
+	//variables para conexiones con clientes
+	int listener, fdmax, newfd, nbytes;
+	fd_set read_fds;
+	int codigo;
+
+	//consolas y cpus
+
+	lista_cpus = list_create();
+	lista_consolas = list_create();
+	proceso_conexion *nueva_conexion_cpu;
+	proceso_conexion *nueva_conexion_consola;
+
+	FD_ZERO(&fd_procesos);
+	FD_ZERO(&read_fds);
+
+	config_file = config_create_from_relative_with_check(argc,argv);
+	cargar_config(config_file);	//Carga la estructura data_config de Kernel
+	print_config();	//Adivina... la imprime por pantalla
 
 	//********************************Conexiones***************************************//
 	//Servidores
