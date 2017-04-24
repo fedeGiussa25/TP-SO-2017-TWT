@@ -35,7 +35,7 @@ cl: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) cl
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) cl
 	-@echo ' '
 
 .PHONY: all clean dependents

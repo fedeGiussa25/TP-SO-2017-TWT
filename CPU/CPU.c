@@ -198,6 +198,10 @@ int main(int argc, char **argv) {
 	char buf[256];
 	int statusgetaddrinfo, fd, bytes, codigo;
 	struct addrinfo hints, *sockinfo, *aux;
+	int idProceso = 1;
+	int messageLength;
+	void* realbuf;
+	char* message;
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
 	memset(&hints,0,sizeof(hints));
@@ -250,25 +254,36 @@ int main(int argc, char **argv) {
 	//Sockinfo debe irse, su planeta lo necesita
 	free(sockinfo);
 
-	codigo = 1;
+	/*codigo = 1;
 	if(send(fd,&codigo,sizeof(int),0)==-1)
 		{
 			perror("send");
 			exit(3);
-		}
+		}*/
+
+	void* codbuf = malloc(sizeof(int)*2);
+	codigo =1;
+	memcpy(codbuf,&codigo,sizeof(int));
+	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
+	send(fd, codbuf, sizeof(int)*2, 0);
+	free(codbuf);
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
 	while(1)
 	{
-		memset(buf, 0, sizeof buf);
-		bytes = recv(fd,buf,sizeof buf,0);
+		bytes = recv(fd, &messageLength, sizeof(int), 0);
 		if(bytes > 0){
-					printf("%s\n",buf);
+			realbuf = malloc(messageLength+2);
+			memset(realbuf,0,messageLength+2);
+			recv(fd, realbuf, messageLength, 0);
+			message = (char*) realbuf;
+			message[messageLength+1]='\0';
+			printf("Kernel dice: %d + %s \n", messageLength, message);
+			free(realbuf);
 		}else{
 			if(bytes == -1){
-
 				perror("recieve");
 				exit(3);
 				}

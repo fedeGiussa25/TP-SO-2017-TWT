@@ -291,14 +291,17 @@ int main(int argc, char** argv) {
 	int i=0;
 
 	//Variables para conexiones con servidores
-	char buf[256];
+	char *buf = malloc(256);
 	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
 	int bytes_mem, bytes_fs;
 
 	//variables para conexiones con clientes
 	int listener, fdmax, newfd, nbytes;
 	fd_set read_fds;
-	int codigo;
+	int codigo, processID;
+	int messageLength;
+	void* realbuf;
+	char* message;
 
 	//consolas y cpus
 
@@ -317,12 +320,12 @@ int main(int argc, char** argv) {
 	//********************************Conexiones***************************************//
 	//Servidores
 
-	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
+	//sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
 	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
-	memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	sprintf(buf, "Kernel %d conectado!", pid);
-	send(sockfd_memoria, buf, sizeof buf, 0);
+	//memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
+	//sprintf(buf, "Kernel %d conectado!", pid);
+	//send(sockfd_memoria, buf, sizeof buf, 0);
 	//send(sockfd_fs, buf, sizeof buf, 0);
 
 	//Consolas y CPUs
@@ -367,31 +370,47 @@ int main(int argc, char** argv) {
 						printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
 						printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
 					} else {
-						printf("Se recibio: %d\n", codigo);	//Si recibio un 1 significa que el que lo envio es una CPU, si es 2, una consola.
-
+						printf("Se recibio: %d\n", codigo);
+						//Si el codigo es 1 significa que el proceso del otro lado esta haciendo el handshake
 						if(codigo == 1){
-							nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
-							nueva_conexion_cpu->sock_fd = newfd;
-							pthread_mutex_lock(&mutex_fd_cpus);
-							list_add(lista_cpus, nueva_conexion_cpu);
-							pthread_mutex_unlock(&mutex_fd_cpus);
+							recv(i, &processID,sizeof(int),0);
+							if(processID == 1){	//Si el processID es 1, sabemos que es una CPU
+								printf("Es una CPU\n");
+								nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
+								nueva_conexion_cpu->sock_fd = newfd;
+								pthread_mutex_lock(&mutex_fd_cpus);
+								list_add(lista_cpus, nueva_conexion_cpu);
+								pthread_mutex_unlock(&mutex_fd_cpus);
 
-							printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
-						}
+								printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
+
+							}
+							if(processID == 2){	//Si en cambio el processID es 2, es una Consola
+								printf("Es una Consola\n");
+								nueva_conexion_consola = malloc(sizeof(proceso_conexion));
+								nueva_conexion_consola->sock_fd = newfd;
+								pthread_mutex_lock(&mutex_fd_consolas);
+								list_add(lista_consolas, nueva_conexion_consola);
+								pthread_mutex_unlock(&mutex_fd_consolas);
+
+								printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+							}
+						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un mensaje
 						if(codigo == 2){
-							nueva_conexion_consola = malloc(sizeof(proceso_conexion));
-							nueva_conexion_consola->sock_fd = newfd;
-							pthread_mutex_lock(&mutex_fd_consolas);
-							list_add(lista_consolas, nueva_conexion_consola);
-							pthread_mutex_unlock(&mutex_fd_consolas);
-
-							printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+							recv(i, &messageLength, sizeof(int), 0);
+							realbuf = malloc(messageLength+2);
+							memset(realbuf,0,messageLength+2);
+							recv(i, realbuf, messageLength, 0);
+							message = (char*) realbuf;
+							message[messageLength+1]='\0';
+							printf("Consola %d dice: %d + %s \n", i, messageLength, message);
+							free(realbuf);
 						}
+
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
 
-
-						memset(buf, 0, sizeof buf);
+						memset(buf,0,256);
 					}
 				}
 			}

@@ -35,7 +35,7 @@ se: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) se
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) se
 	-@echo ' '
 
 .PHONY: all clean dependents

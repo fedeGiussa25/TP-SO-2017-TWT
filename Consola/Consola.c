@@ -65,8 +65,11 @@ int main(int argc, char** argv) {
 
 		t_config *config;
 		consola_config data_config;
-		char buf[256];
-		int sockfd_kernel, codigo;
+		char *buf = malloc(256);
+		int sockfd_kernel, codigo, codigo2;
+		int idProceso = 2;
+		int messageLength;
+
 
 		config = config_create_from_relative_with_check(argc,argv);
 
@@ -79,17 +82,33 @@ int main(int argc, char** argv) {
 		//Nos conectamos
 		sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
-		codigo = 2;
+		memset(buf,0,256);
+		/*codigo = 2;
 		if(send(sockfd_kernel,&codigo,sizeof(int),0)==-1)
 			{
 				perror("send");
 				exit(3);
-			}
+			}*/
+		void* codbuf = malloc(sizeof(int)*2);
+		codigo =1;
+		memcpy(codbuf,&codigo,sizeof(int));
+		memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
+		send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
+		free(codbuf);
+
+		codigo2 =2;
 
 		while(1){
-			memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-			fgets(buf, 256*sizeof(char), stdin);	//Ingresamos nuestro mensaje
-			send(sockfd_kernel, buf, sizeof buf,0);
+			memset(buf,0,256);
+			fgets(buf,256,stdin);
+			messageLength = strlen(buf)-1;
+			void* realbuf = malloc((sizeof(int)*2)+messageLength);
+			memcpy(realbuf,&codigo2,sizeof(int));
+			memcpy(realbuf+sizeof(int),&messageLength, sizeof(int));
+			memcpy(realbuf+sizeof(int)+sizeof(int),buf,messageLength);
+			send(sockfd_kernel, realbuf, messageLength+(sizeof(int)*2), 0);
+			memset(buf,0,256);
+			free(realbuf);
 		}
 
 		config_destroy(config);
