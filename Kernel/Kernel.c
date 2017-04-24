@@ -37,6 +37,7 @@ typedef struct{
 // STRUCTS DE PCB
 //VOLO: "TAL VEZ DEBERIAMOS PONERLOS EN UN .h"
 //GIUSSA: "Tal vez deberias hacerlo :D"
+//VOLO: "Seras rompehuevos eh"
 typedef struct{
 	int offset;
 	int size;
@@ -301,6 +302,7 @@ int main(int argc, char** argv) {
 	int codigo, processID;
 	int messageLength;
 	void* realbuf;
+	void* sendbuf;
 	char* message;
 
 	//consolas y cpus
@@ -397,6 +399,7 @@ int main(int argc, char** argv) {
 							}
 						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un mensaje
 						if(codigo == 2){
+							//Aca recibo un mensaje de consola y lo imprimo
 							recv(i, &messageLength, sizeof(int), 0);
 							realbuf = malloc(messageLength+2);
 							memset(realbuf,0,messageLength+2);
@@ -404,6 +407,19 @@ int main(int argc, char** argv) {
 							message = (char*) realbuf;
 							message[messageLength+1]='\0';
 							printf("Consola %d dice: %d + %s \n", i, messageLength, message);
+
+							//Aca me encargo de mandarselo a las CPU
+							int j=0;
+							sendbuf = malloc(sizeof(int) + messageLength);
+							memcpy(sendbuf,&messageLength,sizeof(int));
+							memcpy(sendbuf+sizeof(int),message,messageLength);
+							for(j=0; j < list_size(lista_cpus); j++){
+								proceso_conexion* aux = list_get(lista_cpus,j);
+								send(aux->sock_fd,sendbuf,messageLength+sizeof(int),0);
+							}
+
+							//Aca libero los buffers
+							free(sendbuf);
 							free(realbuf);
 						}
 

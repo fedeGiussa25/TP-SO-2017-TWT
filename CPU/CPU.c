@@ -23,7 +23,7 @@
 #include <commons/config.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
-#include "parser/parser.h"
+#include <parser/parser.h>
 
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
@@ -174,6 +174,41 @@ AnSISOP_kernel fcs_kernel =
 			.AnSISOP_leer=twt_leer
 	};
 
+//Funciones para que el main quede lindo
+void message_handler_for_fd(int fd){
+	int messageLength;
+	void* realbuf;
+	char* message;
+
+	int bytes = recv(fd, &messageLength, sizeof(int), 0);
+	if(bytes > 0){
+		realbuf = malloc(messageLength+2);
+		memset(realbuf,0,messageLength+2);
+		recv(fd, realbuf, messageLength, 0);
+		message = (char*) realbuf;
+		message[messageLength+1]='\0';
+		printf("Kernel dice: %d + %s \n", messageLength, message);
+		free(realbuf);
+	}else{
+		if(bytes == -1){
+			perror("recieve");
+			exit(3);
+			}
+		if(bytes == 0){
+			close(fd);
+		}
+	}
+}
+
+void handshake(int codigo, int idProceso, int fd){
+	void* codbuf = malloc(sizeof(int)*2);
+	codigo = 1;
+	memcpy(codbuf,&codigo,sizeof(int));
+	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
+	send(fd, codbuf, sizeof(int)*2, 0);
+	free(codbuf);
+}
+
 int main(int argc, char **argv) {
 
 	//analizadorLinea la pongo solo para probar si llama a las primitivas
@@ -199,9 +234,6 @@ int main(int argc, char **argv) {
 	int statusgetaddrinfo, fd, bytes, codigo;
 	struct addrinfo hints, *sockinfo, *aux;
 	int idProceso = 1;
-	int messageLength;
-	void* realbuf;
-	char* message;
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
 	memset(&hints,0,sizeof(hints));
@@ -261,36 +293,14 @@ int main(int argc, char **argv) {
 			exit(3);
 		}*/
 
-	void* codbuf = malloc(sizeof(int)*2);
-	codigo =1;
-	memcpy(codbuf,&codigo,sizeof(int));
-	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
-	send(fd, codbuf, sizeof(int)*2, 0);
-	free(codbuf);
+	handshake(codigo,idProceso,fd);
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
 	while(1)
 	{
-		bytes = recv(fd, &messageLength, sizeof(int), 0);
-		if(bytes > 0){
-			realbuf = malloc(messageLength+2);
-			memset(realbuf,0,messageLength+2);
-			recv(fd, realbuf, messageLength, 0);
-			message = (char*) realbuf;
-			message[messageLength+1]='\0';
-			printf("Kernel dice: %d + %s \n", messageLength, message);
-			free(realbuf);
-		}else{
-			if(bytes == -1){
-				perror("recieve");
-				exit(3);
-				}
-			if(bytes == 0){
-				close(fd);
-			}
-		}
+		message_handler_for_fd(fd);
 	}
 
 	close(fd);

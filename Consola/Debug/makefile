@@ -34,7 +34,7 @@ Consola: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Consola
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) Consola
 	-@echo ' '
 
 .PHONY: all clean dependents
