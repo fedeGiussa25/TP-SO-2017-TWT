@@ -294,7 +294,7 @@ int main(int argc, char **argv) {
 	}
 
 	close(fd);
-	close(fd_memoria);
+
 	//analizadorLinea la pongo solo para probar si llama a las primitivas
 	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 	return 0;
