@@ -318,17 +318,30 @@ int main(int argc, char** argv) {
 	config_file = config_create_from_relative_with_check(argc,argv);
 	cargar_config(config_file);	//Carga la estructura data_config de Kernel
 	print_config();	//Adivina... la imprime por pantalla
+	//config_destroy(config_file);
 
 	//********************************Conexiones***************************************//
-	//Servidores
 
-	//sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
+	//Servidores
+	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
 	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
-	//memset(buf, 0, 256*sizeof(char));	//limpiamos nuestro buffer
-	//sprintf(buf, "Kernel %d conectado!", pid);
-	//send(sockfd_memoria, buf, sizeof buf, 0);
-	//send(sockfd_fs, buf, sizeof buf, 0);
+	int handshake = 1;
+	int resp;
+	send(sockfd_memoria, &handshake, sizeof(int), 0);
+	bytes_mem = recv(sockfd_memoria, &resp, sizeof(int), 0);
+	if(bytes_mem > 0 && resp == 1){
+				printf("%d\n",resp);
+	}else{
+		if(bytes_mem == -1){
+			perror("recieve");
+			exit(3);
+			}
+		if(bytes_mem == 0){
+			printf("Se desconecto el socket: %d\n", sockfd_memoria);
+			close(sockfd_memoria);
+		}
+	}
 
 	//Consolas y CPUs
 	listener = get_fd_listener(data_config.puerto_prog);

@@ -11,6 +11,7 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 
+mem_config data_config;
 
 /*Funciones*/
 
@@ -52,29 +53,37 @@
 		return socknuevo;
 	}
 
+	void cargar_config(t_config *config){
+		data_config.puerto = config_get_string_value(config, "PUERTO");
+		data_config.marcos = config_get_int_value(config, "MARCOS");
+		data_config.marco_size = config_get_int_value(config, "MARCO_SIZE");
+		data_config.entradas_cache = config_get_int_value(config, "ENTRADAS_CACHE");
+		data_config.cache_x_proceso = config_get_int_value(config, "CACHE_X_PROC");
+		data_config.reemplazo_cache = config_get_string_value(config, "REEMPLAZO_CACHE");
+		data_config.retardo_memoria = config_get_int_value(config, "RETARDO_MEMORIA");
+	}
+
+	void print_config(){
+		printf("PORT = %s\n", data_config.puerto);
+		printf("MARCOS = %d\n", data_config.marcos);
+		printf("MARCO_SIZE = %d\n", data_config.marco_size);
+		printf("ENTRADAS_CACHE = %d\n", data_config.entradas_cache);
+		printf("CACHE_X_PROCESO = %d\n", data_config.cache_x_proceso);
+		printf("REEMPLAZO_CACHE = %s\n", data_config.reemplazo_cache);
+		printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
+	}
+
+void *hilo_programa(){
+
+}
 
 int main(int argc, char** argv){
 
 	t_config *config;
-	mem_config data_config;
 
 	config = config_create_from_relative_with_check(argc,argv);
-
-	data_config.puerto = config_get_string_value(config, "PUERTO");
-	data_config.marcos = config_get_int_value(config, "MARCOS");
-	data_config.marco_size = config_get_int_value(config, "MARCO_SIZE");
-	data_config.entradas_cache = config_get_int_value(config, "ENTRADAS_CACHE");
-	data_config.cache_x_proceso = config_get_int_value(config, "CACHE_X_PROC");
-	data_config.reemplazo_cache = config_get_string_value(config, "REEMPLAZO_CACHE");
-	data_config.retardo_memoria = config_get_int_value(config, "RETARDO_MEMORIA");
-
-	printf("PORT = %s\n", data_config.puerto);
-	printf("MARCOS = %d\n", data_config.marcos);
-	printf("MARCO_SIZE = %d\n", data_config.marco_size);
-	printf("ENTRADAS_CACHE = %d\n", data_config.entradas_cache);
-	printf("CACHE_X_PROCESO = %d\n", data_config.cache_x_proceso);
-	printf("REEMPLAZO_CACHE = %s\n", data_config.reemplazo_cache);
-	printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
+	cargar_config(config);
+	print_config();
 
 	int portnum;
 	portnum = atoi(data_config.puerto); /*Lo asigno antes de destruir config*/
@@ -84,14 +93,10 @@ int main(int argc, char** argv){
 	/*Sockets para recibir mensaje del Kernel*/
 
 	int listener, newfd, bytes_leidos, bytes;
-	char buf[256];
 	struct sockaddr_in server, cliente;
-
-	int pid = getpid();
 
 	/*inicializo el buffer*/
 
-	memset(buf, 0, sizeof buf);
 	memset(&(cliente.sin_zero),'\0',8);
 
 	/*Creo estructura server*/
@@ -116,47 +121,33 @@ int main(int argc, char** argv){
 
 	/*Handshake*/
 
-	bytes = recv(newfd,buf,sizeof buf,0);
-	if(bytes > 0){
-		printf("%s\n",buf);
-		}else{
-			if(bytes == -1){
-				perror("recieve");
-				exit(3);
-				}
-			if(bytes == 0){
-				printf("Se desconecto el socket: %d\n", newfd);
-				close(newfd);
-				}
+	int handshake;
+	bytes = recv(newfd,&handshake,sizeof(int),0);
+	if(bytes > 0 && handshake == 1){
+				printf("%d\n",handshake);
+				send(newfd, &handshake, sizeof(int), 0);
+	}else{
+		if(bytes == -1){
+			perror("recieve");
+			exit(3);
+			}
+		if(bytes == 0){
+			printf("Se desconecto el socket: %d\n", newfd);
+			close(newfd);
 		}
-	memset(buf, 0, sizeof buf);
-	sprintf(buf, "Te has conectado a memoria %d", pid);
-	send(newfd, buf, sizeof buf, 0);
+	}
 
 	/*recv()*/
 
-	while(1)
-		{
-			memset(buf, 0, sizeof buf);
-			bytes = recv(newfd,buf,sizeof buf,0);
-			if(bytes > 0){
-						printf("%s\n",buf);
-			}else{
-				if(bytes == -1){
-					perror("recieve");
-					exit(3);
-					}
-				if(bytes == 0){
-					printf("Se desconecto el socket: %d\n", newfd);
-					close(newfd);
-				}
-			}
-		}
+	while(1){
+		newfd = aceptar_conexion(listener, (struct sockaddr*) &cliente);
+		printf("Nueva conexion en socket %d\n", newfd);
+	}
 
 	/*Mostramos el mensaje recibido*/
-
+/*
 	buf[bytes_leidos]='\0';
-	printf("%s",buf);
+	printf("%s",buf);*/
 
 	return 0;
 }

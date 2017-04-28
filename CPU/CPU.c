@@ -26,6 +26,8 @@
 #include <parser/parser.h>
 
 
+cpu_config data_config;
+
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
 /*Aca defino las primitivas que aparecen en la estructura AnSISOP_funciones adentro del
@@ -174,6 +176,44 @@ AnSISOP_kernel fcs_kernel =
 			.AnSISOP_leer=twt_leer
 	};
 
+int get_fd_server(char* ip, char* puerto){
+
+	struct addrinfo hints;
+	struct addrinfo *servinfo, *p;
+	int sockfd, result;
+
+	//Vaciamos hints para usarlo en la funcion getaddrinfo() y le setteamos el tipo de socket y la familia
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0) {
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
+			return 1;
+		}
+
+	for(p = servinfo; p != NULL; p = p->ai_next) {
+			if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+				perror("client: socket");
+				continue;
+				}
+				if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+					close(sockfd);
+					perror("client: connect");
+					continue;
+					}
+			break;
+			}
+	if (p == NULL) {
+			fprintf(stderr, "client: failed to connect\n");
+			return 2;
+		}
+
+	freeaddrinfo(servinfo);
+
+	return sockfd;
+}
+
 //Funciones para que el main quede lindo
 void message_handler_for_fd(int fd){
 	int messageLength;
@@ -218,82 +258,32 @@ int main(int argc, char **argv) {
 
 	//Variables para config
 	t_config *config_file;
-	cpu_config data_config;
 
 	config_file = config_create_from_relative_with_check(argc,argv);
 
 	data_config.ip_kernel = config_get_string_value(config_file, "IP_KERNEL");
 	data_config.puerto_kernel = config_get_string_value(config_file, "PUERTO_KERNEL");
+	data_config.ip_memoria = config_get_string_value(config_file, "IP_MEMORIA");
+	data_config.puerto_memoria = config_get_string_value(config_file, "PUERTO_MEMORIA");
 
 	printf("IP Kernel: %s\n",data_config.ip_kernel);
 	printf("Puerto Kernel: %s\n\n",data_config.puerto_kernel);
+	printf("IP Memoria: %s\n",data_config.ip_memoria);
+	printf("Puerto Memoria: %s\n",data_config.puerto_memoria);
 
 	// CONEXION A KERNEL
 
 	char buf[256];
-	int statusgetaddrinfo, fd, bytes, codigo;
-	struct addrinfo hints, *sockinfo, *aux;
+	int fd, fd_memoria, bytes, codigo;
 	int idProceso = 1;
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
-	memset(&hints,0,sizeof(hints));
 
-	//Setteo (como dice el TP) un addrinfo con los datos del socket que quiero
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
-	//Esta funcion settea sockinfo con una lista de addrinfos que voy a usar despues.
-	//statusgetaddrinfo solo me sirve para saber si se ejecuto la funcion correctamente.
-	statusgetaddrinfo = getaddrinfo(data_config.ip_kernel,data_config.puerto_kernel,&hints,&sockinfo);
-	if(statusgetaddrinfo != 0)
-	{
-		//Si me da distinto de 0 => Hubo un error y lo printeo, gai_strerror me indica el tipo de error.
-		printf("getaddrinfo: %s\n",gai_strerror(statusgetaddrinfo));
-		exit(1);
-	}
-
-	//Como sockinfo tiene varios addrinfo tengo que sacar el que me deje conectarme.
-	for(aux = sockinfo; aux != NULL; aux = aux->ai_next)
-	{
-		//Paso la info de uno de los sockaddr para recibir el file descriptor (FD) de un socket.
-		fd = socket(aux->ai_family, aux->ai_socktype, aux->ai_protocol);
-		if(fd==-1)
-		{
-			perror("socket");
-	        continue;
-	    }
-
-		//Si el FD esta bien, trato de conectarme.
-		//Si esto falla no necesariamente esta mal, itero la funcion porque tal vez otro de los
-		//sockaddr si me conecta.
-	    if (connect(fd, aux->ai_addr, aux->ai_addrlen) == -1)
-	    {
-	        close(fd);
-	        perror("connect");
-	        continue;
-	    }
-
-	    break;
-	}
-
-	//Si aux es NULL entonces no me pude conectar con ninguno de los sockaddr y aborto el programa.
-	if(aux == NULL)
-	{
-		printf("connection status: failed\n");
-		exit(2);
-	} else fprintf(stderr,"connection status: success\n");
-
-	//Sockinfo debe irse, su planeta lo necesita
-	free(sockinfo);
-
-	/*codigo = 1;
-	if(send(fd,&codigo,sizeof(int),0)==-1)
-		{
-			perror("send");
-			exit(3);
-		}*/
+	fd = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
 	handshake(codigo,idProceso,fd);
+
+	fd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa

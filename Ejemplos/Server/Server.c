@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#define PORT "5004"
+#define PORT "9034"
 #define MAX_DATA_PACKAGE 256
 
 fd_set master;
@@ -128,7 +128,7 @@ int main(int argc, char** argv){
 						FD_CLR(i, &master); // remove from master set
 					} else {
 						printf("Cliente %d dice: %s\n", i, buf);
-						/*for(j = 0; j <= fdmax; j++) {
+						for(j = 0; j <= fdmax; j++) {
 							// send to everyone!
 							if (FD_ISSET(j, &master)) {
 								// except the listener and ourselves
@@ -138,7 +138,7 @@ int main(int argc, char** argv){
 									}
 								}
 							}
-						}*/
+						}
 						memset(buf, 0, 256*sizeof(char));
 					}
 				} // END handle data from client
