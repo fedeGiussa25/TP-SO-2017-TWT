@@ -60,6 +60,51 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
+int delete_multiple_spaces(char *str) // lo saqué de stackoverflow -> "http://stackoverflow.com/questions/16790227/replace-multiple-spaces-by-single-space-in-c"
+{
+	char *dest = str;  /* Destination to copy to */
+
+    /* While we're not at the end of the string, loop... */
+    while (*str != '\0')
+    {
+        /* Loop while the current character is a space, AND the next
+         * character is a space
+         */
+        while (*str == ' ' && *(str + 1) == ' ')
+            str++;  /* Just skip to next character */
+
+       /* Copy from the "source" string to the "destination" string,
+        * while advancing to the next character in both
+        */
+       *dest++ = *str++;
+    }
+
+    /* Make sure the string is properly terminated */    
+    *dest = '\0';
+	
+	return strlen(str);		// falta verificar si todo esto funciona bien o hay que cambiar algo, pero ya me dejó medio loco
+}
+
+
+char *clean_script(FILE *file, int *scriptSize)
+{
+	char *script = malloc(256*sizeof(char)); 	
+	*script = '\0'; 							// me aseguro que haya un string vacio
+	char *line = malloc(51*sizeof(char)); 		
+	int currentLength = 0;						// el largo, en un momento dado, del script
+	int lineLength = 0;
+	
+	
+	while(fgets(line, 500, file ) != NULL)
+	{	
+		lineLength = delete_multiple_spaces(line);	//primero limpio; de paso me devuelve la longitud de la linea limpia
+		if(lineLength == 1) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea
+		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
+		currentLenght += lineLength	
+	}
+	
+	return script;
+}
 
 int main(int argc, char** argv) {
 
@@ -98,7 +143,7 @@ int main(int argc, char** argv) {
 
 		codigo2 =2;
 
-		while(1){
+		/*while(1){
 			memset(buf,0,256);
 			fgets(buf,256,stdin);
 			messageLength = strlen(buf)-1;
@@ -109,7 +154,38 @@ int main(int argc, char** argv) {
 			send(sockfd_kernel, realbuf, messageLength+(sizeof(int)*2), 0);
 			memset(buf,0,256);
 			free(realbuf);
+		}*/
+		
+				// A partir de aca me encargo de los scripts a ejecutar
+				
+		FILE *file;
+		int scriptLength = 0;
+		char *path = malloc(64*sizeof(char)); 
+		pthread_t tret;
+				
+		printf("Escriba la ruta del script a ejecutar: ");
+		scanf("%s", path);
+		
+		if ((file == fopen(path, "r")) != NULL)
+		{
+		    printf("El archivo existe y fue abierto");
+			char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
+			fclose(file);
 		}
+		else
+		{
+			perror("Error de archivo: ");
+			exit(1);
+		}
+		codigo =2;
+		void* realbuf = malloc((sizeof(int)*2)+scriptLength);
+
+		memcpy(realbuf,&codigo,sizeof(int));
+		memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));
+		memcpy(realbuf+(sizeof(int)*2), script, scriptLength);
+		send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0); // falta hacerle un hilo a este send
+		free(realbuf);
+		free(script);
 
 		config_destroy(config);
 		return 0;
