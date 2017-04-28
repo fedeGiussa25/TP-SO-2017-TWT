@@ -100,7 +100,7 @@ char *clean_script(FILE *file, int *scriptSize)
 		lineLength = delete_multiple_spaces(line);	//primero limpio; de paso me devuelve la longitud de la linea limpia
 		if(lineLength == 1) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea
 		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
-		currentLenght += lineLength	
+		currentLenght += lineLength;
 	}
 	
 	return script;

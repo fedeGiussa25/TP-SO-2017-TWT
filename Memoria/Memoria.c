@@ -73,8 +73,19 @@ mem_config data_config;
 		printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
 	}
 
-void *hilo_programa(){
+void *thread_proceso(int fd){
+	printf("Nueva conexion en socket %d\n", fd);
+	int bytes, codigo;
 
+	bytes = recv(fd,&codigo,sizeof(int),0);
+	if(bytes == -1){
+		perror("recieve");
+		exit(3);
+		}
+	if(bytes == 0){
+		printf("Se desconecto el socket: %d\n", fd);
+		close(fd);
+	}
 }
 
 int main(int argc, char** argv){
@@ -139,9 +150,16 @@ int main(int argc, char** argv){
 
 	/*recv()*/
 
+	int valorHilo;
+
 	while(1){
+		valorHilo = -1;
 		newfd = aceptar_conexion(listener, (struct sockaddr*) &cliente);
-		printf("Nueva conexion en socket %d\n", newfd);
+		pthread_t hiloProceso;
+		valorHilo = pthread_create(&hiloProceso, NULL, thread_proceso, newfd);
+		if(valorHilo != 0){
+			printf("Error al crear el hilo programa");
+		}
 	}
 
 	/*Mostramos el mensaje recibido*/

@@ -305,6 +305,9 @@ int main(int argc, char **argv) {
 	//O hasta que cierres el programa
 	//Lo que pase primero
 
+	//analizadorLinea la pongo solo para probar si llama a las primitivas
+	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
+
 	while(1)
 	{
 		message_handler_for_fd(fd_kernel);
@@ -312,8 +315,9 @@ int main(int argc, char **argv) {
 
 
 
-
 	close(fd_kernel);
+	close(fd_memoria);
+
 
 	return 0;
 }
