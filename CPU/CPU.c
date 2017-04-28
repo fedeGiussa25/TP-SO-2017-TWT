@@ -25,8 +25,9 @@
 #include "../config_shortcuts/config_shortcuts.c"
 #include <parser/parser.h>
 
-
+//El fd_kernel lo hice global para poder usarlo en las primitivas privilegiadas
 cpu_config data_config;
+int fd_kernel;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -97,7 +98,21 @@ void twt_retornar(t_valor_variable retorno)
  */
 void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
-	printf("Soy wait\n");
+	//Por ahora, twt_wait solo le manda al kernel el nombre del semaforo sobre el que hay
+	//que hacer wait (serializado-----> (codigo,largo del msj, msj))
+	int codigo = 50;
+	int messageLength = strlen((char *) identificador_semaforo);
+	void* buffer = malloc((sizeof(int)*2)+messageLength);
+	memcpy(buffer, &codigo, sizeof(int));
+	memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
+	memcpy(buffer + sizeof(int) + sizeof(int), (char *) identificador_semaforo, messageLength);
+
+	if(send(fd_kernel,buffer,sizeof(int)*2+messageLength,0)==-1)
+			{
+				perror("send");
+				exit(3);
+			}
+	free(buffer);
 	return;
 }
 void twt_signal (t_nombre_semaforo identificador_semaforo)
@@ -251,8 +266,6 @@ void handshake(int codigo, int idProceso, int fd){
 
 int main(int argc, char **argv) {
 
-	//analizadorLinea la pongo solo para probar si llama a las primitivas
-	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 
 	// SETTEO DESDE ARCHIVO DE CONFIGURACION
 
@@ -279,22 +292,28 @@ int main(int argc, char **argv) {
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
 
-	fd = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+	fd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
-	handshake(codigo,idProceso,fd);
+	handshake(codigo,idProceso,fd_kernel);
+
+	//analizadorLinea la pongo solo para probar si llama a las primitivas
+	analizadorLinea("wait mutexA", &funciones, &fcs_kernel);
 
 	fd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
+
 	while(1)
 	{
-		message_handler_for_fd(fd);
+		message_handler_for_fd(fd_kernel);
 	}
 
-	close(fd);
-	//analizadorLinea la pongo solo para probar si llama a las primitivas
-	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
+
+
+
+	close(fd_kernel);
+
 	return 0;
 }

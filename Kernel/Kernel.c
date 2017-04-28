@@ -435,6 +435,19 @@ int main(int argc, char** argv) {
 							free(sendbuf);
 							free(realbuf);
 						}
+						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
+						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
+						if (codigo==50)
+						{
+							recv(i, &messageLength , sizeof(int), 0);
+							realbuf = malloc(messageLength+2);
+							memset(realbuf,0,messageLength+2);
+							recv(i, realbuf, messageLength, 0);
+							message = (char*) realbuf;
+							message[messageLength+1]='\0';
+							printf("CPU pide: Wait en semaforo: %s\n\n", message);
+							free(realbuf);
+						}
 
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
