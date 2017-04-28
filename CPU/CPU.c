@@ -296,9 +296,6 @@ int main(int argc, char **argv) {
 
 	handshake(codigo,idProceso,fd_kernel);
 
-	//analizadorLinea la pongo solo para probar si llama a las primitivas
-	analizadorLinea("wait mutexA", &funciones, &fcs_kernel);
-
 	fd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
@@ -314,10 +311,8 @@ int main(int argc, char **argv) {
 	}
 
 
-
 	close(fd_kernel);
 	close(fd_memoria);
-
 
 	return 0;
 }
