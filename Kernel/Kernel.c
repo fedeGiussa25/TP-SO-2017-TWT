@@ -13,6 +13,7 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
+#include <commons/collections/queue.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -25,11 +26,19 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 
+//Todo lo de mutex
 pthread_mutex_t mutex_fd_cpus;
 pthread_mutex_t mutex_fd_consolas;
+pthread_mutex_t mutex_procesos_actuales;
+
+//Los mutex para las colas
+pthread_mutex_t mutex_ready_queue;
+pthread_mutex_t mutex_exit_queue;
+pthread_mutex_t mutex_exec_queue;
+
 
 // Structs de conexiones
-
+//Todo lo de structs de PCB
 typedef struct{
 	int sock_fd;
 }proceso_conexion;
@@ -79,11 +88,12 @@ typedef struct{
 
 // SI, HAY VARIOS PARECIDOS PERO VA A SER MUY MOLESTO USARLOS SI LOS ANIDO
 
-//VARIABLES GLOBALES
+//Todo lo de variables globales
 int pid = 0;
 int mem_sock;
 int listener_cpu;
 int fdmax_cpu;
+int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
 
 fd_set fd_procesos;
 
@@ -93,8 +103,14 @@ kernel_config data_config;
 t_list* lista_cpus;
 t_list* lista_consolas;
 
+//Colas de planificacion
+t_queue* ready_queue;
+t_queue* exit_queue;
+t_queue* exec_queue;
+
 //FUNCIONES
-PCB* create_PCB(char* a_whole_bunch_of_serialized_code){
+//Todo lo de funciones de PCB
+PCB* create_PCB(){
 	PCB* nuevo_PCB = malloc(sizeof(PCB));
 	/* M A G I A */
 	/* A         */  //Aca sacaria toda la posta del PCB pero todavia no lo necesitamos.
@@ -102,8 +118,18 @@ PCB* create_PCB(char* a_whole_bunch_of_serialized_code){
 	/* I         */
 	/* A / / / / */
 	nuevo_PCB->pid = ++pid;
-	nuevo_PCB->page_counter = 0; //Se updatearia cuando pedimos espacio a memoria
+	nuevo_PCB->page_counter = 0;
+	pthread_mutex_lock(&mutex_procesos_actuales);
+	procesos_actuales++;//Se updatearia cuando pedimos espacio a memoria
+	pthread_mutex_unlock(&mutex_procesos_actuales);
 	return nuevo_PCB;
+}
+
+void delete_PCB(PCB* pcb){
+	pthread_mutex_lock(&mutex_procesos_actuales);
+	procesos_actuales--;
+	pthread_mutex_unlock(&mutex_procesos_actuales);
+	queue_push(exit_queue,pcb);
 }
 
 void *get_in_addr(struct sockaddr *sa)
@@ -113,6 +139,8 @@ return &(((struct sockaddr_in*)sa)->sin_addr);
 }
 return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+
+//Todo lo de sockets
 
 void remove_by_fd_socket(t_list *lista, int sockfd){
 	bool _remove_socket(proceso_conexion* unaConex)
@@ -230,6 +258,8 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
+//Todo lo de config
+
 void cargar_config(t_config *config_file){
 	int y = 0;
 	data_config.puerto_prog = config_get_string_value(config_file, "PUERTO_PROG");
@@ -281,6 +311,65 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+//Todo lo referido a manejador_de_scripts
+
+typedef struct{ //Estructura auziliar para ejecutar el manejador de scripts
+	int fd_cpu; //La CPU que me mando el script
+	int fd_mem; //La memoria
+	int grado_multiprog; //El grado de multiprog actual
+	int messageLength; //El largo del script
+	void* realbuf; //El script serializado
+}script_manager_setup;
+
+void manejador_de_scripts(script_manager_setup* sms){
+	void *sendbuf;
+	int codigo_cpu = 2, numbytes, recvmem;
+	PCB* pcb_to_use;
+
+	if(procesos_actuales < sms->grado_multiprog){
+		//Creo el PCB
+		pcb_to_use = create_PCB();
+
+		//Le mando el codigo y el largo a la memoria
+		sendbuf = malloc(sizeof(int) + sms->messageLength);
+		memcpy(sendbuf,&codigo_cpu,sizeof(int));
+		memcpy(sendbuf+sizeof(int),&(sms->messageLength),sizeof(int));
+		memcpy(sendbuf+sizeof(int)*2,sendbuf,sms->messageLength);
+		send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
+
+		//Me quedo esperando que responda memoria
+		numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
+		if(numbytes > 0)
+		{
+			//1 significa que hay espacio y guardo las cosas
+			if(recvmem == 1){
+				char* happy = "Hay espacio en memoria :D\n";
+				printf(happy);
+				pthread_mutex_lock(&mutex_ready_queue);
+				queue_push(ready_queue,pcb_to_use);
+				pthread_mutex_unlock(&mutex_ready_queue);
+			}
+			//0 significa que no hay espacio
+			if(recvmem == 0){
+				char* sad = "No hay espacio en memoria D:\n";
+				printf(sad);
+				pthread_mutex_lock(&mutex_exit_queue);
+				queue_push(exit_queue,pcb_to_use);
+				pthread_mutex_unlock(&mutex_exit_queue);
+				send(sms->fd_cpu,sad,strlen(sad),0);
+			}
+		}
+		if(numbytes == 0){printf("Se desconecto memoria\n");}
+		if(numbytes != 0){perror("receive");}
+	}
+	else{
+		char* mensaje = "El sistema ya llego a su tope de multiprogramacion, intente luego\n";
+		send(sms->fd_cpu,mensaje,strlen(mensaje),0);
+	}
+	free(sms);
+}
+
+//TODO el main
 
 int main(int argc, char** argv) {
 	if(argc == 0){
@@ -305,12 +394,16 @@ int main(int argc, char** argv) {
 	void* sendbuf;
 	char* message;
 
-	//consolas y cpus
-
+	//Consolas y cpus
 	lista_cpus = list_create();
 	lista_consolas = list_create();
 	proceso_conexion *nueva_conexion_cpu;
 	proceso_conexion *nueva_conexion_consola;
+
+	//Colas de planificacion
+	exit_queue = queue_create();
+	ready_queue = queue_create();
+	exec_queue = queue_create();
 
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
@@ -410,30 +503,25 @@ int main(int argc, char** argv) {
 
 								printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
 							}
-						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un mensaje
+						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
 						if(codigo == 2){
-							//Aca recibo un mensaje de consola y lo imprimo
+							//Agarro el resto del mensaje
 							recv(i, &messageLength, sizeof(int), 0);
 							realbuf = malloc(messageLength+2);
 							memset(realbuf,0,messageLength+2);
 							recv(i, realbuf, messageLength, 0);
-							message = (char*) realbuf;
-							message[messageLength+1]='\0';
-							printf("Consola %d dice: %d + %s \n", i, messageLength, message);
 
-							//Aca me encargo de mandarselo a las CPU
-							int j=0;
-							sendbuf = malloc(sizeof(int) + messageLength);
-							memcpy(sendbuf,&messageLength,sizeof(int));
-							memcpy(sendbuf+sizeof(int),message,messageLength);
-							for(j=0; j < list_size(lista_cpus); j++){
-								proceso_conexion* aux = list_get(lista_cpus,j);
-								send(aux->sock_fd,sendbuf,messageLength+sizeof(int),0);
-							}
+							//Setteo el script manager
+							script_manager_setup* sms = malloc(sizeof(script_manager_setup));
+							sms->fd_cpu = i;
+							sms->fd_mem = sockfd_memoria;
+							sms->grado_multiprog = data_config.grado_multiprog;
+							sms->messageLength = messageLength;
+							sms->realbuf = realbuf;
+							pthread_t thread_id;
 
-							//Aca libero los buffers
-							free(sendbuf);
-							free(realbuf);
+							//Abro un thread porque me voy a quedar esperando mensajes
+							pthread_create(&thread_id,NULL,(void*)manejador_de_scripts,sms);
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
