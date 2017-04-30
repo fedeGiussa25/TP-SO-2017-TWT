@@ -60,7 +60,7 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
-int delete_multiple_spaces(char *str) // lo saqué de stackoverflow -> "http://stackoverflow.com/questions/16790227/replace-multiple-spaces-by-single-space-in-c"
+void delete_multiple_spaces(char *str) // lo saqué de stackoverflow -> "http://stackoverflow.com/questions/16790227/replace-multiple-spaces-by-single-space-in-c"
 {
 	char *dest = str;  /* Destination to copy to */
 
@@ -70,41 +70,46 @@ int delete_multiple_spaces(char *str) // lo saqué de stackoverflow -> "http://s
         /* Loop while the current character is a space, AND the next
          * character is a space
          */
+
         while (*str == ' ' && *(str + 1) == ' ')
             str++;  /* Just skip to next character */
 
        /* Copy from the "source" string to the "destination" string,
         * while advancing to the next character in both
         */
-       *dest++ = *str++;
+       *dest++ = *str++;    // si hay espacios adicionales, 'str' esta mas adelante de 'dest', entonces copia lo que esta mucho despues
+       	   	   	   	   	    // (por esos espacios adicionales), a una posicion anterior, sobreescribiendo los espacios adicionales en el proceso;
+       	   	   	   	   	    // ambos punteros apuntan al mismo string, pero pueden estar apuntando a posiciones diferentes...
+       	   	   	   	   	    // es dificil, pero hay que imaginarse como que 'dest' puede estar apuntando a algo anterior a lo que apunta 'str' o a lo mismo
     }
 
-    /* Make sure the string is properly terminated */    
+    /* Make sure the string is properly terminated */
     *dest = '\0';
-	
-	return strlen(str);		// falta verificar si todo esto funciona bien o hay que cambiar algo, pero ya me dejó medio loco
 }
 
 
 char *clean_script(FILE *file, int *scriptSize)
 {
-	char *script = malloc(256*sizeof(char)); 	
+	char *script = malloc(256);
 	*script = '\0'; 							// me aseguro que haya un string vacio
-	char *line = malloc(51*sizeof(char)); 		
+	char *line = malloc(51);
 	int currentLength = 0;						// el largo, en un momento dado, del script
 	int lineLength = 0;
-	
-	
+
+
 	while(fgets(line, 500, file ) != NULL)
-	{	
-		lineLength = delete_multiple_spaces(line);	//primero limpio; de paso me devuelve la longitud de la linea limpia
-		if(lineLength == 1) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea
+	{
+		delete_multiple_spaces(line);
+		lineLength = strlen(line);
+		if(lineLength == 1 || lineLength == 2) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea; si 'lineLength' es 1, tengo un '\n'; si es 2 tengo ' \n'
 		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
 		currentLength += lineLength;
 	}
-	
+	*scriptSize = currentLength;
+	free(line);
 	return script;
 }
+
 
 int main(int argc, char** argv) {
 
@@ -161,7 +166,7 @@ int main(int argc, char** argv) {
 		FILE *file;
 		int scriptLength = 0;
 		char *path = malloc(64*sizeof(char)); 
-		pthread_t tret;
+		//pthread_t tret;
 				
 		printf("Escriba la ruta del script a ejecutar: ");
 		scanf("%s", path);
