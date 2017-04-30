@@ -105,7 +105,8 @@ char *clean_script(FILE *file, int *scriptSize)
 		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
 		currentLength += lineLength;
 	}
-
+	*scriptSize = currentLength;
+	free(line);
 	return script;
 }
 
