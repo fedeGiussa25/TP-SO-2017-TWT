@@ -100,7 +100,7 @@ char *clean_script(FILE *file, int *scriptSize)
 		lineLength = delete_multiple_spaces(line);	//primero limpio; de paso me devuelve la longitud de la linea limpia
 		if(lineLength == 1) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea
 		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
-		currentLenght += lineLength;
+		currentLength += lineLength;
 	}
 	
 	return script;
@@ -166,17 +166,15 @@ int main(int argc, char** argv) {
 		printf("Escriba la ruta del script a ejecutar: ");
 		scanf("%s", path);
 		
-		if ((file == fopen(path, "r")) != NULL)
-		{
-		    printf("El archivo existe y fue abierto");
-			char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
-			fclose(file);
-		}
-		else
+		if ((file == fopen(path, "r")) == NULL)
 		{
 			perror("Error de archivo: ");
-			exit(1);
+						exit(1);
 		}
+		printf("El archivo existe y fue abierto");
+		char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
+		fclose(file);
+
 		codigo =2;
 		void* realbuf = malloc((sizeof(int)*2)+scriptLength);
 
