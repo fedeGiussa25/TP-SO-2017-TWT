@@ -143,16 +143,18 @@ return &(((struct sockaddr_in6*)sa)->sin6_addr);
 //Todo lo de sockets
 
 void remove_by_fd_socket(t_list *lista, int sockfd){
-	bool _remove_socket(proceso_conexion* unaConex)
+	bool _remove_socket(void* unaConex)
 	    {
-	        return unaConex->sock_fd == sockfd;
+			proceso_conexion *conex = (proceso_conexion*) unaConex;
+			return conex->sock_fd == sockfd;
 	    }
-	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,_remove_socket);
+	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
 	free(conexion_encontrada);
 }
 
 int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
-	int newfd, addrlen;
+	int newfd;
+	uint32_t addrlen;
 	struct sockaddr_in direcServ;
 	char remoteIP[INET6_ADDRSTRLEN];
 
@@ -273,12 +275,12 @@ void cargar_config(t_config *config_file){
 	data_config.algoritmo = config_get_string_value(config_file,"ALGORITMO");
 	data_config.grado_multiprog = config_get_int_value(config_file, "GRADO_MULTIPROG");
 	data_config.sem_ids = config_get_array_value(config_file, "SEM_IDS");
-	data_config.sem_init = (int*) config_get_array_value(config_file, "SEM_INIT");
 	//Sino hago el atoi me los toma como strings por alguna razon
+	char** sem_init_arr = config_get_array_value(config_file, "SEM_INIT");
 
-	while(data_config.sem_init[y]!=NULL)
+	while(sem_init_arr[y]!=NULL)
 	{
-		data_config.sem_init[y] = atoi(data_config.sem_init[y]);
+		data_config.sem_init[y] = atoi(sem_init_arr[y]);
 		y++;
 	}
 
@@ -343,16 +345,16 @@ void manejador_de_scripts(script_manager_setup* sms){
 		{
 			//1 significa que hay espacio y guardo las cosas
 			if(recvmem == 1){
-				char* happy = "Hay espacio en memoria :D\n";
-				printf(happy);
+				char *happy = "Hay espacio en memoria :D\n";
+				printf("%s",happy);
 				pthread_mutex_lock(&mutex_ready_queue);
 				queue_push(ready_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_ready_queue);
 			}
 			//0 significa que no hay espacio
 			if(recvmem == 0){
-				char* sad = "No hay espacio en memoria D:\n";
-				printf(sad);
+				char *sad = "No hay espacio en memoria D:\n";
+				printf("%s", sad);
 				pthread_mutex_lock(&mutex_exit_queue);
 				queue_push(exit_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_exit_queue);

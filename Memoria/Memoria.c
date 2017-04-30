@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 
@@ -73,7 +74,8 @@ mem_config data_config;
 		printf("RETARDO_MEMORIA = %d\n", data_config.retardo_memoria);
 	}
 
-void *thread_proceso(int fd){
+void* thread_proceso(void* fdParameter){
+	int fd = (int) fdParameter;
 	printf("Nueva conexion en socket %d\n", fd);
 	int bytes, codigo;
 
@@ -86,6 +88,7 @@ void *thread_proceso(int fd){
 		printf("Se desconecto el socket: %d\n", fd);
 		close(fd);
 	}
+	return NULL;
 }
 
 int main(int argc, char** argv){
@@ -156,7 +159,7 @@ int main(int argc, char** argv){
 		valorHilo = -1;
 		newfd = aceptar_conexion(listener, (struct sockaddr*) &cliente);
 		pthread_t hiloProceso;
-		valorHilo = pthread_create(&hiloProceso, NULL, thread_proceso, newfd);
+		valorHilo = pthread_create(&hiloProceso, NULL, thread_proceso, &newfd);
 		if(valorHilo != 0){
 			printf("Error al crear el hilo programa");
 		}
