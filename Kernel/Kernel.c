@@ -275,8 +275,8 @@ void cargar_config(t_config *config_file){
 	data_config.algoritmo = config_get_string_value(config_file,"ALGORITMO");
 	data_config.grado_multiprog = config_get_int_value(config_file, "GRADO_MULTIPROG");
 	data_config.sem_ids = config_get_array_value(config_file, "SEM_IDS");
-	data_config.sem_init = (int*) config_get_array_value(config_file, "SEM_INIT");
 	//Sino hago el atoi me los toma como strings por alguna razon
+	data_config.sem_init = (int*) config_get_array_value(config_file, "SEM_INIT");
 
 	while(data_config.sem_init[y]!=NULL)
 	{
@@ -315,7 +315,7 @@ void print_config(){
 
 //Todo lo referido a manejador_de_scripts
 
-typedef struct{ //Estructura auziliar para ejecutar el manejador de scripts
+typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
 	int fd_cpu; //La CPU que me mando el script
 	int fd_mem; //La memoria
 	int grado_multiprog; //El grado de multiprog actual
@@ -330,16 +330,21 @@ void manejador_de_scripts(script_manager_setup* sms){
 
 	if(procesos_actuales < sms->grado_multiprog){
 		//Creo el PCB
+		printf("A crear el PCB!\n");
 		pcb_to_use = create_PCB();
+
+		printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
 
 		//Le mando el codigo y el largo a la memoria
 		sendbuf = malloc(sizeof(int) + sms->messageLength);
 		memcpy(sendbuf,&codigo_cpu,sizeof(int));
 		memcpy(sendbuf+sizeof(int),&(sms->messageLength),sizeof(int));
 		memcpy(sendbuf+sizeof(int)*2,sendbuf,sms->messageLength);
+		printf("Mandamos a memoria!\n");
 		send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
 
 		//Me quedo esperando que responda memoria
+		printf("Y esperamos!\n");
 		numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
 		if(numbytes > 0)
 		{
@@ -508,10 +513,19 @@ int main(int argc, char** argv) {
 						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
 						if(codigo == 2){
 							//Agarro el resto del mensaje
-							recv(i, &messageLength, sizeof(int), 0);
-							realbuf = malloc(messageLength+2);
-							memset(realbuf,0,messageLength+2);
-							recv(i, realbuf, messageLength, 0);
+							printf("Ding, dong, bing, bong! Me llego un script!\n");
+							while(1){
+								recv(i, &messageLength, sizeof(int), 0);
+								printf("El script mide: %d \n", messageLength);
+								void* aux = malloc(messageLength+2);
+								memset(aux,0,messageLength+2);
+								recv(i, aux, messageLength, 0);
+								memset(aux+messageLength+1,'\0',1);
+								char* charaux = (char*) aux;
+								printf("Y este es el script:\n %s", charaux);
+								free(aux);
+								break;
+							}
 
 							//Setteo el script manager
 							script_manager_setup* sms = malloc(sizeof(script_manager_setup));
@@ -520,10 +534,8 @@ int main(int argc, char** argv) {
 							sms->grado_multiprog = data_config.grado_multiprog;
 							sms->messageLength = messageLength;
 							sms->realbuf = realbuf;
-							pthread_t thread_id;
 
-							//Abro un thread porque me voy a quedar esperando mensajes
-							pthread_create(&thread_id,NULL,(void*)manejador_de_scripts,sms);
+							manejador_de_scripts(sms);
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)

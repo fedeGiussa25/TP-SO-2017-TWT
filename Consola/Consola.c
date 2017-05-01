@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
 		pthread_t script_tret;
 		int tret_value = -1;
 		
-		if((tret_value = pthread_create(&script_tret, NULL, process_script, path)) != 0)
+		if((tret_value = pthread_create(&script_tret, NULL,(void*) process_script, path)) != 0)
 		{
 			perror("Consola, linea 220, error al crear el hilo: ");
 			exit(1);
@@ -226,6 +226,8 @@ int main(int argc, char** argv) {
 		{
 			printf("Hilo creado satisfactoriamente\n\n");
 		}
+
+		pthread_join(script_tret,0);
 
 		config_destroy(config);
 		return 0;
