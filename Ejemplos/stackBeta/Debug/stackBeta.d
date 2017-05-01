@@ -1,0 +1,1 @@
+stackBeta.d: ../stackBeta.c
