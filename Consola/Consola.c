@@ -17,8 +17,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <pthread.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
+
+
+int sockfd_kernel; // estaba en el main, pero tengo que ponerlo aca porque lo tengo que usar tambien en la funcion que le paso al hilo
 
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
@@ -97,7 +101,7 @@ char *clean_script(FILE *file, int *scriptSize)
 	int lineLength = 0;
 
 
-	while(fgets(line, 500, file ) != NULL)
+	while(fgets(line, 51, file ) != NULL)
 	{
 		delete_multiple_spaces(line);
 		lineLength = strlen(line);
@@ -111,14 +115,51 @@ char *clean_script(FILE *file, int *scriptSize)
 }
 
 
+void *process_script(char *path)
+{
+	FILE *file;
+	int scriptLength = 0;
+	int codigo = 2;
+
+	if ((file = fopen(path, "r")) == NULL)
+	{
+		perror("Consola, linea 124, error de archivo: ");
+		exit(1);
+	}
+
+	printf("El archivo existe y fue abierto\n");
+	char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
+
+	fclose(file);
+
+	printf("Script procesado\n");
+	printf("Contenido del script a enviar:\n%s", script);
+
+	void* realbuf = malloc((sizeof(int)*2)+scriptLength);
+
+	memcpy(realbuf,&codigo,sizeof(int));
+	memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));
+	memcpy(realbuf+(sizeof(int)*2), script, scriptLength);
+
+	send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0);
+
+	printf("Script enviado!\n");
+
+	free(realbuf);
+	free(script);
+}
+
+
+
+
 int main(int argc, char** argv) {
 
 		t_config *config;
 		consola_config data_config;
 		char *buf = malloc(256);
-		int sockfd_kernel, codigo, codigo2;
+		int codigo;
 		int idProceso = 2;
-		int messageLength;
+	//	int messageLength;
 
 
 		config = config_create_from_relative_with_check(argc,argv);
@@ -139,6 +180,7 @@ int main(int argc, char** argv) {
 				perror("send");
 				exit(3);
 			}*/
+
 		void* codbuf = malloc(sizeof(int)*2);
 		codigo =1;
 		memcpy(codbuf,&codigo,sizeof(int));
@@ -146,9 +188,8 @@ int main(int argc, char** argv) {
 		send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
 		free(codbuf);
 
-		codigo2 =2;
-
-		/*while(1){
+	/*	int codigo2 = 2;
+		while(1){
 			memset(buf,0,256);
 			fgets(buf,256,stdin);
 			messageLength = strlen(buf)-1;
@@ -161,34 +202,30 @@ int main(int argc, char** argv) {
 			free(realbuf);
 		}*/
 		
-				// A partir de aca me encargo de los scripts a ejecutar
-				
-		FILE *file;
-		int scriptLength = 0;
-		char *path = malloc(64*sizeof(char)); 
-		//pthread_t tret;
+		// A partir de aca me encargo de los scripts a ejecutar
+
+		char *path = malloc(30); // no creo que la ruta sea taaan larga como para superar 30 caracteres
 				
 		printf("Escriba la ruta del script a ejecutar: ");
-		scanf("%s", path);
 		
-		if ((file == fopen(path, "r")) == NULL)
+		if(scanf("%s", path) == EOF)	// puse esto porque rompe las bolas al compilar... y por seguridad
 		{
-			perror("Error de archivo: ");
-						exit(1);
+			perror("Consola, linea 211, error en scanf: ");
+			exit(1);
 		}
-		printf("El archivo existe y fue abierto");
-		char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
-		fclose(file);
-
-		codigo =2;
-		void* realbuf = malloc((sizeof(int)*2)+scriptLength);
-
-		memcpy(realbuf,&codigo,sizeof(int));
-		memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));
-		memcpy(realbuf+(sizeof(int)*2), script, scriptLength);
-		send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0); // falta hacerle un hilo a este send
-		free(realbuf);
-		free(script);
+		
+		pthread_t script_tret;
+		int tret_value = -1;
+		
+		if((tret_value = pthread_create(&script_tret, NULL, process_script, path)) != 0)
+		{
+			perror("Consola, linea 220, error al crear el hilo: ");
+			exit(1);
+		}
+		else
+		{
+			printf("Hilo creado satisfactoriamente\n\n");
+		}
 
 		config_destroy(config);
 		return 0;
