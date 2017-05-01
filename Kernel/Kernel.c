@@ -275,12 +275,12 @@ void cargar_config(t_config *config_file){
 	data_config.algoritmo = config_get_string_value(config_file,"ALGORITMO");
 	data_config.grado_multiprog = config_get_int_value(config_file, "GRADO_MULTIPROG");
 	data_config.sem_ids = config_get_array_value(config_file, "SEM_IDS");
+	data_config.sem_init = (int*) config_get_array_value(config_file, "SEM_INIT");
 	//Sino hago el atoi me los toma como strings por alguna razon
-	char** sem_init_arr = config_get_array_value(config_file, "SEM_INIT");
 
-	while(sem_init_arr[y]!=NULL)
+	while(data_config.sem_init[y]!=NULL)
 	{
-		data_config.sem_init[y] = atoi(sem_init_arr[y]);
+		data_config.sem_init[y] = atoi(data_config.sem_init[y]);
 		y++;
 	}
 
