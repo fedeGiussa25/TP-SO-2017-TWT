@@ -336,10 +336,11 @@ void manejador_de_scripts(script_manager_setup* sms){
 		printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
 
 		//Le mando el codigo y el largo a la memoria
-		sendbuf = malloc(sizeof(int) + sms->messageLength);
+		sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
 		memcpy(sendbuf,&codigo_cpu,sizeof(int));
-		memcpy(sendbuf+sizeof(int),&(sms->messageLength),sizeof(int));
-		memcpy(sendbuf+sizeof(int)*2,sendbuf,sms->messageLength);
+		memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
+		memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
+		memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
 		printf("Mandamos a memoria!\n");
 		send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
 
@@ -349,15 +350,16 @@ void manejador_de_scripts(script_manager_setup* sms){
 		if(numbytes > 0)
 		{
 			//1 significa que hay espacio y guardo las cosas
-			if(recvmem == 1){
+			if(recvmem > 0){
 				char *happy = "Hay espacio en memoria :D\n";
 				printf("%s",happy);
+				pcb_to_use->page_counter = recvmem;
 				pthread_mutex_lock(&mutex_ready_queue);
 				queue_push(ready_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_ready_queue);
 			}
 			//0 significa que no hay espacio
-			if(recvmem == 0){
+			if(recvmem < 0){
 				char *sad = "No hay espacio en memoria D:\n";
 				printf("%s", sad);
 				pthread_mutex_lock(&mutex_exit_queue);
@@ -373,6 +375,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		char* mensaje = "El sistema ya llego a su tope de multiprogramacion, intente luego\n";
 		send(sms->fd_cpu,mensaje,strlen(mensaje),0);
 	}
+	free(sms->realbuf);
 	free(sms);
 }
 
@@ -514,18 +517,16 @@ int main(int argc, char** argv) {
 						if(codigo == 2){
 							//Agarro el resto del mensaje
 							printf("Ding, dong, bing, bong! Me llego un script!\n");
-							while(1){
-								recv(i, &messageLength, sizeof(int), 0);
-								printf("El script mide: %d \n", messageLength);
-								void* aux = malloc(messageLength+2);
-								memset(aux,0,messageLength+2);
-								recv(i, aux, messageLength, 0);
-								memset(aux+messageLength+1,'\0',1);
-								char* charaux = (char*) aux;
-								printf("Y este es el script:\n %s", charaux);
-								free(aux);
-								break;
-							}
+
+							recv(i, &messageLength, sizeof(int), 0);
+							printf("El script mide: %d \n", messageLength);
+							void* aux = malloc(messageLength+2);
+							memset(aux,0,messageLength+2);
+							recv(i, aux, messageLength, 0);
+							memset(aux+messageLength+1,'\0',1);
+							char* charaux = (char*) aux;
+							printf("Y este es el script:\n %s", charaux);
+
 
 							//Setteo el script manager
 							script_manager_setup* sms = malloc(sizeof(script_manager_setup));
@@ -533,7 +534,7 @@ int main(int argc, char** argv) {
 							sms->fd_mem = sockfd_memoria;
 							sms->grado_multiprog = data_config.grado_multiprog;
 							sms->messageLength = messageLength;
-							sms->realbuf = realbuf;
+							sms->realbuf = aux;
 
 							manejador_de_scripts(sms);
 						}

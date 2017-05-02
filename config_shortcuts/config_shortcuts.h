@@ -20,7 +20,7 @@
 	} cpu_config;
 
 	typedef struct {
-		char* puerto;
+		char *puerto;
 		int marcos;
 		int marco_size;
 		int entradas_cache;
