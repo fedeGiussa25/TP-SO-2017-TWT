@@ -218,7 +218,12 @@ int main(int argc, char** argv){
 	int espacio_total_tabla;
 	t_config *config;
 
-	config = config_create_from_relative_with_check(argc,argv);
+	checkArguments(argc);
+	char *cfgPath = malloc(sizeof("../../Memoria/") + strlen(argv[1])+1);
+	*cfgPath = '\0';
+	strcpy(cfgPath, "../../Memoria/");
+
+	config = config_create_from_relative_with_check(argv, cfgPath);
 	cargar_config(config);
 	print_config();
 
@@ -316,6 +321,7 @@ int main(int argc, char** argv){
 	printf("%s",buf);*/
 
 	free(memoria);
+	free(cfgPath);
 	config_destroy(config);
 	return 0;
 }

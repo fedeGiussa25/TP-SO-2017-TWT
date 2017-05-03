@@ -272,7 +272,12 @@ int main(int argc, char **argv) {
 	//Variables para config
 	t_config *config_file;
 
-	config_file = config_create_from_relative_with_check(argc,argv);
+	checkArguments(argc);
+	char *cfgPath = malloc(sizeof("../../CPU/") + strlen(argv[1])+1);
+	*cfgPath = '\0';
+	strcpy(cfgPath, "../../CPU/");
+
+	config_file = config_create_from_relative_with_check(argv, cfgPath);
 
 	data_config.ip_kernel = config_get_string_value(config_file, "IP_KERNEL");
 	data_config.puerto_kernel = config_get_string_value(config_file, "PUERTO_KERNEL");
@@ -313,6 +318,7 @@ int main(int argc, char **argv) {
 
 	close(fd_kernel);
 	close(fd_memoria);
+	free(cfgPath);
 
 	return 0;
 }

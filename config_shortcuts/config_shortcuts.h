@@ -56,7 +56,8 @@
 		char* puerto_kernel;
 	} consola_config;
 
-	t_config* config_create_from_relative_with_check(int argc, char** argv);
+	t_config* config_create_from_relative_with_check(char **argv, char *cfgPath);
+	void checkArguments(int argc);
 
 
 #endif /* CONFIG_SHORTCUTS_H_ */

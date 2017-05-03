@@ -59,7 +59,12 @@ int main(int argc, char** argv)
 	t_config *config;
 	fs_config data_config;
 
-	config = config_create_from_relative_with_check(argc,argv);
+	checkArguments(argc);
+	char *cfgPath = malloc(sizeof("../../FileSystem/") + strlen(argv[1])+1);
+	*cfgPath = '\0';
+	strcpy(cfgPath, "../../FileSystem/");
+
+	config = config_create_from_relative_with_check(argv, cfgPath);
 
 	//Leemos los datos
 	data_config.puerto = config_get_string_value(config, "PUERTO");
@@ -147,6 +152,8 @@ int main(int argc, char** argv)
 
 	buf[bytes_leidos]='\0';
 	printf("%s",buf);
+
+	free(cfgPath);
 
 	return 0;
 }

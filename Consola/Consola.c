@@ -13,6 +13,7 @@
 #include <commons/config.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -60,41 +61,40 @@ int get_fd_server(char* ip, char* puerto){
 		}
 
 	freeaddrinfo(servinfo);
+	free(p);
 
 	return sockfd;
 }
 
-void delete_multiple_spaces(char *str) // lo saqué de stackoverflow -> "http://stackoverflow.com/questions/16790227/replace-multiple-spaces-by-single-space-in-c"
+void delete_multiple_spaces(char *str)
 {
-	char *dest = str;  /* Destination to copy to */
+	char *dest = str;  //puntero que guarda los cambios
 
-    /* While we're not at the end of the string, loop... */
+    //loop hasta que termine el string
     while (*str != '\0')
     {
-        /* Loop while the current character is a space, AND the next
-         * character is a space
-         */
+        //hace while mientras el caracter actual y el siguiente sean espacios
 
         while (*str == ' ' && *(str + 1) == ' ')
-            str++;  /* Just skip to next character */
+            str++;  // apunto al siguiente caracter
 
-       /* Copy from the "source" string to the "destination" string,
-        * while advancing to the next character in both
-        */
+
+       //copio el caracter desde 'str' a 'dest', luego aumento los punteros
+
        *dest++ = *str++;    // si hay espacios adicionales, 'str' esta mas adelante de 'dest', entonces copia lo que esta mucho despues
        	   	   	   	   	    // (por esos espacios adicionales), a una posicion anterior, sobreescribiendo los espacios adicionales en el proceso;
        	   	   	   	   	    // ambos punteros apuntan al mismo string, pero pueden estar apuntando a posiciones diferentes...
        	   	   	   	   	    // es dificil, pero hay que imaginarse como que 'dest' puede estar apuntando a algo anterior a lo que apunta 'str' o a lo mismo
     }
 
-    /* Make sure the string is properly terminated */
+    //me aseguro de terminar el string
+
     *dest = '\0';
 }
 
 
-char *clean_script(FILE *file, int *scriptSize)
+void clean_script(FILE *file, int *scriptSize, char *script)
 {
-	char *script = malloc(256);
 	*script = '\0'; 							// me aseguro que haya un string vacio
 	char *line = malloc(51);
 	int currentLength = 0;						// el largo, en un momento dado, del script
@@ -106,49 +106,73 @@ char *clean_script(FILE *file, int *scriptSize)
 		delete_multiple_spaces(line);
 		lineLength = strlen(line);
 		if(lineLength == 1 || lineLength == 2) continue;  //asi limpio los saltos de linea, ya que el fgets() lee tambien los saltos de linea; si 'lineLength' es 1, tengo un '\n'; si es 2 tengo ' \n'
-		strcat(script+currentLength, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
+		if(line[0] == '#' || line[1] == '#') continue; //elimina las lineas que empiezan con '#' (comentarios); la linea puede tener un ' ' ó '\t', por eso verifico los 2 primeros char de la linea
+		strcat(script, line);	//copia el contenido de line desde el ultimo \0 de script (elimina ese \0 y agrega uno al final)
 		currentLength += lineLength;
 	}
 	*scriptSize = currentLength;
 	free(line);
-	return script;
 }
 
 
-void *process_script(char *path)
+void *process_script(char *filePath)
 {
 	FILE *file;
 	int scriptLength = 0;
 	int codigo = 2;
+	struct stat st;
+	off_t fileSize;	//uso esto para despues determinar el tamaño de la variable script
+					// sabiendo que 1 char = 1 byte, al sacar el nro de bytes del archivo, se cuantos char tiene
+					// "off_t" = unsigned int 64
 
-	if ((file = fopen(path, "r")) == NULL)
+	if ((file = fopen(filePath, "r")) == NULL)
 	{
 		perror("Consola, linea 124, error de archivo: ");
 		exit(1);
 	}
 
 	printf("El archivo existe y fue abierto\n");
-	char *script = clean_script(file, &scriptLength); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
 
+	stat(filePath, &st); //setea la info del archivo en la estructura 'st'
+	fileSize = st.st_size;
+
+	//char *script = clean_script(file, & scriptLength);  //con esto creo otra variable que come memoria y no se puede liberar... genera memory leaks
+														  //en la funcion se hacia el malloc() para el script, pero asi nunca lo podia liberar
+
+	char *script = malloc(fileSize);
+	clean_script(file, &scriptLength, script); //le saca las partes del archivo que no me sirven; ya me devuelve el puntero a una posicion de memoria libre con todo el text
 	fclose(file);
 
-	printf("Script procesado\n");
-	printf("Contenido del script a enviar:\n%s", script);
 
-	void* realbuf = malloc((sizeof(int)*2)+scriptLength);
+	/*	Lo siguiente me libera el viejo puntero 'script'
+	 * y devuelve un puntero a otra estructura del mismo tipo y con los mismos datos que la que le paso ('script')
+	 * pero que tiene el tamaño especificado en el 2do argumento ('scriptLength')
+	 *
+	 * El puntero 'script' tiene el tamaño del archivo (equivalente a su cantidad de chars), pero despues de limpiarlo
+	 * tiene menos texto, asi que necesita menos espacio... por eso creo esta nueva estructura (asi limpio memoria)
+	*/
+
+	char *cleanScript = realloc(script, scriptLength+1); //es 'scriptLength+1' porque sin ese '+1' el valgrind dice que hay error de escritura
+
+
+	printf("Script procesado\n");
+	printf("Contenido del script a enviar:\n%s", cleanScript);
+
+	void* realbuf = malloc((sizeof(int)*2)+scriptLength+1);
 
 	memcpy(realbuf,&codigo,sizeof(int));
-	memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));
-	memcpy(realbuf+(sizeof(int)*2), script, scriptLength);
+	memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));		//serializo codigo (de mensaje), tamaño de script y script
+	memcpy(realbuf+(sizeof(int)*2), cleanScript, scriptLength);
 
 	send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0);
 
-	printf("Script enviado!\n");
+	printf("\nScript enviado!\n");
 
 	free(realbuf);
-	free(script);
-}
+	free(cleanScript);
 
+	pthread_exit(NULL);
+}
 
 
 
@@ -156,13 +180,16 @@ int main(int argc, char** argv) {
 
 		t_config *config;
 		consola_config data_config;
-		char *buf = malloc(256);
+		//char *buf = malloc(256);
 		int codigo;
 		int idProceso = 2;
 	//	int messageLength;
 
+		checkArguments(argc);
+		char *cfgPath = malloc(sizeof("../../Consola/") + strlen(argv[1])+1); //el programa se ejecuta en la carpeta 'Debug'; '../' hace que vaya un directorio arriba -> '../../' va 2 directorios arriba
+		strcpy(cfgPath, "../../Consola/");
 
-		config = config_create_from_relative_with_check(argc,argv);
+		config = config_create_from_relative_with_check(argv, cfgPath);
 
 		data_config.ip_kernel = config_get_string_value(config, "IP_KERNEL");
 		data_config.puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
@@ -173,7 +200,7 @@ int main(int argc, char** argv) {
 		//Nos conectamos
 		sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
-		memset(buf,0,256);
+		//memset(buf,0,256);
 		/*codigo = 2;
 		if(send(sockfd_kernel,&codigo,sizeof(int),0)==-1)
 			{
@@ -204,20 +231,25 @@ int main(int argc, char** argv) {
 		
 		// A partir de aca me encargo de los scripts a ejecutar
 
-		char *path = malloc(30); // no creo que la ruta sea taaan larga como para superar 30 caracteres
+		char *filePath = malloc(50); // no creo que la ruta sea taaan larga como para superar 50 caracteres
+		strcpy(filePath, "../../Files/Scripts/");
+
+		char *fileName = malloc(20);
 				
 		printf("Escriba la ruta del script a ejecutar: ");
 		
-		if(scanf("%s", path) == EOF)	// puse esto porque rompe las bolas al compilar... y por seguridad
+		if(scanf("%s", fileName) == EOF)	// puse esto porque rompe las bolas al compilar... y por seguridad
 		{
 			perror("Consola, linea 211, error en scanf: ");
 			exit(1);
 		}
 		
+		strcat(filePath, fileName);
+
 		pthread_t script_tret;
 		int tret_value = -1;
 		
-		if((tret_value = pthread_create(&script_tret, NULL,(void*) process_script, path)) != 0)
+		if((tret_value = pthread_create(&script_tret, NULL,(void*) process_script, filePath)) != 0)
 		{
 			perror("Consola, linea 220, error al crear el hilo: ");
 			exit(1);
@@ -228,7 +260,10 @@ int main(int argc, char** argv) {
 		}
 
 		pthread_join(script_tret,0);
+		free(filePath);
+		free(fileName);
 
 		config_destroy(config);
+		free(cfgPath);
 		return 0;
 }

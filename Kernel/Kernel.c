@@ -443,10 +443,17 @@ int main(int argc, char** argv) {
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
 
-	config_file = config_create_from_relative_with_check(argc,argv);
+	checkArguments(argc);
+	char *cfgPath = malloc(sizeof("../../Kernel/") + strlen(argv[1])+1);
+	*cfgPath = '\0';
+	strcpy(cfgPath, "../../Kernel/");
+
+	config_file = config_create_from_relative_with_check(argv, cfgPath);
 	cargar_config(config_file);	//Carga la estructura data_config de Kernel
 	print_config();	//Adivina... la imprime por pantalla
 	//config_destroy(config_file);
+
+	free(cfgPath);
 
 	//********************************Conexiones***************************************//
 
