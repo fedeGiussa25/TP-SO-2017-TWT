@@ -313,6 +313,32 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+void ready_a_cpu(){
+	while(1)
+	{
+		pthread_mutex_lock(&mutex_ready_queue);
+
+		if(queue_size(ready_queue)>0){
+
+			pthread_mutex_lock(&mutex_fd_cpus);
+
+			if(list_size(lista_cpus)>0){
+				proceso_conexion *cpu = list_get(lista_cpus,0);
+				PCB *pcb_to_use = queue_pop(ready_queue);
+				void *sendbuf = malloc(sizeof(u_int32_t)+sizeof(int));
+				memcpy(sendbuf,&(pcb_to_use->pid),sizeof(u_int32_t));
+				memcpy(sendbuf,&(pcb_to_use->page_counter),sizeof(int));
+				send(cpu->sock_fd,sendbuf,sizeof(u_int32_t)+sizeof(int),0);
+				printf("Mande un PCB a una CPU :D\n\n");
+				free(sendbuf);
+			}
+			pthread_mutex_unlock(&mutex_fd_cpus);
+		}
+		pthread_mutex_unlock(&mutex_ready_queue);
+	}
+}
+
+
 //Todo lo referido a manejador_de_scripts
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
@@ -351,7 +377,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		{
 			//1 significa que hay espacio y guardo las cosas
 			if(recvmem > 0){
-				char *happy = "Hay espacio en memoria :D\n";
+				char *happy = "Hay espacio en memoria :D\n\n";
 				printf("%s",happy);
 				pcb_to_use->page_counter = recvmem;
 				pthread_mutex_lock(&mutex_ready_queue);
@@ -360,7 +386,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 			}
 			//0 significa que no hay espacio
 			if(recvmem < 0){
-				char *sad = "No hay espacio en memoria D:\n";
+				char *sad = "No hay espacio en memoria D:\n\n";
 				printf("%s", sad);
 				pthread_mutex_lock(&mutex_exit_queue);
 				queue_push(exit_queue,pcb_to_use);
@@ -368,14 +394,13 @@ void manejador_de_scripts(script_manager_setup* sms){
 				send(sms->fd_cpu,sad,strlen(sad),0);
 			}
 		}
-		if(numbytes == 0){printf("Se desconecto memoria\n");}
+		if(numbytes == 0){printf("Se desconecto memoria\n\n");}
 		if(numbytes != 0){perror("receive");}
 	}
 	else{
-		char* mensaje = "El sistema ya llego a su tope de multiprogramacion, intente luego\n";
-		send(sms->fd_cpu,mensaje,strlen(mensaje),0);
+		printf("El sistema ya llego a su tope de multiprogramacion, intente luego\n\n");
 	}
-	free(sms->realbuf);
+	//free(sms->realbuf);
 	free(sms);
 }
 
@@ -453,6 +478,10 @@ int main(int argc, char** argv) {
 
 	fdmax = listener;
 
+	//Hilo que manda de cola ready a cpu
+	pthread_t rtocpu;
+	pthread_create(&rtocpu,NULL,(void*)ready_a_cpu,NULL);
+
 	for(;;) {
 		read_fds = fd_procesos;
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
@@ -486,7 +515,7 @@ int main(int argc, char** argv) {
 						FD_CLR(i, &fd_procesos); // remove from master set
 
 						printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
-						printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+						printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 					} else {
 						printf("Se recibio: %d\n", codigo);
 						//Si el codigo es 1 significa que el proceso del otro lado esta haciendo el handshake
@@ -500,7 +529,7 @@ int main(int argc, char** argv) {
 								list_add(lista_cpus, nueva_conexion_cpu);
 								pthread_mutex_unlock(&mutex_fd_cpus);
 
-								printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
+								printf("Hay %d cpus conectadas\n\n", list_size(lista_cpus));
 
 							}
 							if(processID == 2){	//Si en cambio el processID es 2, es una Consola
@@ -511,7 +540,7 @@ int main(int argc, char** argv) {
 								list_add(lista_consolas, nueva_conexion_consola);
 								pthread_mutex_unlock(&mutex_fd_consolas);
 
-								printf("Hay %d consolas conectadas\n", list_size(lista_consolas));
+								printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 							}
 						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
 						if(codigo == 2){
@@ -525,7 +554,7 @@ int main(int argc, char** argv) {
 							recv(i, aux, messageLength, 0);
 							memset(aux+messageLength+1,'\0',1);
 							char* charaux = (char*) aux;
-							printf("Y este es el script:\n %s", charaux);
+							printf("Y este es el script:\n%s\n", charaux);
 
 
 							//Setteo el script manager
