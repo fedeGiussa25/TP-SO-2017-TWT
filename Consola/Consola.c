@@ -61,7 +61,6 @@ int get_fd_server(char* ip, char* puerto){
 		}
 
 	freeaddrinfo(servinfo);
-	free(p);
 
 	return sockfd;
 }
