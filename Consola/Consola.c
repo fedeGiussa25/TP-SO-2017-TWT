@@ -1,4 +1,4 @@
-/*
+﻿/*
  ============================================================================
  Name        : consolaproto2.c
  Author      : 
@@ -174,95 +174,166 @@ void *process_script(char *filePath)
 }
 
 
+void iniciar_programa()
+{
+	char *filePath = malloc(50); // no creo que la ruta sea taaan larga como para superar 50 caracteres
+	strcpy(filePath, "../../Files/Scripts/");
+
+	char *fileName = malloc(20);
+
+	printf("Escriba la ruta del script a ejecutar: ");
+
+	if(scanf("%s", fileName) == EOF)	// puse esto porque rompe las bolas al compilar... y por seguridad
+	{
+		perror("Consola, linea 211, error en scanf: ");
+		exit(1);
+	}
+
+	strcat(filePath, fileName);
+
+	pthread_t script_tret;
+	int tret_value = -1;
+
+	if((tret_value = pthread_create(&script_tret, NULL,(void*) process_script, filePath)) != 0)
+	{
+		perror("Consola, linea 220, error al crear el hilo: ");
+		exit(1);
+	}
+	else
+	{
+		printf("Hilo creado satisfactoriamente\n\n");
+	}
+
+	pthread_join(script_tret,0);
+	free(filePath);
+	free(fileName);
+
+	printf("\nIngrese un comando: ");
+}
+
+
+void finalizar_programa()
+{
+	//le tengo que madnar un mensaje al kernel serializado con un codigo y un pid	
+
+	printf("Funcionalidad no implementada!\n\n");
+	printf("Ingrese un comando: ");
+}
+
+
+void desconectar_consola()
+{
+	//Cada hilo maneja una conexion, asi que tendria que tener una lista de los hilos de este proceso para ir matandolos
+
+	printf("Funcionalidad no implementada!\n\n");
+	printf("Ingrese un comando: ");
+}
+
+void print_commands()
+{
+	printf("\nComandos\n");
+	printf("\t init   - Iniciar Programa\n");
+	printf("\t end    - Finalizar Programa\n");
+	printf("\t dcon   - Desconectar Consola\n");
+	printf("\t cls    - Limpiar Mensajes\n");
+	printf("\t exit   - Salir\n");
+	printf("\nIngrese un comando: ");
+}
+
 
 int main(int argc, char** argv) {
 
-		t_config *config;
-		consola_config data_config;
-		//char *buf = malloc(256);
-		int codigo;
-		int idProceso = 2;
-	//	int messageLength;
+	t_config *config;
+	consola_config data_config;
+	//char *buf = malloc(256);
+	int codigo;
+	int idProceso = 2;
+	//int messageLength;
 
-		checkArguments(argc);
-		char *cfgPath = malloc(sizeof("../../Consola/") + strlen(argv[1])+1); //el programa se ejecuta en la carpeta 'Debug'; '../' hace que vaya un directorio arriba -> '../../' va 2 directorios arriba
-		strcpy(cfgPath, "../../Consola/");
+	checkArguments(argc);
+	char *cfgPath = malloc(sizeof("../../Consola/") + strlen(argv[1])+1); //el programa se ejecuta en la carpeta 'Debug'; '../' hace que vaya un directorio arriba -> '../../' va 2 directorios arriba
+	strcpy(cfgPath, "../../Consola/");
 
-		config = config_create_from_relative_with_check(argv, cfgPath);
+	config = config_create_from_relative_with_check(argv, cfgPath);
 
-		data_config.ip_kernel = config_get_string_value(config, "IP_KERNEL");
-		data_config.puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
+	data_config.ip_kernel = config_get_string_value(config, "IP_KERNEL");
+	data_config.puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 
-		printf("IP_KERNEL = %s\n", data_config.ip_kernel);
-		printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
+	printf("IP_KERNEL = %s\n", data_config.ip_kernel);
+	printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
 
-		//Nos conectamos
-		sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+	//Nos conectamos
+	sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
-		//memset(buf,0,256);
-		/*codigo = 2;
-		if(send(sockfd_kernel,&codigo,sizeof(int),0)==-1)
-			{
-				perror("send");
-				exit(3);
-			}*/
-
-		void* codbuf = malloc(sizeof(int)*2);
-		codigo =1;
-		memcpy(codbuf,&codigo,sizeof(int));
-		memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
-		send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
-		free(codbuf);
-
-	/*	int codigo2 = 2;
-		while(1){
-			memset(buf,0,256);
-			fgets(buf,256,stdin);
-			messageLength = strlen(buf)-1;
-			void* realbuf = malloc((sizeof(int)*2)+messageLength);
-			memcpy(realbuf,&codigo2,sizeof(int));
-			memcpy(realbuf+sizeof(int),&messageLength, sizeof(int));
-			memcpy(realbuf+sizeof(int)+sizeof(int),buf,messageLength);
-			send(sockfd_kernel, realbuf, messageLength+(sizeof(int)*2), 0);
-			memset(buf,0,256);
-			free(realbuf);
+	//memset(buf,0,256);
+	/*codigo = 2;
+	if(send(sockfd_kernel,&codigo,sizeof(int),0)==-1)
+		{
+			perror("send");
+			exit(3);
 		}*/
-		
-		// A partir de aca me encargo de los scripts a ejecutar
 
-		char *filePath = malloc(50); // no creo que la ruta sea taaan larga como para superar 50 caracteres
-		strcpy(filePath, "../../Files/Scripts/");
+	void* codbuf = malloc(sizeof(int)*2);
+	codigo =1;
+	memcpy(codbuf,&codigo,sizeof(int));
+	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
+	send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
+	free(codbuf);
 
-		char *fileName = malloc(20);
-				
-		printf("Escriba la ruta del script a ejecutar: ");
+/*	int codigo2 = 2;
+	while(1){
+		memset(buf,0,256);
+		fgets(buf,256,stdin);
+		messageLength = strlen(buf)-1;
+		void* realbuf = malloc((sizeof(int)*2)+messageLength);
+		memcpy(realbuf,&codigo2,sizeof(int));
+		memcpy(realbuf+sizeof(int),&messageLength, sizeof(int));
+		memcpy(realbuf+sizeof(int)+sizeof(int),buf,messageLength);
+		send(sockfd_kernel, realbuf, messageLength+(sizeof(int)*2), 0);
+		memset(buf,0,256);
+		free(realbuf);
+	}*/
+
+	char *command = malloc(20);
+
+	print_commands();
+
+	while(1)
+	{
+		scanf("%s", command);
 		
-		if(scanf("%s", fileName) == EOF)	// puse esto porque rompe las bolas al compilar... y por seguridad
+		if((strcmp(command, "init")) == 0) // si no le tiro el strcmp(), el compilador tira advertencia
 		{
-			perror("Consola, linea 211, error en scanf: ");
-			exit(1);
+			iniciar_programa();
 		}
-		
-		strcat(filePath, fileName);
-
-		pthread_t script_tret;
-		int tret_value = -1;
-		
-		if((tret_value = pthread_create(&script_tret, NULL,(void*) process_script, filePath)) != 0)
+		else if((strcmp(command, "end")) == 0)
 		{
-			perror("Consola, linea 220, error al crear el hilo: ");
-			exit(1);
+			finalizar_programa(); //falta implementar
+		}
+		else if((strcmp(command, "dcon")) == 0)
+		{
+			desconectar_consola(); //falta implementar
+		}
+		else if((strcmp(command, "cls")) == 0)
+		{
+			system("clear");
+			print_commands();
+		}
+		else if((strcmp(command, "exit")) == 0)
+		{
+			exit(0);	//EXIT_SUCCSESS
 		}
 		else
 		{
-			printf("Hilo creado satisfactoriamente\n\n");
+			printf("Comando incorrecto. Ingrese otro comando: ");
+			continue;
 		}
+	}
 
-		pthread_join(script_tret,0);
-		free(filePath);
-		free(fileName);
 
-		config_destroy(config);
-		free(cfgPath);
-		return 0;
+
+	config_destroy(config);
+	free(cfgPath);
+	free(command);
+	return 0;
 }
