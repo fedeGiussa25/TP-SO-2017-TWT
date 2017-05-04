@@ -29,6 +29,17 @@
 cpu_config data_config;
 int fd_kernel;
 
+typedef struct{
+	int pid;
+	//int ip;
+	int page_counter;
+	//aca iria una referencia a la tabla de archivos del proceso
+	//code_index_line code_index[];
+	//char* tag_index;
+	//stack_index_line stack_index[];
+	//int exit_code;
+}PCB;
+
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
 /*Aca defino las primitivas que aparecen en la estructura AnSISOP_funciones adentro del
@@ -262,6 +273,37 @@ void handshake(int codigo, int idProceso, int fd){
 	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
 	send(fd, codbuf, sizeof(int)*2, 0);
 	free(codbuf);
+
+}
+
+PCB* recibirPCB()
+{
+	int bytes_recv;
+	u_int32_t pid_recibido;
+	int pageCounter_recibido;
+	PCB* pcb_nueva = malloc(sizeof(PCB));
+	bytes_recv = recv(fd_kernel, &pid_recibido, sizeof(u_int32_t),0);
+	if(bytes_recv>0)
+	{
+		pcb_nueva->pid=pid_recibido;
+	}
+	else
+	{
+		perror("recv1");
+		exit(1);
+	}
+	bytes_recv = recv(fd_kernel, &pageCounter_recibido, sizeof(int),0);
+	if(bytes_recv>0)
+	{
+		pcb_nueva->page_counter=pageCounter_recibido;
+	}
+	else
+	{
+		perror("recv2");
+		exit(1);
+	}
+
+	return pcb_nueva;
 }
 
 int main(int argc, char **argv) {
@@ -291,6 +333,7 @@ int main(int argc, char **argv) {
 
 	// CONEXION A KERNEL
 
+
 	char buf[256];
 	int fd, fd_memoria, bytes, codigo;
 	int idProceso = 1;
@@ -309,6 +352,7 @@ int main(int argc, char **argv) {
 
 	//analizadorLinea la pongo solo para probar si llama a las primitivas
 	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
+
 
 	while(1)
 	{
