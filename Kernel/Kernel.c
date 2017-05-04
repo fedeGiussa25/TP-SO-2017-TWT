@@ -538,17 +538,6 @@ int main(int argc, char** argv) {
 
 								printf("Hay %d cpus conectadas\n\n", list_size(lista_cpus));
 
-								PCB* miPCB = malloc(sizeof(PCB));
-								miPCB->page_counter=2;
-								miPCB->pid=6;
-								void* sendbufa = malloc(sizeof(int)+sizeof(u_int32_t));
-								memcpy(sendbufa,&(miPCB->pid),sizeof(u_int32_t));
-								memcpy(sendbufa+sizeof(u_int32_t),&(miPCB->page_counter),sizeof(int));
-								send(miPCB,sendbufa,sizeof(u_int32_t)+sizeof(int),0);
-								printf("Mande un PCB a una CPU :D\n\n");
-								free(sendbufa);
-								free(miPCB);
-
 							}
 							if(processID == 2){	//Si en cambio el processID es 2, es una Consola
 								printf("Es una Consola\n");

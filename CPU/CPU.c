@@ -266,6 +266,25 @@ void message_handler_for_fd(int fd){
 	}
 }
 
+/*char* pedirCodigoAMemoria(int fd, u_int32_t pid)
+{
+	int codigo = 3;
+	int messageLength;
+	u_int32_t id = pid;
+	void* buffer = malloc(sizeof(int)+sizeof(u_int32_t));
+	memcpy(buffer,&codigo,sizeof(int));
+	memcpy(buffer+sizeof(int),&pid,sizeof(u_int32_t));
+	send(fd,buffer,sizeof(int)+sizeof(u_int32_t),0);
+	recv(fd,&messageLength,sizeof(int),0);
+	void* aux = malloc(messageLength+2);
+	memset(aux,0,messageLength+2);
+	recv(fd, aux, messageLength, 0);
+	memset(aux+messageLength+1,'\0',1);
+	char* recibido = (char*) aux;
+	free(buffer);
+	return recibido;
+}*/
+
 void handshake(int codigo, int idProceso, int fd){
 	void* codbuf = malloc(sizeof(int)*2);
 	codigo = 1;
@@ -333,7 +352,7 @@ int main(int argc, char **argv) {
 
 	// CONEXION A KERNEL
 
-
+	PCB* nuevaPCB;
 	char buf[256];
 	int fd, fd_memoria, bytes, codigo;
 	int idProceso = 1;
