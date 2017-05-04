@@ -28,9 +28,10 @@
 //El fd_kernel lo hice global para poder usarlo en las primitivas privilegiadas
 cpu_config data_config;
 int fd_kernel;
+int fd_memoria;
 
 typedef struct{
-	int pid;
+	u_int32_t pid;
 	//int ip;
 	int page_counter;
 	//aca iria una referencia a la tabla de archivos del proceso
@@ -240,6 +241,17 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
+void verificar_conexion_socket(int fd, int estado){
+	if(estado == -1){
+		perror("recieve");
+		exit(3);
+		}
+	if(estado == 0){
+		printf("Se desconecto el socket: %d\n", fd);
+		close(fd);
+	}
+}
+
 //Funciones para que el main quede lindo
 void message_handler_for_fd(int fd){
 	int messageLength;
@@ -266,24 +278,31 @@ void message_handler_for_fd(int fd){
 	}
 }
 
-/*char* pedirCodigoAMemoria(int fd, u_int32_t pid)
+char* pedirCodigoAMemoria(u_int32_t pid, int page_counter)
 {
 	int codigo = 3;
-	int messageLength;
-	u_int32_t id = pid;
-	void* buffer = malloc(sizeof(int)+sizeof(u_int32_t));
+	int messageLength, bytes;
+
+	void* buffer = malloc(sizeof(int)+sizeof(u_int32_t)+sizeof(int));
 	memcpy(buffer,&codigo,sizeof(int));
 	memcpy(buffer+sizeof(int),&pid,sizeof(u_int32_t));
-	send(fd,buffer,sizeof(int)+sizeof(u_int32_t),0);
-	recv(fd,&messageLength,sizeof(int),0);
+	memcpy(buffer+sizeof(int)+sizeof(u_int32_t),&page_counter,sizeof(int));
+
+	send(fd_memoria,buffer,sizeof(int)+sizeof(int)+sizeof(u_int32_t),0);
+
+	bytes = recv(fd_memoria,&messageLength,sizeof(int),0);
+	verificar_conexion_socket(fd_memoria,bytes);
+
 	void* aux = malloc(messageLength+2);
 	memset(aux,0,messageLength+2);
-	recv(fd, aux, messageLength, 0);
+	bytes =recv(fd_memoria, aux, messageLength, 0);
+	verificar_conexion_socket(fd_memoria,bytes);
 	memset(aux+messageLength+1,'\0',1);
+
 	char* recibido = (char*) aux;
 	free(buffer);
 	return recibido;
-}*/
+}
 
 void handshake(int codigo, int idProceso, int fd){
 	void* codbuf = malloc(sizeof(int)*2);
@@ -354,7 +373,7 @@ int main(int argc, char **argv) {
 
 	PCB* nuevaPCB;
 	char buf[256];
-	int fd, fd_memoria, bytes, codigo;
+	int fd, bytes, codigo;
 	int idProceso = 1;
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
@@ -375,7 +394,10 @@ int main(int argc, char **argv) {
 
 	while(1)
 	{
-		message_handler_for_fd(fd_kernel);
+		nuevaPCB = recibirPCB();
+		char *script = pedirCodigoAMemoria(nuevaPCB->pid, nuevaPCB->page_counter);
+		printf("Y este es el codigo:\n %s\n", script);
+		free(script);
 	}
 
 

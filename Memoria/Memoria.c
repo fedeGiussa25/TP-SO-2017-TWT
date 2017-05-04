@@ -182,9 +182,34 @@ int buscar_espacio(u_int32_t PID, int size, void *script){
 	return paginas_usadas;
 }
 
+char *buscar_codigo(u_int32_t PID, int page_counter){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i=0, j, primer_frame, encontrado = 0;
+	int tamanio_pagina = data_config.marco_size;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		if(tabla[i].PID == PID){
+			primer_frame = tabla[i].frame;
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+
+	void *codigo = malloc(tamanio_pagina * page_counter);
+	memset(codigo, 0, data_config.marco_size * page_counter);
+	for(j=0; j< page_counter; j++){
+		memcpy(codigo + (j*tamanio_pagina), memoria+(tamanio_pagina*primer_frame), tamanio_pagina);
+		primer_frame += 1;
+	}
+
+	char *script = (char *) codigo;
+	return script;
+}
+
 void *thread_proceso(int fd){
 	printf("Nueva conexion en socket %d\n", fd);
-	int bytes, codigo, messageLength;
+	int bytes, codigo, messageLength, page_counter;
 	u_int32_t PID;
 
 	while(1){
@@ -201,7 +226,7 @@ void *thread_proceso(int fd){
 			memset(aux+messageLength+1,'\0',1);
 
 			char* charaux = (char*) aux;
-			printf("Y este es el script:\n %s", charaux);
+			printf("Y este es el script:\n %s\n", charaux);
 
 			//Ahora buscamos espacio
 			int hay_espacio = buscar_espacio(PID, messageLength+2, aux);
@@ -209,6 +234,19 @@ void *thread_proceso(int fd){
 			send(fd, &hay_espacio, sizeof(int), 0);
 			free(aux);
 			dump_de_tabla();
+		}
+		if(codigo == 3){
+			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
+			verificar_conexion_socket(fd, bytes);
+			recv(fd, &page_counter, sizeof(int), 0);
+			char *script = buscar_codigo(PID, page_counter);
+			int tamanio = strlen(script);
+			void *buffer = malloc(sizeof(int) + tamanio);
+			memcpy(buffer, &tamanio, sizeof(int));
+			memcpy(buffer+sizeof(int), script, tamanio);
+			send(fd, buffer, sizeof(int) + tamanio, 0);
+			free(script);
+			free(buffer);
 		}
 	}
 }
