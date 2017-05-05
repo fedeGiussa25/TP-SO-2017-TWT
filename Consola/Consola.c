@@ -22,9 +22,10 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 
+int idProceso = 2;
 
-int sockfd_kernel; // estaba en el main, pero tengo que ponerlo aca porque lo tengo que usar tambien en la funcion que le paso al hilo
-
+//int sockfd_kernel; // estaba en el main, pero tengo que ponerlo aca porque lo tengo que usar tambien en la funcion que le paso al hilo
+consola_config data_config;
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
 int get_fd_server(char* ip, char* puerto){
@@ -116,13 +117,24 @@ void clean_script(FILE *file, int *scriptSize, char *script)
 
 void *process_script(char *filePath)
 {
+	int sockfd_kernel;
 	FILE *file;
 	int scriptLength = 0;
-	int codigo = 2;
+	int codigo;
 	struct stat st;
 	off_t fileSize;	//uso esto para despues determinar el tamaño de la variable script
 					// sabiendo que 1 char = 1 byte, al sacar el nro de bytes del archivo, se cuantos char tiene
 					// "off_t" = unsigned int 64
+
+	sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+
+	//handshake
+	void* codbuf = malloc(sizeof(int)*2);
+	codigo =1;
+	memcpy(codbuf,&codigo,sizeof(int));
+	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
+	send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
+	free(codbuf);
 
 	if ((file = fopen(filePath, "r")) == NULL)
 	{
@@ -159,6 +171,8 @@ void *process_script(char *filePath)
 
 	void* realbuf = malloc((sizeof(int)*2)+scriptLength+1);
 
+	codigo = 2;
+	int respuesta;
 	memcpy(realbuf,&codigo,sizeof(int));
 	memcpy(realbuf+sizeof(int),&scriptLength, sizeof(int));		//serializo codigo (de mensaje), tamaño de script y script
 	memcpy(realbuf+(sizeof(int)*2), cleanScript, scriptLength);
@@ -167,9 +181,17 @@ void *process_script(char *filePath)
 
 	printf("\nScript enviado!\n");
 
+	recv(sockfd_kernel, &respuesta, sizeof(int), 0);
+
+	if(respuesta < 0){
+		printf("No se pudo ejecutar el programa \n");
+	}else{
+		printf("Se esta ejecutando el programa! \n");
+	}
+
 	free(realbuf);
 	free(cleanScript);
-
+	close(sockfd_kernel);
 	pthread_exit(NULL);
 }
 
@@ -244,10 +266,8 @@ void print_commands()
 int main(int argc, char** argv) {
 
 	t_config *config;
-	consola_config data_config;
 	//char *buf = malloc(256);
 	int codigo;
-	int idProceso = 2;
 	//int messageLength;
 
 	checkArguments(argc);
@@ -263,7 +283,7 @@ int main(int argc, char** argv) {
 	printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
 
 	//Nos conectamos
-	sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+	//sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
 	//memset(buf,0,256);
 	/*codigo = 2;
@@ -273,12 +293,12 @@ int main(int argc, char** argv) {
 			exit(3);
 		}*/
 
-	void* codbuf = malloc(sizeof(int)*2);
+	/*void* codbuf = malloc(sizeof(int)*2);
 	codigo =1;
 	memcpy(codbuf,&codigo,sizeof(int));
 	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
 	send(sockfd_kernel, codbuf, sizeof(int)*2, 0);
-	free(codbuf);
+	free(codbuf);*/
 
 /*	int codigo2 = 2;
 	while(1){

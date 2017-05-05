@@ -23,7 +23,7 @@ typedef struct {
 
 /*Funciones*/
 
-	//Backlog es la cantidad maxima que quiero de conexiones pendientes
+//Backlog es la cantidad maxima que quiero de conexiones pendientes
 
 void verificar_conexion_socket(int fd, int estado){
 	if(estado == -1){
@@ -168,6 +168,8 @@ int buscar_espacio(u_int32_t PID, int size, void *script){
 	if(encontrado == 0){
 		printf("No hay espacio suficiente para el pedido\n");
 		return -1;
+	}else{
+		printf("Se ha guardado el script correctamente\n");
 	}
 
 	//copiamos el script (POR FIIIIN!)
@@ -207,6 +209,20 @@ char *buscar_codigo(u_int32_t PID, int page_counter){
 	return script;
 }
 
+void *thread_consola(){
+	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n Y eso son todos los comandos que hay, por ahora...\n");
+	while(1){
+		char *command = malloc(20);
+		scanf("%s", command);
+		if((strcmp(command, "dump")) == 0){
+			dump_de_tabla();
+		}else{
+			printf("Comando incorrecto\n");
+		}
+		free(command);
+	}
+}
+
 void *thread_proceso(int fd){
 	printf("Nueva conexion en socket %d\n", fd);
 	int bytes, codigo, messageLength, page_counter;
@@ -225,15 +241,15 @@ void *thread_proceso(int fd){
 			recv(fd, aux, messageLength, 0);
 			memset(aux+messageLength+1,'\0',1);
 
-			char* charaux = (char*) aux;
-			printf("Y este es el script:\n %s\n", charaux);
+			//char* charaux = (char*) aux;
+			//printf("Y este es el script:\n %s\n", charaux);
 
 			//Ahora buscamos espacio
 			int hay_espacio = buscar_espacio(PID, messageLength+2, aux);
 
 			send(fd, &hay_espacio, sizeof(int), 0);
 			free(aux);
-			dump_de_tabla();
+			//dump_de_tabla();
 		}
 		if(codigo == 3){
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
@@ -281,6 +297,13 @@ int main(int argc, char** argv){
 	memoria = calloc(data_config.marcos, data_config.marco_size);
 
 	memcpy(memoria, tabla_de_paginas, espacio_total_tabla);
+
+	int valorhiloConsola;
+	pthread_t hiloConsola;
+	valorhiloConsola = pthread_create(&hiloConsola, NULL,(void *) thread_consola, NULL);
+	if(valorhiloConsola != 0){
+		printf("Error al crear el hilo programa");
+	}
 
 	/*Sockets para recibir mensaje del Kernel*/
 

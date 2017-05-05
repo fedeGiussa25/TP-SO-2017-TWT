@@ -378,7 +378,7 @@ void ready_a_cpu(){
 //Todo lo referido a manejador_de_scripts
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
-	int fd_cpu; //La CPU que me mando el script
+	int fd_consola; //La Consola que me mando el script
 	int fd_mem; //La memoria
 	int grado_multiprog; //El grado de multiprog actual
 	int messageLength; //El largo del script
@@ -411,7 +411,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
 		if(numbytes > 0)
 		{
-			//1 significa que hay espacio y guardo las cosas
+			//significa que hay espacio y guardo las cosas
 			if(recvmem > 0){
 				char *happy = "Hay espacio en memoria :D\n\n";
 				printf("%s",happy);
@@ -419,15 +419,16 @@ void manejador_de_scripts(script_manager_setup* sms){
 				pthread_mutex_lock(&mutex_ready_queue);
 				queue_push(ready_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_ready_queue);
+				send(sms->fd_consola,&recvmem,sizeof(int),0);
 			}
-			//0 significa que no hay espacio
+			//significa que no hay espacio
 			if(recvmem < 0){
 				char *sad = "No hay espacio en memoria D:\n\n";
 				printf("%s", sad);
 				pthread_mutex_lock(&mutex_exit_queue);
 				queue_push(exit_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_exit_queue);
-				send(sms->fd_cpu,sad,strlen(sad),0);
+				send(sms->fd_consola,&recvmem,sizeof(int),0);
 			}
 		}
 		if(numbytes == 0){printf("Se desconecto memoria\n\n");}
@@ -598,12 +599,12 @@ int main(int argc, char** argv) {
 							recv(i, aux, messageLength, 0);
 							memset(aux+messageLength+1,'\0',1);
 							char* charaux = (char*) aux;
-							printf("Y este es el script:\n%s\n", charaux);
+							//printf("Y este es el script:\n%s\n", charaux);
 
 
 							//Setteo el script manager
 							script_manager_setup* sms = malloc(sizeof(script_manager_setup));
-							sms->fd_cpu = i;
+							sms->fd_consola = i;
 							sms->fd_mem = sockfd_memoria;
 							sms->grado_multiprog = data_config.grado_multiprog;
 							sms->messageLength = messageLength;
