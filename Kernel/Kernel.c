@@ -47,6 +47,7 @@ typedef struct{
 //VOLO: "TAL VEZ DEBERIAMOS PONERLOS EN UN .h"
 //GIUSSA: "Tal vez deberias hacerlo :D"
 //VOLO: "Seras rompehuevos eh"
+//GIUSSA: "Si que te gusta comentar boludeces eh"
 typedef struct{
 	int offset;
 	int size;
@@ -102,6 +103,7 @@ kernel_config data_config;
 //Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
 t_list* lista_consolas;
+t_list* lista_en_ejecucion;
 
 //Colas de planificacion
 t_queue* ready_queue;
@@ -313,17 +315,51 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+int esta_en_uso(int fd){
+	int i;
+	int en_uso = 0;
+	proceso_conexion *cpu;
+
+	for(i= 0; i< list_size(lista_en_ejecucion); i++){
+		cpu = list_get(lista_en_ejecucion,i);
+		if(cpu->sock_fd == fd){
+			en_uso =1;
+		}
+	}
+	return en_uso;
+}
+
+int buscar_cpu_libre(){
+	int i=0;
+	int encontrado =0;
+	proceso_conexion *cpu;
+	while(encontrado == 0 && list_size(lista_cpus)){
+		cpu = list_get(lista_cpus, i);
+		if(esta_en_uso(cpu->sock_fd) == 0){
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+	return i;
+}
+
 void ready_a_cpu(){
 	while(1)
 	{
+		int i;
+
 		pthread_mutex_lock(&mutex_ready_queue);
 
 		if(queue_size(ready_queue)>0){
 
 			pthread_mutex_lock(&mutex_fd_cpus);
 
+			i = buscar_cpu_libre();
+
 			if(list_size(lista_cpus)>0){
-				proceso_conexion *cpu = list_get(lista_cpus,0);
+				proceso_conexion *cpu = list_get(lista_cpus,i);
+				list_add(lista_en_ejecucion, cpu);
 				PCB *pcb_to_use = queue_pop(ready_queue);
 				void *sendbuf = malloc(sizeof(u_int32_t)+sizeof(int));
 				memcpy(sendbuf,&(pcb_to_use->pid),sizeof(u_int32_t));
@@ -432,6 +468,7 @@ int main(int argc, char** argv) {
 	//Consolas y cpus
 	lista_cpus = list_create();
 	lista_consolas = list_create();
+	lista_en_ejecucion = list_create();
 	proceso_conexion *nueva_conexion_cpu;
 	proceso_conexion *nueva_conexion_consola;
 
