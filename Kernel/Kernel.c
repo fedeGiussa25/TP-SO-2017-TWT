@@ -436,6 +436,8 @@ void manejador_de_scripts(script_manager_setup* sms){
 	}
 	else{
 		printf("El sistema ya llego a su tope de multiprogramacion, intente luego\n\n");
+		int error = -1;
+		send(sms->fd_consola, &error,sizeof(int),0);
 	}
 	//free(sms->realbuf);
 	free(sms);
