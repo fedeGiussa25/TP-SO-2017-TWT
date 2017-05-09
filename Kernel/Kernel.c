@@ -35,7 +35,7 @@ pthread_mutex_t mutex_procesos_actuales;
 pthread_mutex_t mutex_ready_queue;
 pthread_mutex_t mutex_exit_queue;
 pthread_mutex_t mutex_exec_queue;
-
+pthread_mutex_t mutex_new_queue;
 
 // Structs de conexiones
 //Todo lo de structs de PCB
@@ -48,6 +48,7 @@ typedef struct{
 //GIUSSA: "Tal vez deberias hacerlo :D"
 //VOLO: "Seras rompehuevos eh"
 //GIUSSA: "Si que te gusta comentar boludeces eh"
+//VOLO: "Asi soy yo ¯\_(ツ)_/¯"
 typedef struct{
 	int offset;
 	int size;
@@ -109,6 +110,7 @@ t_list* lista_en_ejecucion;
 t_queue* ready_queue;
 t_queue* exit_queue;
 t_queue* exec_queue;
+t_queue* new_queue;
 
 //FUNCIONES
 //Todo lo de funciones de PCB
@@ -344,17 +346,26 @@ int buscar_cpu_libre(){
 	return i;
 }
 
-void ready_a_cpu(){
+void planificacion(int grado_multiprog){
 	while(1)
 	{
 		int i;
 
-		pthread_mutex_lock(&mutex_ready_queue);
+		//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
+		//Si es asi, pasa un proceso de New a Ready
+		pthread_mutex_lock(&mutex_new_queue);
+		if(queue_size(new_queue)>0 && procesos_actuales<grado_multiprog){
+			PCB* new_to_ready = queue_pop(new_queue);
+			pthread_mutex_lock(&mutex_ready_queue);
+			queue_push(ready_queue,new_to_ready);
+			pthread_mutex_unlock(&mutex_ready_queue);
+		}
+		pthread_mutex_unlock(&mutex_new_queue);
 
+		pthread_mutex_lock(&mutex_ready_queue);
 		if(queue_size(ready_queue)>0){
 
 			pthread_mutex_lock(&mutex_fd_cpus);
-
 			i = buscar_cpu_libre();
 
 			if(list_size(lista_cpus)>0){
@@ -390,36 +401,47 @@ void manejador_de_scripts(script_manager_setup* sms){
 	int codigo_cpu = 2, numbytes, recvmem;
 	PCB* pcb_to_use;
 
-	if(procesos_actuales < sms->grado_multiprog){
-		//Creo el PCB
-		printf("A crear el PCB!\n");
-		pcb_to_use = create_PCB();
+	//Creo el PCB
+	printf("A crear el PCB!\n");
+	pcb_to_use = create_PCB();
 
-		printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
+	printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
 
-		//Le mando el codigo y el largo a la memoria
-		sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
-		memcpy(sendbuf,&codigo_cpu,sizeof(int));
-		memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
-		memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
-		memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
-		printf("Mandamos a memoria!\n");
-		send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
+	//Le mando el codigo y el largo a la memoria
+	sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
+	memcpy(sendbuf,&codigo_cpu,sizeof(int));
+	memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
+	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
+	memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
+	printf("Mandamos a memoria!\n");
+	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
 
-		//Me quedo esperando que responda memoria
-		printf("Y esperamos!\n");
-		numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
+	//Me quedo esperando que responda memoria
+	printf("Y esperamos!\n");
+	numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
+
 		if(numbytes > 0)
 		{
 			//significa que hay espacio y guardo las cosas
 			if(recvmem > 0){
-				char *happy = "Hay espacio en memoria :D\n\n";
-				printf("%s",happy);
-				pcb_to_use->page_counter = recvmem;
-				pthread_mutex_lock(&mutex_ready_queue);
-				queue_push(ready_queue,pcb_to_use);
-				pthread_mutex_unlock(&mutex_ready_queue);
-				send(sms->fd_consola,&recvmem,sizeof(int),0);
+				if(procesos_actuales <= sms->grado_multiprog)
+				{
+					char *happy = "Hay espacio en memoria :D\n\n";
+					printf("%s",happy);
+					pcb_to_use->page_counter = recvmem;
+					pthread_mutex_lock(&mutex_ready_queue);
+					queue_push(ready_queue,pcb_to_use);
+					pthread_mutex_unlock(&mutex_ready_queue);
+					send(sms->fd_consola,&recvmem,sizeof(int),0);}
+				else
+				{
+					pthread_mutex_lock(&mutex_new_queue);
+					queue_push(new_queue,pcb_to_use);
+					pthread_mutex_unlock(&mutex_new_queue);
+					printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
+					int error = -1;
+					send(sms->fd_consola, &error,sizeof(int),0);
+				}
 			}
 			//significa que no hay espacio
 			if(recvmem < 0){
@@ -433,12 +455,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		}
 		if(numbytes == 0){printf("Se desconecto memoria\n\n");}
 		if(numbytes != 0){perror("receive");}
-	}
-	else{
-		printf("El sistema ya llego a su tope de multiprogramacion, intente luego\n\n");
-		int error = -1;
-		send(sms->fd_consola, &error,sizeof(int),0);
-	}
+
 	//free(sms->realbuf);
 	free(sms);
 }
@@ -479,6 +496,7 @@ int main(int argc, char** argv) {
 	exit_queue = queue_create();
 	ready_queue = queue_create();
 	exec_queue = queue_create();
+	new_queue = queue_create();
 
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
@@ -527,7 +545,7 @@ int main(int argc, char** argv) {
 
 	//Hilo que manda de cola ready a cpu
 	pthread_t rtocpu;
-	pthread_create(&rtocpu,NULL,(void*)ready_a_cpu,NULL);
+	pthread_create(&rtocpu,NULL,(void*)planificacion,&(data_config.grado_multiprog));
 
 	for(;;) {
 		read_fds = fd_procesos;
