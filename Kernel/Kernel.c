@@ -81,6 +81,7 @@ typedef struct{
 	u_int32_t pid;
 	//int ip;
 	int page_counter;
+	int direccion_inicio_codigo;
 	//aca iria una referencia a la tabla de archivos del proceso
 	//code_index_line code_index[];
 	//char* tag_index;
@@ -364,7 +365,7 @@ int buscar_cpu_libre(){
 
 void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	void *sendbuf;
-	int codigo_cpu = 2, numbytes, recvmem;
+	int codigo_cpu = 2, numbytes, page_counter, direccion;
 
 	//Le mando el codigo y el largo a la memoria
 	sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
@@ -377,26 +378,28 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 
 	//Me quedo esperando que responda memoria
 	printf("Y esperamos!\n");
-	numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
+	numbytes = recv(sms->fd_mem, &page_counter, sizeof(int),0);
+	recv(sms->fd_mem, &direccion, sizeof(int),0);
 
 	if(numbytes > 0)
 	{
 		//significa que hay espacio y guardo las cosas
-		if(recvmem > 0){
+		if(page_counter > 0){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
-			pcb_to_use->page_counter = recvmem;
+			pcb_to_use->page_counter = page_counter;
+			pcb_to_use->direccion_inicio_codigo = direccion;
 			pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_ready_queue);
-			send(sms->fd_consola,&recvmem,sizeof(int),0);
+			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
 		//significa que no hay espacio
-		if(recvmem < 0){
+		if(page_counter < 0){
 			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
-			send(sms->fd_consola,&recvmem,sizeof(int),0);
+			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
 	}
 	if(numbytes != 0){perror("receive");}

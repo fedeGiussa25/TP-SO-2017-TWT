@@ -15,6 +15,11 @@ mem_config data_config;
 
 void *memoria;
 
+typedef struct{
+	int page_counter;
+	int direccion;
+} espacio_reservado;
+
 typedef struct {
 	int32_t frame;
 	int32_t PID;
@@ -145,8 +150,9 @@ int espacio_encontrado(int paginas_necesarias, int posicion, entrada_tabla *tabl
 	return encontrado;
 }
 
-int buscar_espacio(u_int32_t PID, int size, void *script){
+espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
 	int encontrado = 0, i = 0, j=0;
 	div_t paginas_necesarias;
 	int marcos_size = data_config.marco_size;
@@ -167,7 +173,9 @@ int buscar_espacio(u_int32_t PID, int size, void *script){
 
 	if(encontrado == 0){
 		printf("No hay espacio suficiente para el pedido\n");
-		return -1;
+		espacio->direccion = -1;
+		espacio->page_counter = -1;
+		return espacio;
 	}else{
 		printf("Se ha guardado el script correctamente\n");
 	}
@@ -181,7 +189,10 @@ int buscar_espacio(u_int32_t PID, int size, void *script){
 		tabla[i+j].pagina = j;
 	}
 
-	return paginas_usadas;
+	espacio->page_counter = paginas_usadas;
+	espacio->direccion = marcos_size*i;
+
+	return espacio;
 }
 
 char *buscar_codigo(u_int32_t PID, int page_counter){
@@ -233,6 +244,7 @@ void *thread_proceso(int fd){
 		verificar_conexion_socket(fd, bytes);
 
 		if(codigo == 2){
+			espacio_reservado *espacio;
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
 			verificar_conexion_socket(fd, bytes);
 			recv(fd, &messageLength, sizeof(int), 0);
@@ -245,11 +257,13 @@ void *thread_proceso(int fd){
 			//printf("Y este es el script:\n %s\n", charaux);
 
 			//Ahora buscamos espacio
-			int hay_espacio = buscar_espacio(PID, messageLength+2, aux);
+			espacio = buscar_espacio(PID, messageLength+2, aux);
 
-			send(fd, &hay_espacio, sizeof(int), 0);
+			send(fd, &espacio->page_counter, sizeof(int), 0);
+			send(fd, &espacio->direccion, sizeof(int), 0);
+
+			free(espacio);
 			free(aux);
-			//dump_de_tabla();
 		}
 		if(codigo == 3){
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
