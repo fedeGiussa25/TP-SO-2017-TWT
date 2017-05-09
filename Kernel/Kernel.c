@@ -88,6 +88,19 @@ typedef struct{
 	//int exit_code;
 }PCB;
 
+typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
+	int fd_consola; //La Consola que me mando el script
+	int fd_mem; //La memoria
+	int grado_multiprog; //El grado de multiprog actual
+	int messageLength; //El largo del script
+	void* realbuf; //El script serializado
+}script_manager_setup;
+
+typedef struct{
+	PCB* pcb;
+	script_manager_setup* sms;
+}new_pcb;
+
 // SI, HAY VARIOS PARECIDOS PERO VA A SER MUY MOLESTO USARLOS SI LOS ANIDO
 
 //Todo lo de variables globales
@@ -346,7 +359,50 @@ int buscar_cpu_libre(){
 	return i;
 }
 
-void planificacion(int grado_multiprog){
+//Todo lo referido a manejador_de_scripts
+
+
+void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
+	void *sendbuf;
+	int codigo_cpu = 2, numbytes, recvmem;
+
+	//Le mando el codigo y el largo a la memoria
+	sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
+	memcpy(sendbuf,&codigo_cpu,sizeof(int));
+	memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
+	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
+	memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
+	printf("Mandamos a memoria!\n");
+	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
+
+	//Me quedo esperando que responda memoria
+	printf("Y esperamos!\n");
+	numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
+
+	if(numbytes > 0)
+	{
+		//significa que hay espacio y guardo las cosas
+		if(recvmem > 0){
+			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
+			pcb_to_use->page_counter = recvmem;
+			pthread_mutex_lock(&mutex_ready_queue);
+			queue_push(ready_queue,pcb_to_use);
+			pthread_mutex_unlock(&mutex_ready_queue);
+			send(sms->fd_consola,&recvmem,sizeof(int),0);
+		}
+		//significa que no hay espacio
+		if(recvmem < 0){
+			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
+			pthread_mutex_lock(&mutex_exit_queue);
+			queue_push(exit_queue,pcb_to_use);
+			pthread_mutex_unlock(&mutex_exit_queue);
+			send(sms->fd_consola,&recvmem,sizeof(int),0);
+		}
+	}
+	if(numbytes != 0){perror("receive");}
+}
+
+void planificacion(int *grado_multiprog){
 	while(1)
 	{
 		int i;
@@ -354,11 +410,15 @@ void planificacion(int grado_multiprog){
 		//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
 		//Si es asi, pasa un proceso de New a Ready
 		pthread_mutex_lock(&mutex_new_queue);
-		if(queue_size(new_queue)>0 && procesos_actuales<grado_multiprog){
-			PCB* new_to_ready = queue_pop(new_queue);
-			pthread_mutex_lock(&mutex_ready_queue);
-			queue_push(ready_queue,new_to_ready);
-			pthread_mutex_unlock(&mutex_ready_queue);
+
+		if(queue_size(new_queue) > 0)
+		{
+			if(procesos_actuales < *grado_multiprog)
+			{
+				new_pcb* new = queue_pop(new_queue);
+				guardado_en_memoria(new->sms,new->pcb);
+				free(new);
+			}
 		}
 		pthread_mutex_unlock(&mutex_new_queue);
 
@@ -386,19 +446,7 @@ void planificacion(int grado_multiprog){
 }
 
 
-//Todo lo referido a manejador_de_scripts
-
-typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
-	int fd_consola; //La Consola que me mando el script
-	int fd_mem; //La memoria
-	int grado_multiprog; //El grado de multiprog actual
-	int messageLength; //El largo del script
-	void* realbuf; //El script serializado
-}script_manager_setup;
-
 void manejador_de_scripts(script_manager_setup* sms){
-	void *sendbuf;
-	int codigo_cpu = 2, numbytes, recvmem;
 	PCB* pcb_to_use;
 
 	//Creo el PCB
@@ -407,55 +455,23 @@ void manejador_de_scripts(script_manager_setup* sms){
 
 	printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
 
-	//Le mando el codigo y el largo a la memoria
-	sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
-	memcpy(sendbuf,&codigo_cpu,sizeof(int));
-	memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
-	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
-	memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
-	printf("Mandamos a memoria!\n");
-	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
-
-	//Me quedo esperando que responda memoria
-	printf("Y esperamos!\n");
-	numbytes = recv(sms->fd_mem, &recvmem, sizeof(int),0);
-
-		if(numbytes > 0)
-		{
-			//significa que hay espacio y guardo las cosas
-			if(recvmem > 0){
-				if(procesos_actuales <= sms->grado_multiprog)
-				{
-					char *happy = "Hay espacio en memoria :D\n\n";
-					printf("%s",happy);
-					pcb_to_use->page_counter = recvmem;
-					pthread_mutex_lock(&mutex_ready_queue);
-					queue_push(ready_queue,pcb_to_use);
-					pthread_mutex_unlock(&mutex_ready_queue);
-					send(sms->fd_consola,&recvmem,sizeof(int),0);}
-				else
-				{
-					pthread_mutex_lock(&mutex_new_queue);
-					queue_push(new_queue,pcb_to_use);
-					pthread_mutex_unlock(&mutex_new_queue);
-					printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
-					int error = -1;
-					send(sms->fd_consola, &error,sizeof(int),0);
-				}
-			}
-			//significa que no hay espacio
-			if(recvmem < 0){
-				char *sad = "No hay espacio en memoria D:\n\n";
-				printf("%s", sad);
-				pthread_mutex_lock(&mutex_exit_queue);
-				queue_push(exit_queue,pcb_to_use);
-				pthread_mutex_unlock(&mutex_exit_queue);
-				send(sms->fd_consola,&recvmem,sizeof(int),0);
-			}
-		}
-		if(numbytes == 0){printf("Se desconecto memoria\n\n");}
-		if(numbytes != 0){perror("receive");}
-
+	if(procesos_actuales <= sms->grado_multiprog)
+	{
+		guardado_en_memoria(sms, pcb_to_use);
+	}
+	else
+	{
+		//Lo dejo en New sin guardar en memoria
+		new_pcb* new = malloc(sizeof(new_pcb));
+		new->pcb = pcb_to_use;
+		new->sms = sms;
+		pthread_mutex_lock(&mutex_new_queue);
+		queue_push(new_queue,new);
+		pthread_mutex_unlock(&mutex_new_queue);
+		printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
+		int error = -1;
+		send(sms->fd_consola, &error,sizeof(int),0);
+	}
 	//free(sms->realbuf);
 	free(sms);
 }
