@@ -25,6 +25,7 @@
 #include <semaphore.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
+#include <parser/metadata_program.h>
 
 //Todo lo de mutex
 pthread_mutex_t mutex_fd_cpus;
@@ -49,7 +50,7 @@ typedef struct{
 //VOLO: "Seras rompehuevos eh"
 //GIUSSA: "Si que te gusta comentar boludeces eh"
 //VOLO: "Asi soy yo ¯\_(ツ)_/¯"
-typedef struct{
+/*typedef struct{
 	int offset;
 	int size;
 }code_index_line;
@@ -72,21 +73,22 @@ typedef struct{
 	idpagoffsize vars;
 	int ret_pos;
 	pagoffsize ret_var;
-}stack_index_line;
+}stack_index_line;*/
 
 //Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
 typedef struct{
 	u_int32_t pid;
-	//int ip;
+	int instruction_pointer;
 	int page_counter;
 	int direccion_inicio_codigo;
 	//aca iria una referencia a la tabla de archivos del proceso
 	//code_index_line code_index[];
-	//char* tag_index;
+	char* lista_de_etiquetas;
+	int lista_de_etiquetas_length;
 	//stack_index_line stack_index[];
-	//int exit_code;
+	int exit_code;
 }PCB;
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
@@ -128,26 +130,34 @@ t_queue* new_queue;
 
 //FUNCIONES
 //Todo lo de funciones de PCB
-PCB* create_PCB(){
+PCB* create_PCB(char* script){
 	PCB* nuevo_PCB = malloc(sizeof(PCB));
-	/* M A G I A */
-	/* A         */  //Aca sacaria toda la posta del PCB pero todavia no lo necesitamos.
-	/* G         */  //Asi que no lo hice.
-	/* I         */
-	/* A / / / / */
+	t_metadata_program* data_del_script = metadata_desde_literal(script);
 	nuevo_PCB->pid = ++pid;
 	nuevo_PCB->page_counter = 0;
-	pthread_mutex_lock(&mutex_procesos_actuales);
-	procesos_actuales++;//Se updatearia cuando pedimos espacio a memoria
-	pthread_mutex_unlock(&mutex_procesos_actuales);
+	nuevo_PCB->direccion_inicio_codigo = data_del_script->instruccion_inicio;
+	nuevo_PCB->instruction_pointer = nuevo_PCB->direccion_inicio_codigo;
+	nuevo_PCB->lista_de_etiquetas = data_del_script->etiquetas;
+	nuevo_PCB->lista_de_etiquetas_length = data_del_script->etiquetas_size;
 	return nuevo_PCB;
+}
+
+void print_PCB(PCB* pcb){
+	printf("PID: %d\n",pcb->pid);
+	printf("Direccion inicio codigo: %d\n",pcb->direccion_inicio_codigo);
+	printf("Contador de paginas: %d\n",pcb->page_counter);
+	printf("Instruction pointer: %d\n",pcb->instruction_pointer);
+	printf("Largo de lista de etiquetas: %d\n",pcb->lista_de_etiquetas_length);
+	printf("Lista de etiquetas: %s\n\n",pcb->lista_de_etiquetas);
 }
 
 void delete_PCB(PCB* pcb){
 	pthread_mutex_lock(&mutex_procesos_actuales);
 	procesos_actuales--;
 	pthread_mutex_unlock(&mutex_procesos_actuales);
+	pthread_mutex_lock(&mutex_exit_queue);
 	queue_push(exit_queue,pcb);
+	pthread_mutex_unlock(&mutex_exit_queue);
 }
 
 void *get_in_addr(struct sockaddr *sa)
@@ -388,6 +398,9 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
 			pcb_to_use->direccion_inicio_codigo = direccion;
+			pthread_mutex_lock(&mutex_procesos_actuales);
+			procesos_actuales++;
+			pthread_mutex_unlock(&mutex_procesos_actuales);
 			pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_ready_queue);
@@ -454,7 +467,9 @@ void manejador_de_scripts(script_manager_setup* sms){
 
 	//Creo el PCB
 	printf("A crear el PCB!\n");
-	pcb_to_use = create_PCB();
+	char* script = (char*) sms->realbuf;
+	pcb_to_use = create_PCB(script);
+	print_PCB(pcb_to_use);
 
 	printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
 
