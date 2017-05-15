@@ -221,14 +221,18 @@ char *buscar_codigo(u_int32_t PID, int page_counter){
 }
 
 void *thread_consola(){
-	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n Y eso son todos los comandos que hay, por ahora...\n");
+	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensjes\n\n");
 	while(1){
 		char *command = malloc(20);
 		scanf("%s", command);
 		if((strcmp(command, "dump")) == 0){
 			dump_de_tabla();
 		}else{
-			printf("Comando incorrecto\n");
+			if(strcmp(command, "clear") == 0){
+				system("clear");
+			}else{
+				printf("Comando incorrecto\n");
+			}
 		}
 		free(command);
 	}
