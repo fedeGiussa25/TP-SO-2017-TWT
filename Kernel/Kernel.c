@@ -37,6 +37,7 @@ pthread_mutex_t mutex_ready_queue;
 pthread_mutex_t mutex_exit_queue;
 pthread_mutex_t mutex_exec_queue;
 pthread_mutex_t mutex_new_queue;
+pthread_mutex_t mutex_process_list;
 
 // Structs de conexiones
 //Todo lo de structs de PCB
@@ -89,6 +90,7 @@ typedef struct{
 	int lista_de_etiquetas_length;
 	//stack_index_line stack_index[];
 	int exit_code;
+	char* estado;
 }PCB;
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
@@ -128,6 +130,9 @@ t_queue* exit_queue;
 t_queue* exec_queue;
 t_queue* new_queue;
 
+//Listado con los procesos del sistema
+t_list* todos_los_procesos;
+
 //FUNCIONES
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script){
@@ -139,16 +144,35 @@ PCB* create_PCB(char* script){
 	nuevo_PCB->instruction_pointer = nuevo_PCB->direccion_inicio_codigo;
 	nuevo_PCB->lista_de_etiquetas = data_del_script->etiquetas;
 	nuevo_PCB->lista_de_etiquetas_length = data_del_script->etiquetas_size;
+	nuevo_PCB->estado = "Nuevo";
+	pthread_mutex_lock(&mutex_process_list);
+	list_add(todos_los_procesos,nuevo_PCB);
+	pthread_mutex_unlock(&mutex_process_list);
+	pthread_mutex_lock(&mutex_procesos_actuales);
+	procesos_actuales++;
+	pthread_mutex_unlock(&mutex_procesos_actuales);
 	return nuevo_PCB;
 }
 
 void print_PCB(PCB* pcb){
-	printf("PID: %d\n",pcb->pid);
-	printf("Direccion inicio codigo: %d\n",pcb->direccion_inicio_codigo);
+	printf("PID: %d, Estado de planificacion: %s\n",pcb->pid,pcb->estado);
+/*	printf("Direccion inicio codigo: %d\n",pcb->direccion_inicio_codigo);
 	printf("Contador de paginas: %d\n",pcb->page_counter);
 	printf("Instruction pointer: %d\n",pcb->instruction_pointer);
 	printf("Largo de lista de etiquetas: %d\n",pcb->lista_de_etiquetas_length);
-	printf("Lista de etiquetas: %s\n\n",pcb->lista_de_etiquetas);
+	printf("Lista de etiquetas: %s\n\n",pcb->lista_de_etiquetas);*/
+}
+
+void print_PCB_list(){
+	int i = 0;
+	pthread_mutex_lock(&mutex_process_list);
+	while(i < list_size(todos_los_procesos)){
+		PCB* aux = list_get(todos_los_procesos,i);
+		print_PCB(aux);
+		i++;
+	}
+	pthread_mutex_unlock(&mutex_process_list);
+	printf("\n");
 }
 
 void delete_PCB(PCB* pcb){
@@ -359,7 +383,7 @@ int buscar_cpu_libre(){
 	int i=0;
 	int encontrado =0;
 	proceso_conexion *cpu;
-	while(encontrado == 0 && list_size(lista_cpus)){
+	while(encontrado == 0 && i!=list_size(lista_cpus)){
 		cpu = list_get(lista_cpus, i);
 		if(esta_en_uso(cpu->sock_fd) == 0){
 			encontrado = 1;
@@ -398,9 +422,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
 			pcb_to_use->direccion_inicio_codigo = direccion;
-			pthread_mutex_lock(&mutex_procesos_actuales);
-			procesos_actuales++;
-			pthread_mutex_unlock(&mutex_procesos_actuales);
+			pcb_to_use->estado = "Ready";
 			pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_ready_queue);
@@ -409,6 +431,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		//significa que no hay espacio
 		if(page_counter < 0){
 			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
+			pcb_to_use->estado = "Exit";
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
@@ -444,15 +467,22 @@ void planificacion(int *grado_multiprog){
 			pthread_mutex_lock(&mutex_fd_cpus);
 			i = buscar_cpu_libre();
 
-			if(list_size(lista_cpus)>0){
+			if(list_size(lista_cpus)>0 && i<list_size(lista_cpus)){
 				proceso_conexion *cpu = list_get(lista_cpus,i);
 				list_add(lista_en_ejecucion, cpu);
 				PCB *pcb_to_use = queue_pop(ready_queue);
+
 				void *sendbuf = malloc(sizeof(u_int32_t)+sizeof(int));
 				memcpy(sendbuf,&(pcb_to_use->pid),sizeof(u_int32_t));
 				memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->page_counter),sizeof(int));
 				send(cpu->sock_fd,sendbuf,sizeof(u_int32_t)+sizeof(int),0);
 				printf("Mande un PCB a una CPU :D\n\n");
+
+				pcb_to_use->estado = "Exec";
+				pthread_mutex_lock(&mutex_exec_queue);
+				queue_push(exec_queue,pcb_to_use);
+				pthread_mutex_unlock(&mutex_exec_queue);
+
 				free(sendbuf);
 			}
 			pthread_mutex_unlock(&mutex_fd_cpus);
@@ -469,9 +499,12 @@ void manejador_de_scripts(script_manager_setup* sms){
 	printf("A crear el PCB!\n");
 	char* script = (char*) sms->realbuf;
 	pcb_to_use = create_PCB(script);
-	print_PCB(pcb_to_use);
 
-	printf("Ahora hay %d procesos en planificacion!\n", procesos_actuales);
+	pthread_mutex_lock(&mutex_procesos_actuales);
+	printf("Ahora hay %d procesos en planificacion!\n\n", procesos_actuales);
+	pthread_mutex_unlock(&mutex_procesos_actuales);
+	printf("La lista de procesos en el sistema es: \n");
+	print_PCB_list();
 
 	if(procesos_actuales <= sms->grado_multiprog)
 	{
@@ -531,6 +564,9 @@ int main(int argc, char** argv) {
 	ready_queue = queue_create();
 	exec_queue = queue_create();
 	new_queue = queue_create();
+
+	//Lista con todos los procesos
+	todos_los_procesos = list_create();
 
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
