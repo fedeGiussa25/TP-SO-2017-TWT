@@ -51,6 +51,8 @@ typedef struct{
 //VOLO: "Seras rompehuevos eh"
 //GIUSSA: "Si que te gusta comentar boludeces eh"
 //VOLO: "Asi soy yo ¯\_(ツ)_/¯"
+//GIUSSA: "Asi te quiero. Y justamente por estas cosas es que me encanta romperte los bolas"
+
 /*typedef struct{
 	int offset;
 	int size;
@@ -137,14 +139,17 @@ t_list* todos_los_procesos;
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script){
 	PCB* nuevo_PCB = malloc(sizeof(PCB));
-	t_metadata_program* data_del_script = metadata_desde_literal(script);
+	t_metadata_program* metadata = metadata_desde_literal(script);
 	nuevo_PCB->pid = ++pid;
 	nuevo_PCB->page_counter = 0;
-	nuevo_PCB->direccion_inicio_codigo = data_del_script->instruccion_inicio;
+	//nuevo_PCB->direccion_inicio_codigo = metadata->instruccion_inicio;
 	nuevo_PCB->instruction_pointer = nuevo_PCB->direccion_inicio_codigo;
-	nuevo_PCB->lista_de_etiquetas = data_del_script->etiquetas;
-	nuevo_PCB->lista_de_etiquetas_length = data_del_script->etiquetas_size;
+	nuevo_PCB->lista_de_etiquetas = metadata->etiquetas;
+	nuevo_PCB->lista_de_etiquetas_length = metadata->etiquetas_size;
 	nuevo_PCB->estado = "Nuevo";
+
+	print_metadata(metadata);
+
 	pthread_mutex_lock(&mutex_process_list);
 	list_add(todos_los_procesos,nuevo_PCB);
 	pthread_mutex_unlock(&mutex_process_list);
@@ -365,6 +370,27 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+void print_metadata(t_metadata_program* metadata){
+	int i;
+
+	printf("\n\n***INFORMACION DE METADATA***\n");
+	printf("instruccion_inicio = %d\n", metadata->instruccion_inicio);
+	printf("instrucciones_size = %d\n", metadata->instrucciones_size);
+
+	printf("Instrucciones serializadas: \n");
+
+	for(i=0; i<(metadata->instrucciones_size); i++){
+		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, metadata->instrucciones_serializado[i].start, metadata->instrucciones_serializado[i].offset);
+	}
+
+	printf("etiquetas_size = %d\n", metadata->etiquetas_size);
+	printf("etiquetas = %s\n", metadata->etiquetas);
+
+	printf("cantidad_de_funciones = %d\n", metadata->cantidad_de_funciones);
+	printf("cantidad_de_etiquetas = %d\n", metadata->cantidad_de_etiquetas);
+	printf("***FIN DE LA METADATA***\n\n");
+}
+
 int esta_en_uso(int fd){
 	int i;
 	int en_uso = 0;
@@ -408,7 +434,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
 	memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
 	printf("Mandamos a memoria!\n");
-	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2,0);
+	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2+sizeof(u_int32_t),0);
 
 	//Me quedo esperando que responda memoria
 	printf("Y esperamos!\n");
