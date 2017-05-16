@@ -309,9 +309,42 @@ char* pedirCodigoAMemoria(u_int32_t pid, int page_counter)
 	return recibido;
 }
 
-void handshake(int codigo, int idProceso, int fd){
+char* obtener_instruccion(PCB *pcb){
+	int codigo = 3;
+	int messageLength, bytes, instruccion_a_buscar, inicio, offset, pagina_de_codigo = 0;
+
+	instruccion_a_buscar = pcb->program_counter;
+	inicio = pcb->indice_de_codigo[instruccion_a_buscar].inicio;
+	offset = pcb->indice_de_codigo[instruccion_a_buscar].offset;
+
+	void *buffer = malloc(sizeof(u_int32_t)+ sizeof(int)*4);
+	memcpy(buffer,&codigo,sizeof(int));
+	memcpy(buffer+sizeof(int),&(pcb->pid),sizeof(u_int32_t));
+	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pagina_de_codigo, sizeof(int));
+	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &inicio, sizeof(int));
+	memcpy(buffer+sizeof(int)*3+sizeof(u_int32_t), &offset, sizeof(int));
+
+	send(fd_memoria, buffer, sizeof(u_int32_t)+ sizeof(int)*4,0);
+
+	bytes = recv(fd_memoria,&messageLength,sizeof(int),0);
+	verificar_conexion_socket(fd_memoria,bytes);
+
+	char* instruccion = malloc(messageLength+1);
+
+	bytes = recv(fd_memoria, instruccion, messageLength+1, 0);
+	verificar_conexion_socket(fd_memoria,bytes);
+
+	free(buffer);
+
+	//Actualizamos el Program counter
+	pcb->program_counter += 1;
+
+	return instruccion;
+}
+
+void handshake(int idProceso, int fd){
 	void* codbuf = malloc(sizeof(int)*2);
-	codigo = 1;
+	int codigo = 1;
 	memcpy(codbuf,&codigo,sizeof(int));
 	memcpy(codbuf + sizeof(int),&idProceso, sizeof(int));
 	send(fd, codbuf, sizeof(int)*2, 0);
@@ -362,7 +395,7 @@ PCB* recibirPCB()
 
 void print_PCB(PCB* pcb){
 	int i;
-	printf("PID: %d\n", pcb->pid);
+	printf("\nPID: %d\n", pcb->pid);
 	printf("page_counter: %d\n", pcb->page_counter);
 	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
 	printf("program_counter: %d\n", pcb->program_counter);
@@ -370,7 +403,7 @@ void print_PCB(PCB* pcb){
 	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
 		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
 	}
-
+	printf("\n");
 }
 
 int main(int argc, char **argv) {
@@ -401,15 +434,14 @@ int main(int argc, char **argv) {
 	// CONEXION A KERNEL
 
 	PCB* nuevaPCB;
-	char buf[256];
-	int fd, bytes, codigo;
+
 	int idProceso = 1;
 
 	//Me aseguro que hints este vacio, lo necesito limpito o el getaddrinfo se puede poner chinchudo
 
 	fd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
 
-	handshake(codigo,idProceso,fd_kernel);
+	handshake(idProceso,fd_kernel);
 
 	fd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);
 
@@ -418,7 +450,7 @@ int main(int argc, char **argv) {
 	//Lo que pase primero
 
 	//analizadorLinea la pongo solo para probar si llama a las primitivas
-	analizadorLinea("variables a, b", &funciones, &fcs_kernel);
+	//analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 
 
 	while(1)
@@ -426,9 +458,12 @@ int main(int argc, char **argv) {
 		nuevaPCB = recibirPCB();
 		print_PCB(nuevaPCB);
 
-		//char *script = pedirCodigoAMemoria(nuevaPCB->pid, nuevaPCB->page_counter);
-		//printf("Y este es el codigo:\n %s\n", script);
-		//free(script);
+		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)){
+			char *instruccion = obtener_instruccion(nuevaPCB);
+			printf("Instruccion: %s\n", instruccion);
+			analizadorLinea(instruccion, &funciones, &fcs_kernel);
+			free(instruccion);
+		}
 	}
 
 

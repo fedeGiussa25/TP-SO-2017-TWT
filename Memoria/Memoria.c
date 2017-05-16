@@ -150,7 +150,33 @@ int espacio_encontrado(int paginas_necesarias, int posicion, entrada_tabla *tabl
 	return encontrado;
 }
 
-espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script){
+int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
+	int encontrado = 0, i = 0, j=0;
+	int numero_de_pagina = paginas_ocupadas;
+
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		encontrado = espacio_encontrado(paginas, i, tabla);
+		if(encontrado == 0){
+			i++;
+		}
+	}
+
+	if(encontrado == 0){
+		printf("No hay espacio para el stack\n");
+		return -1;
+	}
+
+	for(j=0; j<paginas; j++){
+		tabla[i+j].PID = PID;
+		tabla[i+j].pagina = numero_de_pagina+j;
+	}
+
+	return paginas;
+}
+
+espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int stack){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
 	int encontrado = 0, i = 0, j=0;
@@ -177,47 +203,59 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script){
 		espacio->page_counter = -1;
 		return espacio;
 	}else{
-		printf("Se ha guardado el script correctamente\n");
+		//Actualizamos las tabla ;)
+		for(j=0; j<paginas_usadas; j++){
+			tabla[i+j].PID = PID;
+			tabla[i+j].pagina = j;
+		}
+
+		int guardado_de_stack = buscar_espacio_stack(PID, stack, paginas_usadas);
+		if(guardado_de_stack == -1){
+			espacio->direccion = -1;
+			espacio->page_counter = -1;
+			return espacio;
+		}else{
+			printf("Se ha guardado el script correctamente\n");
+		}
 	}
 
 	//copiamos el script (POR FIIIIN!)
 	memcpy(memoria + marcos_size*i, script, size);
 
-	//Actualizamos las tabla ;)
-	for(j=0; j<paginas_usadas; j++){
-		tabla[i+j].PID = PID;
-		tabla[i+j].pagina = j;
-	}
-
-	espacio->page_counter = paginas_usadas;
+	espacio->page_counter = paginas_usadas+stack;
 	espacio->direccion = marcos_size*i;
 
 	return espacio;
 }
 
-char *buscar_codigo(u_int32_t PID, int page_counter){
+char *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i=0, j, primer_frame, encontrado = 0;
+	int i=0, frame, encontrado = 0;
 	int tamanio_pagina = data_config.marco_size;
 
+	char *instruccion = malloc(offset);
+
 	while(encontrado == 0 && i < data_config.marcos){
-		if(tabla[i].PID == PID){
-			primer_frame = tabla[i].frame;
+		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+			frame = tabla[i].frame;
 			encontrado = 1;
 		}else{
 			i++;
 		}
 	}
 
-	void *codigo = malloc(tamanio_pagina * page_counter);
-	memset(codigo, 0, data_config.marco_size * page_counter);
-	for(j=0; j< page_counter; j++){
-		memcpy(codigo + (j*tamanio_pagina), memoria+(tamanio_pagina*primer_frame), tamanio_pagina);
-		primer_frame += 1;
+	if(encontrado == 0){
+		printf("Page not Found\n");
+		memcpy(instruccion, "", strlen(""));
+		return instruccion;
 	}
 
-	char *script = (char *) codigo;
-	return script;
+	int direccion_fisica = frame*tamanio_pagina;
+
+	//Copiamos la instruccion
+	memcpy(instruccion, memoria+direccion_fisica+inicio, offset-1);
+
+	return instruccion;
 }
 
 void *thread_consola(){
@@ -240,8 +278,9 @@ void *thread_consola(){
 
 void *thread_proceso(int fd){
 	printf("Nueva conexion en socket %d\n", fd);
-	int bytes, codigo, messageLength, page_counter;
+	int bytes, codigo, messageLength;
 	u_int32_t PID;
+	int pagina, paginas_stack, offset, inicio;
 
 	while(1){
 		bytes = recv(fd,&codigo,sizeof(int),0);
@@ -251,6 +290,7 @@ void *thread_proceso(int fd){
 			espacio_reservado *espacio;
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
 			verificar_conexion_socket(fd, bytes);
+			recv(fd, &paginas_stack, sizeof(int), 0);
 			recv(fd, &messageLength, sizeof(int), 0);
 			void* aux = malloc(messageLength+2);
 			memset(aux,0,messageLength+2);
@@ -261,7 +301,7 @@ void *thread_proceso(int fd){
 			//printf("Y este es el script:\n %s\n", charaux);
 
 			//Ahora buscamos espacio
-			espacio = buscar_espacio(PID, messageLength+2, aux);
+			espacio = buscar_espacio(PID, messageLength+2, aux, paginas_stack);
 
 			send(fd, &espacio->page_counter, sizeof(int), 0);
 			send(fd, &espacio->direccion, sizeof(int), 0);
@@ -270,16 +310,26 @@ void *thread_proceso(int fd){
 			free(aux);
 		}
 		if(codigo == 3){
+
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
 			verificar_conexion_socket(fd, bytes);
-			recv(fd, &page_counter, sizeof(int), 0);
-			char *script = buscar_codigo(PID, page_counter);
-			int tamanio = strlen(script);
-			void *buffer = malloc(sizeof(int) + tamanio);
+			bytes = recv(fd, &pagina, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &inicio, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &offset, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+
+			char *instruccion = lectura(PID, pagina, inicio, offset);
+			int tamanio = offset - 1;
+			void *buffer = malloc(sizeof(int) + tamanio +1);
+			memset(buffer, 0, sizeof(int) + tamanio +1);
 			memcpy(buffer, &tamanio, sizeof(int));
-			memcpy(buffer+sizeof(int), script, tamanio);
-			send(fd, buffer, sizeof(int) + tamanio, 0);
-			free(script);
+			memcpy(buffer+sizeof(int), instruccion, tamanio);
+			memset(buffer+sizeof(int)+tamanio,'\0',1);
+
+			send(fd, buffer, sizeof(int) + tamanio + 1, 0);
+			free(instruccion);
 			free(buffer);
 		}
 	}
@@ -318,7 +368,9 @@ int main(int argc, char** argv){
 
 	int valorhiloConsola;
 	pthread_t hiloConsola;
+
 	valorhiloConsola = pthread_create(&hiloConsola, NULL,(void *) thread_consola, NULL);
+
 	if(valorhiloConsola != 0){
 		printf("Error al crear el hilo programa");
 	}

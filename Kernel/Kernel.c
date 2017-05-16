@@ -454,13 +454,14 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	int codigo_cpu = 2, numbytes, page_counter, direccion;
 
 	//Le mando el codigo y el largo a la memoria
-	sendbuf = malloc(sizeof(int)*2 + sizeof(u_int32_t) + sms->messageLength);
+	sendbuf = malloc(sizeof(int)*3 + sizeof(u_int32_t) + sms->messageLength);
 	memcpy(sendbuf,&codigo_cpu,sizeof(int));
-	memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->pid),sizeof(u_int32_t));
-	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
-	memcpy(sendbuf+sizeof(int)*2 + sizeof(u_int32_t),sms->realbuf,sms->messageLength);
+	memcpy(sendbuf+sizeof(int),&(pcb_to_use->pid),sizeof(u_int32_t));
+	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(data_config.stack_size),sizeof(int));
+	memcpy(sendbuf+sizeof(int)*2+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
+	memcpy(sendbuf+sizeof(int)*3+sizeof(u_int32_t),sms->realbuf,sms->messageLength);
 	printf("Mandamos a memoria!\n");
-	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*2+sizeof(u_int32_t),0);
+	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
 
 	//Me quedo esperando que responda memoria
 	printf("Y esperamos!\n");
