@@ -31,15 +31,20 @@ int fd_kernel;
 int fd_memoria;
 
 typedef struct{
+	u_int32_t inicio;
+	u_int32_t offset;
+} entrada_indice_de_codigo;
+
+typedef struct{
 	u_int32_t pid;
-	//int ip;
+
 	int page_counter;
-	//aca iria una referencia a la tabla de archivos del proceso
-	//code_index_line code_index[];
-	//char* tag_index;
-	//stack_index_line stack_index[];
-	//int exit_code;
-}PCB;
+	int direccion_inicio_codigo;
+	int program_counter;
+
+	int cantidad_de_instrucciones;
+	entrada_indice_de_codigo* indice_de_codigo;
+} PCB;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -317,31 +322,55 @@ void handshake(int codigo, int idProceso, int fd){
 PCB* recibirPCB()
 {
 	int bytes_recv;
-	u_int32_t pid_recibido;
-	int pageCounter_recibido;
-	PCB* pcb_nueva = malloc(sizeof(PCB));
-	bytes_recv = recv(fd_kernel, &pid_recibido, sizeof(u_int32_t),0);
-	if(bytes_recv>0)
-	{
-		pcb_nueva->pid=pid_recibido;
-	}
-	else
-	{
-		perror("recv1");
-		exit(1);
-	}
-	bytes_recv = recv(fd_kernel, &pageCounter_recibido, sizeof(int),0);
-	if(bytes_recv>0)
-	{
-		pcb_nueva->page_counter=pageCounter_recibido;
-	}
-	else
-	{
-		perror("recv2");
-		exit(1);
+
+	u_int32_t pid;
+
+	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones;
+
+	PCB* pcb = malloc(sizeof(PCB));
+
+	int tamanio_indice_codigo;
+
+	bytes_recv = recv(fd_kernel, &pid, sizeof(u_int32_t),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv = recv(fd_kernel, &page_counter, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv = recv(fd_kernel, &direccion_inicio_codigo, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv = recv(fd_kernel, &program_counter, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv = recv(fd_kernel, &cantidad_de_instrucciones, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv = recv(fd_kernel, &tamanio_indice_codigo, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
+	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
+
+	bytes_recv = recv(fd_kernel, indice_de_codigo, tamanio_indice_codigo,0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
+
+	pcb->pid = pid;
+	pcb->page_counter = page_counter;
+	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
+	pcb->program_counter = program_counter;
+	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
+	pcb->indice_de_codigo = indice_de_codigo;
+
+	return pcb;
+}
+
+void print_PCB(PCB* pcb){
+	int i;
+	printf("PID: %d\n", pcb->pid);
+	printf("page_counter: %d\n", pcb->page_counter);
+	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
+	printf("program_counter: %d\n", pcb->program_counter);
+	printf("cantidad_de_instrucciones: %d\n\n", pcb->cantidad_de_instrucciones);
+	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
+		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
 	}
 
-	return pcb_nueva;
 }
 
 int main(int argc, char **argv) {
@@ -395,9 +424,11 @@ int main(int argc, char **argv) {
 	while(1)
 	{
 		nuevaPCB = recibirPCB();
-		char *script = pedirCodigoAMemoria(nuevaPCB->pid, nuevaPCB->page_counter);
-		printf("Y este es el codigo:\n %s\n", script);
-		free(script);
+		print_PCB(nuevaPCB);
+
+		//char *script = pedirCodigoAMemoria(nuevaPCB->pid, nuevaPCB->page_counter);
+		//printf("Y este es el codigo:\n %s\n", script);
+		//free(script);
 	}
 
 

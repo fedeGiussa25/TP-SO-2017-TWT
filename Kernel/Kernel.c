@@ -82,10 +82,19 @@ typedef struct{
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
 typedef struct{
+	u_int32_t inicio;
+	u_int32_t offset;
+} entrada_indice_de_codigo;
+
+typedef struct{
 	u_int32_t pid;
-	int instruction_pointer;
+
 	int page_counter;
 	int direccion_inicio_codigo;
+	int program_counter;
+
+	int cantidad_de_instrucciones;
+	entrada_indice_de_codigo* indice_de_codigo;
 	//aca iria una referencia a la tabla de archivos del proceso
 	//code_index_line code_index[];
 	char* lista_de_etiquetas;
@@ -136,14 +145,31 @@ t_queue* new_queue;
 t_list* todos_los_procesos;
 
 //FUNCIONES
+entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
+	int i;
+	u_int32_t cantidad_instrucciones = metadata->instrucciones_size;
+
+	entrada_indice_de_codigo *indice_de_codigo = malloc(sizeof(entrada_indice_de_codigo)*cantidad_instrucciones);
+
+	for(i=0; i < cantidad_instrucciones; i++){
+		indice_de_codigo[i].inicio = metadata->instrucciones_serializado[i].start;
+		indice_de_codigo[i].offset = metadata->instrucciones_serializado[i].offset;
+	}
+
+	return indice_de_codigo;
+}
+
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script){
 	PCB* nuevo_PCB = malloc(sizeof(PCB));
 	t_metadata_program* metadata = metadata_desde_literal(script);
 	nuevo_PCB->pid = ++pid;
+	nuevo_PCB->program_counter = metadata->instruccion_inicio;
 	nuevo_PCB->page_counter = 0;
-	//nuevo_PCB->direccion_inicio_codigo = metadata->instruccion_inicio;
-	nuevo_PCB->instruction_pointer = nuevo_PCB->direccion_inicio_codigo;
+
+	nuevo_PCB->cantidad_de_instrucciones = metadata->instrucciones_size;
+	nuevo_PCB->indice_de_codigo = create_indice_de_codigo(metadata);
+
 	nuevo_PCB->lista_de_etiquetas = metadata->etiquetas;
 	nuevo_PCB->lista_de_etiquetas_length = metadata->etiquetas_size;
 	nuevo_PCB->estado = "Nuevo";
@@ -467,6 +493,27 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	if(numbytes != 0){perror("receive");}
 }
 
+void send_PCB(proceso_conexion *cpu, PCB *pcb){
+	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
+
+	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
+	void *ultraBuffer = malloc(sizeof(int)*5 + sizeof(u_int32_t) + tamanio_indice_codigo);
+
+	memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
+	memcpy(ultraBuffer+sizeof(u_int32_t), &(pcb->page_counter), sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+sizeof(int), &(pcb->direccion_inicio_codigo), sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+2*sizeof(int), &(pcb->program_counter), sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+3*sizeof(int), &(pcb->cantidad_de_instrucciones), sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+4*sizeof(int), &tamanio_indice_codigo, sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int), pcb->indice_de_codigo, tamanio_indice_codigo);
+
+	send(cpu->sock_fd, ultraBuffer, sizeof(int)*5 + sizeof(u_int32_t) + tamanio_indice_codigo,0);
+
+	printf("Mande un PCB a una CPU :D\n\n");
+
+	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
+}
+
 void planificacion(int *grado_multiprog){
 	while(1)
 	{
@@ -498,18 +545,21 @@ void planificacion(int *grado_multiprog){
 				list_add(lista_en_ejecucion, cpu);
 				PCB *pcb_to_use = queue_pop(ready_queue);
 
+				send_PCB(cpu, pcb_to_use);
+				/*
 				void *sendbuf = malloc(sizeof(u_int32_t)+sizeof(int));
 				memcpy(sendbuf,&(pcb_to_use->pid),sizeof(u_int32_t));
 				memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->page_counter),sizeof(int));
 				send(cpu->sock_fd,sendbuf,sizeof(u_int32_t)+sizeof(int),0);
 				printf("Mande un PCB a una CPU :D\n\n");
+				*/
 
 				pcb_to_use->estado = "Exec";
 				pthread_mutex_lock(&mutex_exec_queue);
 				queue_push(exec_queue,pcb_to_use);
 				pthread_mutex_unlock(&mutex_exec_queue);
 
-				free(sendbuf);
+				//free(sendbuf);
 			}
 			pthread_mutex_unlock(&mutex_fd_cpus);
 		}
