@@ -125,6 +125,7 @@ int mem_sock;
 int listener_cpu;
 int fdmax_cpu;
 int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
+bool plan_go = true;
 
 fd_set fd_procesos;
 
@@ -186,24 +187,22 @@ PCB* create_PCB(char* script){
 }
 
 void print_PCB(PCB* pcb){
-	printf("PID: %d, Estado de planificacion: %s\n",pcb->pid,pcb->estado);
-/*	printf("Direccion inicio codigo: %d\n",pcb->direccion_inicio_codigo);
-	printf("Contador de paginas: %d\n",pcb->page_counter);
-	printf("Instruction pointer: %d\n",pcb->instruction_pointer);
-	printf("Largo de lista de etiquetas: %d\n",pcb->lista_de_etiquetas_length);
-	printf("Lista de etiquetas: %s\n\n",pcb->lista_de_etiquetas);*/
+	printf("PID: %d, Estado: %s\n",pcb->pid,pcb->estado);
 }
 
 void print_PCB_list(){
-	int i = 0;
-	pthread_mutex_lock(&mutex_process_list);
-	while(i < list_size(todos_los_procesos)){
-		PCB* aux = list_get(todos_los_procesos,i);
-		print_PCB(aux);
-		i++;
-	}
-	pthread_mutex_unlock(&mutex_process_list);
-	printf("\n");
+	if(list_size(todos_los_procesos)>0)
+	{
+		int i = 0;
+		pthread_mutex_lock(&mutex_process_list);
+		while(i < list_size(todos_los_procesos)){
+			PCB* aux = list_get(todos_los_procesos,i);
+			printf("PID: %d\n",aux->pid);
+			i++;
+		}
+		pthread_mutex_unlock(&mutex_process_list);
+		printf("\n");
+	} else printf("No hay procesos en planificacion\n\n");
 }
 
 void delete_PCB(PCB* pcb){
@@ -214,6 +213,87 @@ void delete_PCB(PCB* pcb){
 	queue_push(exit_queue,pcb);
 	pthread_mutex_unlock(&mutex_exit_queue);
 }
+
+void print_commands()
+{
+	printf("\nComandos\n");
+	printf("\t list   - Lista de Procesos\n");
+	printf("\t end    - Finalizar Programa\n");
+	printf("\t state  - Estado de un Proceso\n");
+	printf("\t plan   - Detener/Reanudar Planificacion\n\n");
+}
+
+void pcb_state()
+{
+	int i = 0;
+	bool encontrado = 0;
+	int* PID = malloc(sizeof(int));
+	printf("Ingrese el PID del PCB cuyo estado desea ver: ");
+	scanf("%d",PID);
+	if(*PID<1)
+	{
+		printf("Los PIDs empiezan en 1 genio :l");
+	}
+	else
+	{
+		pthread_mutex_lock(&mutex_process_list);
+		while(i<list_size(todos_los_procesos) && !encontrado)
+		{
+			PCB* PCB = list_get(todos_los_procesos,i);
+			if(*PID == PCB->pid)
+			{
+				print_PCB(PCB);
+				encontrado = 1;
+			}
+			i++;
+		}
+		pthread_mutex_unlock(&mutex_process_list);
+		if(!encontrado)
+		{
+			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+		}
+	}
+	printf("\n");
+	free(PID);
+}
+
+void menu()
+{
+	while(1)
+	{
+		char* command = malloc(20);
+		scanf("%s", command);
+		if((strcmp(command, "list")) == 0)
+		{
+			print_PCB_list();
+		}
+		else if((strcmp(command, "end")) == 0)
+		{
+			//finalizar_programa(); //Falta
+		}
+		else if((strcmp(command, "state")) == 0)
+		{
+			pcb_state();
+		}
+		else if((strcmp(command, "plan")) == 0)
+		{
+			if(plan_go){
+				plan_go=false;
+				printf("Se ha detenido la planificacion\n\n");}
+			else{
+				plan_go=true;
+				printf("Se ha reanudado la planificacion\n\n");}
+		}
+		else
+		{
+			printf("Comando incorrecto. Ingrese otro comando: \n");
+			continue;
+		}
+		free(command);
+	}
+}
+
+
 
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -518,53 +598,46 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 void planificacion(int *grado_multiprog){
 	while(1)
 	{
-		int i;
+		//Si esta funcionando la planificacion
+		if(plan_go){
+			int i;
+			//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
+			//Si es asi, pasa un proceso de New a Ready
+			pthread_mutex_lock(&mutex_new_queue);
 
-		//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
-		//Si es asi, pasa un proceso de New a Ready
-		pthread_mutex_lock(&mutex_new_queue);
-
-		if(queue_size(new_queue) > 0)
-		{
-			if(procesos_actuales < *grado_multiprog)
+			if(queue_size(new_queue) > 0)
 			{
-				new_pcb* new = queue_pop(new_queue);
-				guardado_en_memoria(new->sms,new->pcb);
-				free(new);
+				if(procesos_actuales < *grado_multiprog)
+				{
+					new_pcb* new = queue_pop(new_queue);
+					guardado_en_memoria(new->sms,new->pcb);
+					free(new);
+				}
 			}
-		}
-		pthread_mutex_unlock(&mutex_new_queue);
+			pthread_mutex_unlock(&mutex_new_queue);
 
-		pthread_mutex_lock(&mutex_ready_queue);
-		if(queue_size(ready_queue)>0){
+			pthread_mutex_lock(&mutex_ready_queue);
+			if(queue_size(ready_queue)>0){
 
-			pthread_mutex_lock(&mutex_fd_cpus);
-			i = buscar_cpu_libre();
+				pthread_mutex_lock(&mutex_fd_cpus);
+				i = buscar_cpu_libre();
 
-			if(list_size(lista_cpus)>0 && i<list_size(lista_cpus)){
-				proceso_conexion *cpu = list_get(lista_cpus,i);
-				list_add(lista_en_ejecucion, cpu);
-				PCB *pcb_to_use = queue_pop(ready_queue);
+				if(list_size(lista_cpus)>0 && i<list_size(lista_cpus)){
+					proceso_conexion *cpu = list_get(lista_cpus,i);
+					list_add(lista_en_ejecucion, cpu);
+					PCB *pcb_to_use = queue_pop(ready_queue);
 
-				send_PCB(cpu, pcb_to_use);
-				/*
-				void *sendbuf = malloc(sizeof(u_int32_t)+sizeof(int));
-				memcpy(sendbuf,&(pcb_to_use->pid),sizeof(u_int32_t));
-				memcpy(sendbuf+sizeof(u_int32_t),&(pcb_to_use->page_counter),sizeof(int));
-				send(cpu->sock_fd,sendbuf,sizeof(u_int32_t)+sizeof(int),0);
-				printf("Mande un PCB a una CPU :D\n\n");
-				*/
+					send_PCB(cpu, pcb_to_use);
 
-				pcb_to_use->estado = "Exec";
-				pthread_mutex_lock(&mutex_exec_queue);
-				queue_push(exec_queue,pcb_to_use);
-				pthread_mutex_unlock(&mutex_exec_queue);
-
-				//free(sendbuf);
+					pcb_to_use->estado = "Exec";
+					pthread_mutex_lock(&mutex_exec_queue);
+					queue_push(exec_queue,pcb_to_use);
+					pthread_mutex_unlock(&mutex_exec_queue);
+				}
+				pthread_mutex_unlock(&mutex_fd_cpus);
 			}
-			pthread_mutex_unlock(&mutex_fd_cpus);
+			pthread_mutex_unlock(&mutex_ready_queue);
 		}
-		pthread_mutex_unlock(&mutex_ready_queue);
 	}
 }
 
@@ -573,15 +646,8 @@ void manejador_de_scripts(script_manager_setup* sms){
 	PCB* pcb_to_use;
 
 	//Creo el PCB
-	printf("A crear el PCB!\n");
 	char* script = (char*) sms->realbuf;
 	pcb_to_use = create_PCB(script);
-
-	pthread_mutex_lock(&mutex_procesos_actuales);
-	printf("Ahora hay %d procesos en planificacion!\n\n", procesos_actuales);
-	pthread_mutex_unlock(&mutex_procesos_actuales);
-	printf("La lista de procesos en el sistema es: \n");
-	print_PCB_list();
 
 	if(procesos_actuales <= sms->grado_multiprog)
 	{
@@ -600,7 +666,6 @@ void manejador_de_scripts(script_manager_setup* sms){
 		int error = -1;
 		send(sms->fd_consola, &error,sizeof(int),0);
 	}
-	//free(sms->realbuf);
 	free(sms);
 }
 
@@ -690,9 +755,14 @@ int main(int argc, char** argv) {
 
 	fdmax = listener;
 
-	//Hilo que manda de cola ready a cpu
-	pthread_t rtocpu;
-	pthread_create(&rtocpu,NULL,(void*)planificacion,&(data_config.grado_multiprog));
+	//Hilo menu + print command
+	print_commands();
+	pthread_t men;
+	pthread_create(&men,NULL,(void*)menu,NULL);
+
+	//Hilo planficacion
+	pthread_t planif;
+	pthread_create(&planif,NULL,(void*)planificacion,&(data_config.grado_multiprog));
 
 	for(;;) {
 		read_fds = fd_procesos;
@@ -768,16 +838,21 @@ int main(int argc, char** argv) {
 							char* charaux = (char*) aux;
 							//printf("Y este es el script:\n%s\n", charaux);
 
+							if(plan_go)
+							{
+								//Setteo el script manager
+								script_manager_setup* sms = malloc(sizeof(script_manager_setup));
+								sms->fd_consola = i;
+								sms->fd_mem = sockfd_memoria;
+								sms->grado_multiprog = data_config.grado_multiprog;
+								sms->messageLength = messageLength;
+								sms->realbuf = aux;
 
-							//Setteo el script manager
-							script_manager_setup* sms = malloc(sizeof(script_manager_setup));
-							sms->fd_consola = i;
-							sms->fd_mem = sockfd_memoria;
-							sms->grado_multiprog = data_config.grado_multiprog;
-							sms->messageLength = messageLength;
-							sms->realbuf = aux;
-
-							manejador_de_scripts(sms);
+								manejador_de_scripts(sms);
+							} else {
+							printf("Lo sentimos, la planificacion no esta en funcionamiento\n\n");
+							int error = -1;
+							send(i, &error,sizeof(int),0); }
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
