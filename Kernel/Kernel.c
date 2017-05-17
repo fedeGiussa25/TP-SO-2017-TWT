@@ -190,6 +190,111 @@ void print_PCB(PCB* pcb){
 	printf("PID: %d, Estado: %s\n",pcb->pid,pcb->estado);
 }
 
+//Esta funcion es un quilombo asi que la explico aca
+//No hay manera de sacar un objeto de un queue sin sacar todos los que tiene adelante
+void remove_PCB_from_specific_queue(PCB* pcb,t_queue* queue){
+	int i = 0, len;
+	t_list* lista_auxiliar = list_create();
+	len = queue_size(queue);
+	while(i<len){
+		//Saco un PCB y me fijo si es el que busco
+		PCB* aux = queue_pop(queue);
+		if(!(aux->pid == pcb->pid))
+		{
+			//Si no es, lo ubico en una lista auxiliar y aumento i para seguir buscando
+			list_add(lista_auxiliar,aux);
+			//Si lo es, no hago nada, mi objetivo era sacarlo y ya lo hice
+		}
+		i++;
+	}
+	//Cuando finalice me fijo si coloque algun PCB en la lista auxiliar
+	i = 0;
+	if(list_size(lista_auxiliar)>0){
+		//De ser asi...
+		while(i<list_size(lista_auxiliar)){
+			//Voy ubicandolos del ultimo al primero en la cola de vuelta para mantener el orden previo
+			PCB* aux = list_get(lista_auxiliar, i);
+			queue_push(queue,aux);
+			i++;
+		}
+	}
+	list_destroy(lista_auxiliar);
+}
+
+void delete_PCB(PCB* pcb){
+	pthread_mutex_lock(&mutex_procesos_actuales);
+	procesos_actuales--;
+	pthread_mutex_unlock(&mutex_procesos_actuales);
+	pthread_mutex_lock(&mutex_exit_queue);
+	queue_push(exit_queue,pcb);
+	pthread_mutex_unlock(&mutex_exit_queue);
+}
+
+void remove_from_queue(PCB* pcb){
+	if(strcmp(pcb->estado,"New")==0)
+	{
+		pthread_mutex_lock(&mutex_new_queue);
+		remove_PCB_from_specific_queue(pcb,new_queue);
+		pthread_mutex_unlock(&mutex_new_queue);
+	}
+	else if(strcmp(pcb->estado,"Ready")==0)
+	{
+		pthread_mutex_lock(&mutex_ready_queue);
+		remove_PCB_from_specific_queue(pcb,ready_queue);
+		pthread_mutex_unlock(&mutex_ready_queue);
+	}
+	else if(strcmp(pcb->estado,"Exec")==0)//No va a funcionar asi por siempre pero lo dejo como placeholder
+	{
+		pthread_mutex_lock(&mutex_exec_queue);
+		remove_PCB_from_specific_queue(pcb,exec_queue);
+		pthread_mutex_unlock(&mutex_exec_queue);
+	}
+	else printf("PCB invalido, no se encuentra en ninguna cola");
+}
+
+void end_process(){
+	int i = 0;
+	bool encontrado = 0;
+	int* PID = malloc(sizeof(int));
+	printf("Ingrese el PID del PCB que desea finalizar: ");
+	scanf("%d",PID);
+	if(*PID<1)
+	{
+		printf("Los PIDs empiezan en 1 genio :l");
+	}
+	else
+	{
+		pthread_mutex_lock(&mutex_process_list);
+		while(i<list_size(todos_los_procesos) && !encontrado)
+		{
+			PCB* PCB = list_get(todos_los_procesos,i);
+			if(*PID == PCB->pid)
+			{
+				if(strcmp(PCB->estado,"Exit")!=0){
+					remove_from_queue(PCB);
+					PCB->exit_code = -7;
+					PCB->estado = "Exit";
+					delete_PCB(PCB);
+					printf("El proceso ha sido finalizado\n");
+				}
+				else
+				{
+					printf("El proceso elegido ya esta finalizado\n");
+				}
+				encontrado = 1;
+			}
+			i++;
+		}
+		pthread_mutex_unlock(&mutex_process_list);
+		if(!encontrado)
+		{
+			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+		}
+	}
+	printf("\n");
+	free(PID);
+}
+
 void print_PCB_list(){
 	if(list_size(todos_los_procesos)>0)
 	{
@@ -205,20 +310,11 @@ void print_PCB_list(){
 	} else printf("No hay procesos en planificacion\n\n");
 }
 
-void delete_PCB(PCB* pcb){
-	pthread_mutex_lock(&mutex_procesos_actuales);
-	procesos_actuales--;
-	pthread_mutex_unlock(&mutex_procesos_actuales);
-	pthread_mutex_lock(&mutex_exit_queue);
-	queue_push(exit_queue,pcb);
-	pthread_mutex_unlock(&mutex_exit_queue);
-}
-
 void print_commands()
 {
 	printf("\nComandos\n");
 	printf("\t list   - Lista de Procesos\n");
-	printf("\t end    - Finalizar Programa\n");
+	printf("\t end    - Finalizar Proceso\n");
 	printf("\t state  - Estado de un Proceso\n");
 	printf("\t plan   - Detener/Reanudar Planificacion\n\n");
 }
@@ -269,7 +365,7 @@ void menu()
 		}
 		else if((strcmp(command, "end")) == 0)
 		{
-			//finalizar_programa(); //Falta
+			end_process(); //Faltan cositas
 		}
 		else if((strcmp(command, "state")) == 0)
 		{
