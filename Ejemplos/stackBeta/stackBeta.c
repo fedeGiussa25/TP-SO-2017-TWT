@@ -19,6 +19,11 @@
 //Estas estructuras son lo mas chicas posibles(no van a ser asi) porque todavia se esta probando esto
 //PD: Volo no quiero cambiarte el pcb, solo creo que es mas comodo usar lista en algunos campos :)
 
+int cantPaginasCodigo = 3;
+bool stackOverflow = false;
+int tamanioPagina;
+int tamanioStack=3;
+int fd_memoria;
 
 typedef struct{
 	t_list* stack_index;
@@ -44,31 +49,66 @@ typedef struct {
 pcb* pcbActual;
 pcb mipcb;
 
+typedef struct {
+	int pagina;
+	int offset;
+	int longitud;
+} pedidoEscritura;
+
+void obtenerTamanioPaginaDeMemoria()
+{
+	int* tamPagina = malloc(sizeof(int));
+	int bytes;
+	bytes=recv(fd_memoria, tamPagina, sizeof(int),0);
+	if(bytes<=0)
+	{
+		if(bytes==-1)
+		{
+			perror("receive tamPagina");
+			exit(1);
+		}
+		else
+		{
+			printf("Se desconecto memoria\n");
+			close(fd_memoria);
+			exit(1);
+		}
+	}
+	tamanioPagina = (*tamPagina);
+	free(tamPagina);
+	return;
+}
 //Solo inicializando las globales asi me funca, no se porque pero bue
 
 void inicializar() {
 
-	mipcb.primerPaginaStack=0; //unica pagina en este checkpoint
-	mipcb.stackPointer=0;	   //arranca al principio
+	mipcb.primerPaginaStack=cantPaginasCodigo;
+	mipcb.stackPointer=0;	   //arranca al principio del stack
 	mipcb.stack_index=list_create();
 	pcbActual=&mipcb;
 	return;
 }
 
 
-int tamanioPagina=50;
-int tamanioStack=1;
 
 t_puntero beta_definirVariable (t_nombre_variable identificador_variable)
 {
+
 	int var_pagina = pcbActual->primerPaginaStack; //pagina del stack donde guardo la variable
 	int var_offset = pcbActual->stackPointer;	   //offset dentro de esa pagina
 
 
+	//Si offset es mayor que pagina, voy aumentando pagina
+	while(var_offset > tamanioPagina){
+	var_pagina++;
+	var_offset = var_offset - tamanioPagina;
+	}
 	//Si al guardarla (4 bytes al ser int) desbordo el stack, stack overflow:
-	if(pcbActual->stackPointer + 4 > (tamanioPagina*tamanioStack))
+
+	if((pcbActual->stackPointer) + 4 > (tamanioStack * tamanioPagina))
 	{
 		printf("Stack Overflow al definir variable %c\n", identificador_variable);
+		stackOverflow=true;
 		return -1;
 	}
 
@@ -87,15 +127,16 @@ t_puntero beta_definirVariable (t_nombre_variable identificador_variable)
 	new_var->nombre = identificador_variable;
 	new_var->pagina = var_pagina;
 	new_var->offset = var_offset;
-	new_var->size = 4;
+	new_var->size = sizeof(int);
 
 	list_add(regStack->vars, new_var);
 
 	printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
 
 	//Actualizo stackPointer
-	pcbActual->stackPointer = pcbActual->stackPointer + 4;
-	return 0;
+	pcbActual->stackPointer = (pcbActual->stackPointer) + 4;
+	int posicionVariable = (cantPaginasCodigo * tamanioPagina) + (pcbActual->stackPointer);
+	return posicionVariable;
 }
 
 AnSISOP_funciones funciones =
@@ -110,10 +151,14 @@ int main()
 {
 
 	inicializar();
-	analizadorLinea("variables a, b,c,d,      e,f ,g", &funciones,NULL);
+	analizadorLinea("variables a, b,c,d,      e", &funciones,NULL);
+	if(stackOverflow==true)
+	{
+	printf("Hubo StackOverflow\n");
+	return -1;
+	}
 	return 0;
 }
-
 
 
 

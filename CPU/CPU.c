@@ -24,11 +24,8 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../config_shortcuts/config_shortcuts.c"
 #include <parser/parser.h>
+#include <commons/collections/list.h>
 
-//El fd_kernel lo hice global para poder usarlo en las primitivas privilegiadas
-cpu_config data_config;
-int fd_kernel;
-int fd_memoria;
 
 typedef struct{
 	u_int32_t inicio;
@@ -44,7 +41,40 @@ typedef struct{
 
 	int cantidad_de_instrucciones;
 	entrada_indice_de_codigo* indice_de_codigo;
+
+
+	t_list* stack_index;
+	int primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
+	int stackPointer;
+	int tamanioStack;
 } PCB;
+
+typedef struct{
+	char id;
+	int page;
+	int offset;
+	int size;
+}variable;
+
+typedef struct{
+	int page;
+	int offset;
+	int size;
+}pagoffsize;
+
+typedef struct {
+	t_list* args;
+	t_list* vars;
+	int ret_pos;
+	pagoffsize ret_var;
+} registroStack;
+
+PCB* nuevaPCB;
+cpu_config data_config;
+int fd_kernel;
+int fd_memoria;
+int tamanioPagina;
+bool stackOverflow = false;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -56,7 +86,51 @@ typedef struct{
 
 t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 {
-	printf("Definir Variable: %c\n",identificador_variable);
+	printf("Definir variable %c\n", identificador_variable);
+/*int var_pagina = nuevaPCB->primerPaginaStack; //pagina del stack donde guardo la variable
+	int var_offset = nuevaPCB->stackPointer;	   //offset dentro de esa pagina
+
+
+	//Si offset es mayor que pagina, voy aumentando pagina
+	while(var_offset > tamanioPagina){
+	var_pagina++;
+	var_offset = var_offset - tamanioPagina;
+	}
+	//Si al guardarla (4 bytes al ser int) desbordo el stack, stack overflow:
+
+	if((nuevaPCB->stackPointer) + 4 > (nuevaPCB->tamanioStack * tamanioPagina))
+	{
+		printf("Stack Overflow al definir variable %c\n", identificador_variable);
+		stackOverflow=true;
+		return -1;
+	}
+
+	//Obtengo el ultimo registro de stack
+	registroStack* regStack = list_get(nuevaPCB->stack_index, nuevaPCB->stack_index->elements_count -1);
+
+	if(regStack == NULL)
+	{ 	// si no hay registros, creo uno nuevo
+		regStack = malloc(sizeof(registroStack));
+		regStack->vars = list_create();
+		// Guardo el nuevo registro en el índice:
+		list_add(nuevaPCB->stack_index, regStack);
+	}
+
+	variable* new_var = malloc(sizeof(variable));
+	new_var->id = identificador_variable;
+	new_var->page = var_pagina;
+	new_var->offset = var_offset;
+	new_var->size = sizeof(int);
+
+	list_add(regStack->vars, new_var);
+
+	printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+
+	//Actualizo stackPointer
+	nuevaPCB->stackPointer = (nuevaPCB->stackPointer) + 4;
+	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
+	return posicionVariable;
+*/
 	return 0;
 }
 t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
@@ -358,7 +432,7 @@ PCB* recibirPCB()
 
 	u_int32_t pid;
 
-	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones;
+	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones, stack_size;
 
 	PCB* pcb = malloc(sizeof(PCB));
 
@@ -382,6 +456,9 @@ PCB* recibirPCB()
 	bytes_recv = recv(fd_kernel, indice_de_codigo, tamanio_indice_codigo,0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
+	bytes_recv=recv(fd_kernel, &stack_size,sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
 
 	pcb->pid = pid;
 	pcb->page_counter = page_counter;
@@ -389,6 +466,7 @@ PCB* recibirPCB()
 	pcb->program_counter = program_counter;
 	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
 	pcb->indice_de_codigo = indice_de_codigo;
+	pcb->tamanioStack = stack_size;
 
 	return pcb;
 }
@@ -399,12 +477,14 @@ void print_PCB(PCB* pcb){
 	printf("page_counter: %d\n", pcb->page_counter);
 	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
 	printf("program_counter: %d\n", pcb->program_counter);
-	printf("cantidad_de_instrucciones: %d\n\n", pcb->cantidad_de_instrucciones);
+	printf("cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
+	printf("Stack size: %d\n\n", pcb->tamanioStack);
 	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
 		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
 	}
 	printf("\n");
 }
+
 
 int main(int argc, char **argv) {
 
@@ -433,7 +513,7 @@ int main(int argc, char **argv) {
 
 	// CONEXION A KERNEL
 
-	PCB* nuevaPCB;
+
 
 	int idProceso = 1;
 

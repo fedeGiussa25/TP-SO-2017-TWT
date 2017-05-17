@@ -96,12 +96,16 @@ typedef struct{
 	int cantidad_de_instrucciones;
 	entrada_indice_de_codigo* indice_de_codigo;
 	//aca iria una referencia a la tabla de archivos del proceso
-	//code_index_line code_index[];
+
 	char* lista_de_etiquetas;
 	int lista_de_etiquetas_length;
-	//stack_index_line stack_index[];
 	int exit_code;
 	char* estado;
+
+	t_list* stack_index;
+	int primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
+	int stackPointer;
+	int tamanioStack;
 }PCB;
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
@@ -127,9 +131,11 @@ int fdmax_cpu;
 int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
 bool plan_go = true;
 
+
 fd_set fd_procesos;
 
 kernel_config data_config;
+int tamanio_del_stack;
 
 //Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
@@ -174,6 +180,9 @@ PCB* create_PCB(char* script){
 	nuevo_PCB->lista_de_etiquetas = metadata->etiquetas;
 	nuevo_PCB->lista_de_etiquetas_length = metadata->etiquetas_size;
 	nuevo_PCB->estado = "Nuevo";
+
+	//nuevo_PCB->primerPaginaStack = la cantidad de paginas que ocupa el codigo
+	nuevo_PCB->tamanioStack=tamanio_del_stack;
 
 	print_metadata(metadata);
 
@@ -545,6 +554,8 @@ void cargar_config(t_config *config_file){
 
 	data_config.shared_vars = config_get_array_value(config_file, "SHARED_VARS");
 	data_config.stack_size = config_get_int_value(config_file, "STACK_SIZE");
+
+	tamanio_del_stack = data_config.stack_size;
 }
 
 void print_config(){
@@ -674,7 +685,7 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
-	void *ultraBuffer = malloc(sizeof(int)*5 + sizeof(u_int32_t) + tamanio_indice_codigo);
+	void *ultraBuffer = malloc(sizeof(int)*6 + sizeof(u_int32_t) + tamanio_indice_codigo);
 
 	memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
 	memcpy(ultraBuffer+sizeof(u_int32_t), &(pcb->page_counter), sizeof(int));
@@ -683,8 +694,9 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	memcpy(ultraBuffer+sizeof(u_int32_t)+3*sizeof(int), &(pcb->cantidad_de_instrucciones), sizeof(int));
 	memcpy(ultraBuffer+sizeof(u_int32_t)+4*sizeof(int), &tamanio_indice_codigo, sizeof(int));
 	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int), pcb->indice_de_codigo, tamanio_indice_codigo);
+	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(int));
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(int)*5 + sizeof(u_int32_t) + tamanio_indice_codigo,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(int)*6 + sizeof(u_int32_t) + tamanio_indice_codigo,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 
