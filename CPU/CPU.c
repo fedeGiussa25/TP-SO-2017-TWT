@@ -164,24 +164,28 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 
 	//Mandamos a memoria la solicitud de lectura:
 
-	int codigo = 5; //Le puse 5 al codigo para solicitar leer un valor, si quieren lo cambian
+	int codigo = 6; //Le puse 6 al codigo para solicitar leer un valor, si quieren lo cambian
 	int pag = direccion_variable / tamanioPagina;
 	int offset = direccion_variable % tamanioPagina;
+	int tamanio = sizeof(int);
 
-	void* buffer = malloc(sizeof(u_int32_t)+sizeof(int)*3);
+	void* buffer = malloc(sizeof(u_int32_t)+sizeof(int)*4);
 
 	memcpy(buffer, &codigo, sizeof(int));
 	memcpy(buffer+sizeof(int), &nuevaPCB->pid, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pag, sizeof(int));
 	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &offset, sizeof(int));
+	memcpy(buffer+sizeof(int)*3+sizeof(u_int32_t), &tamanio, sizeof(int));
 
-	//send(fd_memoria, buffer, sizeof(u_int32_t)+sizeof(int)*3,0);
+	send(fd_memoria, buffer, sizeof(u_int32_t)+sizeof(int)*4,0);
 
 	//Obtengo el valor:
 
 	int valorVariable;
 
-	//recv(fd_memoria, &valorVariable,sizeof(int),0);
+	recv(fd_memoria, &valorVariable,sizeof(int),0);
+
+	printf("La variable tiene valor %d\n", valorVariable);
 
 	return valorVariable;
 }
@@ -203,8 +207,8 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 	//Le envio a Memoria:
 	void* buffer = malloc(sizeof(int)*4+sizeof(u_int32_t));
 
-	memcpy(buffer, &nuevaPCB->pid, sizeof(u_int32_t));
-	memcpy(buffer+sizeof(u_int32_t), &codigo, sizeof(int));
+	memcpy(buffer, &codigo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t), &nuevaPCB->pid, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int), &pagina, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*2, &offset, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &value, sizeof(int));
