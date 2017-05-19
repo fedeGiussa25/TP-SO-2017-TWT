@@ -145,7 +145,33 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 }
 void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 {
+	/*El parametro direccion_variable es lo que devuelve la primitiva obtenerPosicion, que no esta hecha
+	 * por eso vale 0*/
+
 	printf("Soy asignar\n");
+	int pagina, offset, value;
+	int codigo = 4; //codigo 4 es solicitud escritura a memoria
+
+	printf("direccion variable: %d", direccion_variable);
+
+	pagina = direccion_variable / tamanioPagina;
+	offset = direccion_variable % tamanioPagina; //el resto de la division
+	value = valor;
+
+	//Le envio a Memoria:
+	void* buffer = malloc(sizeof(int)*4+sizeof(u_int32_t));
+
+	memcpy(buffer, &nuevaPCB->pid, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t), &codigo, sizeof(int));
+	memcpy(buffer+sizeof(u_int32_t)+sizeof(int), &pagina, sizeof(int));
+	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*2, &offset, sizeof(int));
+	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &value, sizeof(int));
+
+	//send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t),0); Giussa hace el receive de esto en memoria
+
+	printf("Envie a guardar en memoria: (pag, off, valor) = (%d,%d,%d)\n", pagina, offset, value);
+
+	free(buffer);
 	return;
 }
 t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
