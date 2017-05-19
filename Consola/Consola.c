@@ -238,7 +238,6 @@ void *script_thread(char *scriptName)
 		goto end;
 	}
 
-
 	void* realbuf = malloc((sizeof(int)*2)+scriptLength+1);
 
 	codigo = 2;
@@ -330,6 +329,7 @@ void *script_thread(char *scriptName)
 	}
 
 end:				// puse los goto para evitar repetir esto que sigue varias veces
+	free(scriptName);
 	free(filePath);
 	free(realbuf);
 	free(cleanScript);
@@ -358,7 +358,7 @@ void iniciar_programa()
 	pthread_t script_tret;
 	int tret_value = -1;
 
-	if((tret_value = pthread_create(&script_tret, NULL,(void*) script_thread, fileNamee)) != 0)
+	if((tret_value = pthread_create(&script_tret, NULL,(void*) script_thread, fileName)) != 0)
 	{
 		perror("Consola, linea 220, error al crear el hilo: ");
 		goto end;
@@ -369,8 +369,8 @@ void iniciar_programa()
 		pthread_detach(script_tret);
 	}
 
-end:					// puse los goto para evitar repetir esto que sigue varias veces
-	free(fileName);
+end:		;			// puse los goto para evitar repetir esto que sigue varias veces
+	//free(fileName);
 }
 
 
