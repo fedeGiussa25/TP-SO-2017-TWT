@@ -261,10 +261,10 @@ void remove_from_queue(PCB* pcb){
 	else printf("PCB invalido, no se encuentra en ninguna cola");
 }
 
-void end_process(){
+void end_process(int PID){
 	int i = 0;
 	bool encontrado = 0;
-	int* PID = malloc(sizeof(int));
+/*	int* PID = malloc(sizeof(int));
 	printf("Ingrese el PID del PCB que desea finalizar: ");
 	scanf("%d",PID);
 	if(*PID<1)
@@ -272,12 +272,12 @@ void end_process(){
 		printf("Los PIDs empiezan en 1 genio :l");
 	}
 	else
-	{
+	{*/
 		pthread_mutex_lock(&mutex_process_list);
 		while(i<list_size(todos_los_procesos) && !encontrado)
 		{
 			PCB* PCB = list_get(todos_los_procesos,i);
-			if(*PID == PCB->pid)
+			if(PID == PCB->pid)
 			{
 				if(strcmp(PCB->estado,"Exit")!=0){
 					remove_from_queue(PCB);
@@ -299,9 +299,9 @@ void end_process(){
 		{
 			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 		}
-	}
+//	}
 	printf("\n");
-	free(PID);
+//	free(PID);
 }
 
 void print_PCB_list(){
@@ -374,7 +374,7 @@ void menu()
 		}
 		else if((strcmp(command, "end")) == 0)
 		{
-			end_process(); //Faltan cositas
+			//end_process(); //Faltan cositas
 		}
 		else if((strcmp(command, "state")) == 0)
 		{
@@ -961,6 +961,21 @@ int main(int argc, char** argv) {
 							printf("Lo sentimos, la planificacion no esta en funcionamiento\n\n");
 							int error = -1;
 							send(i, &error,sizeof(int),0); }
+						}
+						//Si el codigo es 3 significa que debo terminar el proceso
+						if (codigo==3)
+						{
+							//Cacheo el pid del proceso que tengo que borrar
+							int* pid;
+							recv(i,&pid,sizeof(int),0);
+							//Lo borro
+							end_process(*pid);
+							//Y le aviso a memoria que libere esas paginas
+							void* sendbuf = malloc(sizeof(int)*2);
+							int codigo_de_borrado_de_paginas_en_memoria = 5;
+							memcpy(sendbuf,&codigo_de_borrado_de_paginas_en_memoria,sizeof(int));
+							memcpy(sendbuf+sizeof(int),pid,sizeof(int));
+							send(sockfd_memoria,sendbuf,sizeof(int)*2,0);
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
