@@ -58,11 +58,6 @@ typedef struct{
 	int size;
 }code_index_line;
 
-typedef struct{
-	int page;
-	int offset;
-	int size;
-}pagoffsize;
 
 typedef struct{
 	char* id;
@@ -71,20 +66,28 @@ typedef struct{
 	int size;
 }idpagoffsize;
 
-typedef struct{
-	idpagoffsize args;
-	idpagoffsize vars;
-	int ret_pos;
-	pagoffsize ret_var;
-}stack_index_line;*/
+*/
 
 //Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
 typedef struct{
+	int page;
+	int offset;
+	int size;
+}pagoffsize;
+
+typedef struct{
 	u_int32_t inicio;
 	u_int32_t offset;
 } entrada_indice_de_codigo;
+
+typedef struct {
+	t_list* args;
+	t_list* vars;
+	int ret_pos;
+	pagoffsize ret_var;
+} registroStack;
 
 typedef struct{
 	u_int32_t pid;
@@ -181,8 +184,10 @@ PCB* create_PCB(char* script){
 	nuevo_PCB->lista_de_etiquetas_length = metadata->etiquetas_size;
 	nuevo_PCB->estado = "Nuevo";
 
-	//nuevo_PCB->primerPaginaStack = la cantidad de paginas que ocupa el codigo
+
 	nuevo_PCB->tamanioStack=tamanio_del_stack;
+	nuevo_PCB->stackPointer=0;
+	nuevo_PCB->stack_index=list_create();
 
 	print_metadata(metadata);
 
@@ -661,6 +666,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		if(page_counter > 0){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
+			pcb_to_use->primerPaginaStack=page_counter-tamanio_del_stack; //pagina donde arranca el stack
 			pcb_to_use->direccion_inicio_codigo = direccion;
 			pcb_to_use->estado = "Ready";
 			pthread_mutex_lock(&mutex_ready_queue);
@@ -683,9 +689,9 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 
 void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-
+	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
-	void *ultraBuffer = malloc(sizeof(int)*6 + sizeof(u_int32_t) + tamanio_indice_codigo);
+	void *ultraBuffer = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack);
 
 	memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
 	memcpy(ultraBuffer+sizeof(u_int32_t), &(pcb->page_counter), sizeof(int));
@@ -695,8 +701,13 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	memcpy(ultraBuffer+sizeof(u_int32_t)+4*sizeof(int), &tamanio_indice_codigo, sizeof(int));
 	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int), pcb->indice_de_codigo, tamanio_indice_codigo);
 	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+6*sizeof(int)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+7*sizeof(int)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+8*sizeof(int)+tamanio_indice_codigo, &tamanio_indice_stack, sizeof(int));
+	memcpy(ultraBuffer+sizeof(u_int32_t)+9*sizeof(int)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(int)*6 + sizeof(u_int32_t) + tamanio_indice_codigo,0);
+
+	send(cpu->sock_fd, ultraBuffer, sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 

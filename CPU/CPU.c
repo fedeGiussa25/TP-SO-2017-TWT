@@ -26,11 +26,23 @@
 #include <parser/parser.h>
 #include <commons/collections/list.h>
 
+typedef struct{
+	int page;
+	int offset;
+	int size;
+}pagoffsize;
 
 typedef struct{
 	u_int32_t inicio;
 	u_int32_t offset;
 } entrada_indice_de_codigo;
+
+typedef struct {
+	t_list* args;
+	t_list* vars;
+	int ret_pos;
+	pagoffsize ret_var;
+} registroStack;
 
 typedef struct{
 	u_int32_t pid;
@@ -56,24 +68,11 @@ typedef struct{
 	int size;
 }variable;
 
-typedef struct{
-	int page;
-	int offset;
-	int size;
-}pagoffsize;
-
-typedef struct {
-	t_list* args;
-	t_list* vars;
-	int ret_pos;
-	pagoffsize ret_var;
-} registroStack;
-
 PCB* nuevaPCB;
 cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
-int tamanioPagina;
+int tamanioPagina=512; //Provisorio, en realidad lo deberia obtener del Kernel
 bool stackOverflow = false;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
@@ -86,19 +85,20 @@ bool stackOverflow = false;
 
 t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 {
-	printf("Definir variable %c\n", identificador_variable);
-/*int var_pagina = nuevaPCB->primerPaginaStack; //pagina del stack donde guardo la variable
+	//printf("Definir variable %c\n", identificador_variable);
+	int var_pagina = nuevaPCB->primerPaginaStack; //pagina del stack donde guardo la variable
 	int var_offset = nuevaPCB->stackPointer;	   //offset dentro de esa pagina
 
 
 	//Si offset es mayor que pagina, voy aumentando pagina
-	while(var_offset > tamanioPagina){
+	while(var_offset > tamanioPagina)
+	{
 	var_pagina++;
 	var_offset = var_offset - tamanioPagina;
 	}
-	//Si al guardarla (4 bytes al ser int) desbordo el stack, stack overflow:
+	//Si al guardarla desbordo el stack, stack overflow:
 
-	if((nuevaPCB->stackPointer) + 4 > (nuevaPCB->tamanioStack * tamanioPagina))
+	if((nuevaPCB->stackPointer) + sizeof(int) > (nuevaPCB->tamanioStack * tamanioPagina))
 	{
 		printf("Stack Overflow al definir variable %c\n", identificador_variable);
 		stackOverflow=true;
@@ -126,11 +126,11 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 
 	printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
 
+	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
 	//Actualizo stackPointer
 	nuevaPCB->stackPointer = (nuevaPCB->stackPointer) + 4;
-	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
 	return posicionVariable;
-*/
+
 	return 0;
 }
 t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
@@ -432,11 +432,12 @@ PCB* recibirPCB()
 
 	u_int32_t pid;
 
-	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones, stack_size;
+	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
+	stack_size, primerPagStack, stack_pointer;
 
 	PCB* pcb = malloc(sizeof(PCB));
 
-	int tamanio_indice_codigo;
+	int tamanio_indice_codigo, tamanio_indice_stack;
 
 	bytes_recv = recv(fd_kernel, &pid, sizeof(u_int32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
@@ -453,12 +454,24 @@ PCB* recibirPCB()
 
 	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
 
+
 	bytes_recv = recv(fd_kernel, indice_de_codigo, tamanio_indice_codigo,0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
 	bytes_recv=recv(fd_kernel, &stack_size,sizeof(int),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv=recv(fd_kernel, &primerPagStack,sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+	bytes_recv=recv(fd_kernel, &stack_pointer,sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
 
+	bytes_recv = recv(fd_kernel, &tamanio_indice_stack, sizeof(int),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
+	t_list* indice_de_stack = malloc(tamanio_indice_stack);
+
+	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
 
 	pcb->pid = pid;
 	pcb->page_counter = page_counter;
@@ -467,6 +480,9 @@ PCB* recibirPCB()
 	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
 	pcb->indice_de_codigo = indice_de_codigo;
 	pcb->tamanioStack = stack_size;
+	pcb->primerPaginaStack=primerPagStack;
+	pcb->stackPointer=stack_pointer;
+	pcb->stack_index=indice_de_stack;
 
 	return pcb;
 }
@@ -478,6 +494,8 @@ void print_PCB(PCB* pcb){
 	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
 	printf("program_counter: %d\n", pcb->program_counter);
 	printf("cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
+	printf("primer pagina del stack: %d\n", pcb->primerPaginaStack);
+	printf("stack pointer: %d\n", pcb->stackPointer);
 	printf("Stack size: %d\n\n", pcb->tamanioStack);
 	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
 		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
@@ -544,6 +562,10 @@ int main(int argc, char **argv) {
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
 			free(instruccion);
 		}
+		/*registroStack* blabla = malloc(sizeof(registroStack));
+		blabla=list_get(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
+		printf("(%c,%d,%d,%d)",list_get(blabla->vars,0));
+		free(blabla);*/
 	}
 
 
