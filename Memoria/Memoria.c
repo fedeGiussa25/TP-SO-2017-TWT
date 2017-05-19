@@ -228,12 +228,12 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 	return espacio;
 }
 
-char *lectura(u_int32_t PID, int pagina, int inicio, int offset){
+void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0;
 	int tamanio_pagina = data_config.marco_size;
 
-	char *instruccion = malloc(offset);
+	void *instruccion = malloc(offset);
 
 	while(encontrado == 0 && i < data_config.marcos){
 		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
@@ -258,6 +258,38 @@ char *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	return instruccion;
 }
 
+void finalizar_proceso(int PID){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i;
+	int cant_paginas = data_config.marcos;
+
+	for(i= 0; i<cant_paginas; i++){
+		if(tabla[i].PID == PID){
+			tabla[i].PID = -2;
+			tabla[i].pagina = -2;
+		}
+	}
+}
+
+void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+			frame = tabla[i].frame;
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+
+	int direccion_fisica = frame*tamanio_pagina;
+
+	memcpy(memoria+direccion_fisica+offset, value, tamanio);
+
+}
+
 void *thread_consola(){
 	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensjes\n\n");
 	while(1){
@@ -280,7 +312,7 @@ void *thread_proceso(int fd){
 	printf("Nueva conexion en socket %d\n", fd);
 	int bytes, codigo, messageLength;
 	u_int32_t PID;
-	int pagina, paginas_stack, offset, inicio;
+	int pagina, paginas_stack, offset, inicio, value;
 
 	while(1){
 		bytes = recv(fd,&codigo,sizeof(int),0);
@@ -320,7 +352,7 @@ void *thread_proceso(int fd){
 			bytes = recv(fd, &offset, sizeof(int), 0);
 			verificar_conexion_socket(fd, bytes);
 
-			char *instruccion = lectura(PID, pagina, inicio, offset);
+			char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
 			int tamanio = offset - 1;
 			void *buffer = malloc(sizeof(int) + tamanio +1);
 			memset(buffer, 0, sizeof(int) + tamanio +1);
@@ -331,6 +363,41 @@ void *thread_proceso(int fd){
 			send(fd, buffer, sizeof(int) + tamanio + 1, 0);
 			free(instruccion);
 			free(buffer);
+		}
+		if(codigo == 4){
+			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &pagina, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &offset, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &value, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+
+			escritura(PID, pagina, offset, sizeof(int), &value);
+
+		}
+		if(codigo == 5){
+			bytes = recv(fd, &PID, sizeof(int), 0);
+			finalizar_proceso(PID);
+			printf("Proceso %d borrado correctamente\n", PID);
+		}
+		if(codigo == 6){
+			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &pagina, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &inicio, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+			bytes = recv(fd, &offset, sizeof(int), 0);
+			verificar_conexion_socket(fd, bytes);
+
+			int *valor = malloc(sizeof(int));
+			valor = (int *) lectura(PID, pagina, inicio, offset);
+
+			value = *valor;
+			send(fd, &value, sizeof(int), 0);
+			free(valor);
 		}
 	}
 }
