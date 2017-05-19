@@ -43,6 +43,7 @@ pthread_mutex_t mutex_process_list;
 //Todo lo de structs de PCB
 typedef struct{
 	int sock_fd;
+	int proceso;
 }proceso_conexion;
 
 // STRUCTS DE PCB
@@ -169,8 +170,31 @@ entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
 	return indice_de_codigo;
 }
 
+
+void print_metadata(t_metadata_program* metadata){
+	int i;
+
+	printf("\n\n***INFORMACION DE METADATA***\n");
+	printf("instruccion_inicio = %d\n", metadata->instruccion_inicio);
+	printf("instrucciones_size = %d\n", metadata->instrucciones_size);
+
+	printf("Instrucciones serializadas: \n");
+
+	for(i=0; i<(metadata->instrucciones_size); i++){
+		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, metadata->instrucciones_serializado[i].start, metadata->instrucciones_serializado[i].offset);
+	}
+
+	printf("etiquetas_size = %d\n", metadata->etiquetas_size);
+	printf("etiquetas = %s\n", metadata->etiquetas);
+
+	printf("cantidad_de_funciones = %d\n", metadata->cantidad_de_funciones);
+	printf("cantidad_de_etiquetas = %d\n", metadata->cantidad_de_etiquetas);
+	printf("***FIN DE LA METADATA***\n\n");
+}
+
+
 //Todo lo de funciones de PCB
-PCB* create_PCB(char* script){
+PCB* create_PCB(char* script, int fd_consola){
 	PCB* nuevo_PCB = malloc(sizeof(PCB));
 	t_metadata_program* metadata = metadata_desde_literal(script);
 	nuevo_PCB->pid = ++pid;
@@ -197,6 +221,10 @@ PCB* create_PCB(char* script){
 	pthread_mutex_lock(&mutex_procesos_actuales);
 	procesos_actuales++;
 	pthread_mutex_unlock(&mutex_procesos_actuales);
+
+	proceso_conexion *consola = list_get(lista_consolas,fd_consola);
+	consola->proceso = nuevo_PCB->pid;
+
 	return nuevo_PCB;
 }
 
@@ -266,47 +294,47 @@ void remove_from_queue(PCB* pcb){
 	else printf("PCB invalido, no se encuentra en ninguna cola");
 }
 
-void end_process(int PID){
+void end_process(int PID, int socket_memoria, int sock_consola){
 	int i = 0;
 	bool encontrado = 0;
-/*	int* PID = malloc(sizeof(int));
-	printf("Ingrese el PID del PCB que desea finalizar: ");
-	scanf("%d",PID);
-	if(*PID<1)
+	pthread_mutex_lock(&mutex_process_list);
+	while(i<list_size(todos_los_procesos) && !encontrado)
 	{
-		printf("Los PIDs empiezan en 1 genio :l");
-	}
-	else
-	{*/
-		pthread_mutex_lock(&mutex_process_list);
-		while(i<list_size(todos_los_procesos) && !encontrado)
-		{
-			PCB* PCB = list_get(todos_los_procesos,i);
-			if(PID == PCB->pid)
-			{
-				if(strcmp(PCB->estado,"Exit")!=0){
-					remove_from_queue(PCB);
-					PCB->exit_code = -7;
-					PCB->estado = "Exit";
-					delete_PCB(PCB);
-					printf("El proceso ha sido finalizado\n");
-				}
-				else
-				{
-					printf("El proceso elegido ya esta finalizado\n");
-				}
-				encontrado = 1;
+		PCB* PCB = list_get(todos_los_procesos,i);
+		if(PID == PCB->pid)	{
+			if(strcmp(PCB->estado,"Exit")!=0){
+				remove_from_queue(PCB);
+				PCB->exit_code = -7;
+				PCB->estado = "Exit";
+				delete_PCB(PCB);
+				printf("El proceso ha sido finalizado\n");
 			}
-			i++;
+			else{
+				printf("El proceso elegido ya esta finalizado\n");
+			}
+			encontrado = 1;
 		}
-		pthread_mutex_unlock(&mutex_process_list);
-		if(!encontrado)
-		{
-			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
-		}
-//	}
+		i++;
+	}
+	pthread_mutex_unlock(&mutex_process_list);
+	if(!encontrado)	{
+		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+	}
+	if(encontrado){
+		//Le aviso a memoria que le saque las paginas asignadas
+		void* sendbuf_mem = malloc(sizeof(int)*2);
+		int codigo_para_borrar_paginas = 5;
+		memcpy(sendbuf_mem,&codigo_para_borrar_paginas,sizeof(int));
+		memcpy(sendbuf_mem+sizeof(int),&pid,sizeof(int));
+		send(socket_memoria,sendbuf_mem,sizeof(int)*2,0);
+
+		//Y le aviso a la consola que se aborto el proceso
+		void* sendbuf_consola = malloc(sizeof(int));
+		int codigo_para_abortar_proceso = 7;
+		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(int));
+		send(sock_consola,sendbuf_consola,sizeof(int),0);
+	}
 	printf("\n");
-//	free(PID);
 }
 
 void print_PCB_list(){
@@ -551,7 +579,7 @@ void cargar_config(t_config *config_file){
 	//Sino hago el atoi me los toma como strings por alguna razon
 	data_config.sem_init = (int*) config_get_array_value(config_file, "SEM_INIT");
 
-	while(data_config.sem_init[y]!=NULL)
+	while(data_config.sem_init[y])
 	{
 		data_config.sem_init[y] = atoi(data_config.sem_init[y]);
 		y++;
@@ -586,27 +614,6 @@ void print_config(){
 		k++;
 	}
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
-}
-
-void print_metadata(t_metadata_program* metadata){
-	int i;
-
-	printf("\n\n***INFORMACION DE METADATA***\n");
-	printf("instruccion_inicio = %d\n", metadata->instruccion_inicio);
-	printf("instrucciones_size = %d\n", metadata->instrucciones_size);
-
-	printf("Instrucciones serializadas: \n");
-
-	for(i=0; i<(metadata->instrucciones_size); i++){
-		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, metadata->instrucciones_serializado[i].start, metadata->instrucciones_serializado[i].offset);
-	}
-
-	printf("etiquetas_size = %d\n", metadata->etiquetas_size);
-	printf("etiquetas = %s\n", metadata->etiquetas);
-
-	printf("cantidad_de_funciones = %d\n", metadata->cantidad_de_funciones);
-	printf("cantidad_de_etiquetas = %d\n", metadata->cantidad_de_etiquetas);
-	printf("***FIN DE LA METADATA***\n\n");
 }
 
 int esta_en_uso(int fd){
@@ -766,7 +773,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 
 	//Creo el PCB
 	char* script = (char*) sms->realbuf;
-	pcb_to_use = create_PCB(script);
+	pcb_to_use = create_PCB(script,sms->fd_consola);
 
 	if(procesos_actuales <= sms->grado_multiprog)
 	{
@@ -788,6 +795,23 @@ void manejador_de_scripts(script_manager_setup* sms){
 	free(sms);
 }
 
+void execute_write(int pid, int archivo, void* mensaje){
+	if(archivo == 1){
+		int i = 0;
+		bool encontrado = false;
+		while(i<list_size(lista_consolas) && !encontrado){
+			proceso_conexion* aux = list_get(lista_consolas,i);
+			if(pid == aux->proceso)
+				//Le envio el mensaje a la consola :P
+				encontrado = true;
+			else i++;
+		}
+		if(!encontrado)
+			printf("Error, no exista la consola en la que se quiere imprimir");
+	}
+	else printf("Not yet implemented");
+}
+
 //TODO el main
 
 int main(int argc, char** argv) {
@@ -801,8 +825,8 @@ int main(int argc, char** argv) {
 
 	//Variables para conexiones con servidores
 	char *buf = malloc(256);
-	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
-	int bytes_mem, bytes_fs;
+	int sockfd_memoria;//, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
+	int bytes_mem;//, bytes_fs;
 
 	//variables para conexiones con clientes
 	int listener, fdmax, newfd, nbytes;
@@ -810,7 +834,7 @@ int main(int argc, char** argv) {
 	int codigo, processID;
 	int messageLength;
 	void* realbuf;
-	void* sendbuf;
+//	void* sendbuf;
 	char* message;
 
 	//Consolas y cpus
@@ -954,8 +978,6 @@ int main(int argc, char** argv) {
 							memset(aux,0,messageLength+2);
 							recv(i, aux, messageLength, 0);
 							memset(aux+messageLength+1,'\0',1);
-							char* charaux = (char*) aux;
-							//printf("Y este es el script:\n%s\n", charaux);
 
 							if(plan_go)
 							{
@@ -974,19 +996,27 @@ int main(int argc, char** argv) {
 							send(i, &error,sizeof(int),0); }
 						}
 						//Si el codigo es 3 significa que debo terminar el proceso
-						if (codigo==3)
+						if (codigo == 3)
 						{
 							//Cacheo el pid del proceso que tengo que borrar
-							int* pid;
+							int pid;
 							recv(i,&pid,sizeof(int),0);
-							//Lo borro
-							end_process(*pid);
-							//Y le aviso a memoria que libere esas paginas
-							void* sendbuf = malloc(sizeof(int)*2);
-							int codigo_de_borrado_de_paginas_en_memoria = 5;
-							memcpy(sendbuf,&codigo_de_borrado_de_paginas_en_memoria,sizeof(int));
-							memcpy(sendbuf+sizeof(int),pid,sizeof(int));
-							send(sockfd_memoria,sendbuf,sizeof(int)*2,0);
+							//Y llamo a la funcion que lo borra
+							end_process(pid,sockfd_memoria,i);
+						}
+						//Si el codigo es 4 significa que quieren hacer un write
+						if(codigo == 4)
+						{
+							int archivo, pid, messageLength;
+							recv(i,&archivo,sizeof(int),0);
+							recv(i,&pid,sizeof(int),0);
+							recv(i,&messageLength,sizeof(int),0);
+							void* message = malloc(messageLength+2);
+							memset(message,0,messageLength+2);
+							recv(i, message, messageLength, 0);
+							memset(message+messageLength+1,'\0',1);
+
+							execute_write(pid,archivo,message);
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
