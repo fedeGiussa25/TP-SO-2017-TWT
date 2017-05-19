@@ -72,7 +72,7 @@ PCB* nuevaPCB;
 cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
-int tamanioPagina=512; //Provisorio, en realidad lo deberia obtener del Kernel
+int tamanioPagina=512; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
 bool stackOverflow = false;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
@@ -85,7 +85,7 @@ bool stackOverflow = false;
 
 t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 {
-	//printf("Definir variable %c\n", identificador_variable);
+	printf("Definir variable: %c\n", identificador_variable);
 	int var_pagina = nuevaPCB->primerPaginaStack; //pagina del stack donde guardo la variable
 	int var_offset = nuevaPCB->stackPointer;	   //offset dentro de esa pagina
 
@@ -129,19 +129,61 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
 	//Actualizo stackPointer
 	nuevaPCB->stackPointer = (nuevaPCB->stackPointer) + 4;
+
 	return posicionVariable;
 
-	return 0;
+
 }
 t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 {
-	printf("Soy obtenerPosicionVariable\n");
-	return 0;
+	printf("Soy obtenerPosicionVariable para: %c\n", identificador_variable);
+	//Voy al contexto de ejecucion actual (ultimo registro de stack):
+	registroStack* registroActual = list_get(nuevaPCB->stack_index, nuevaPCB->stack_index->elements_count -1);
+
+	int i;
+	int posicion_variable;
+
+	//Recorro la lista de variables hasta encontrarla:
+	for(i=0;i<registroActual->vars->elements_count;i++)
+	{
+		variable* variable = list_get(registroActual->vars, i);
+
+		if(variable->id == identificador_variable) //Cuando la encuentra:
+		{
+			posicion_variable = (variable->page * tamanioPagina) + variable->offset;
+			return posicion_variable;
+		}
+	}
+	return -1;
 }
 t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 {
-	printf("Soy dereferenciar\n");
-	return 0;
+	//Esta primitiva devuelve el valor que hay en la direccion de memoria que recibe
+
+	printf("Soy dereferenciar para la direccion: %d\n", direccion_variable);
+
+	//Mandamos a memoria la solicitud de lectura:
+
+	int codigo = 5; //Le puse 5 al codigo para solicitar leer un valor, si quieren lo cambian
+	int pag = direccion_variable / tamanioPagina;
+	int offset = direccion_variable % tamanioPagina;
+
+	void* buffer = malloc(sizeof(u_int32_t)+sizeof(int)*3);
+
+	memcpy(buffer, &codigo, sizeof(int));
+	memcpy(buffer+sizeof(int), &nuevaPCB->pid, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pag, sizeof(int));
+	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &offset, sizeof(int));
+
+	//send(fd_memoria, buffer, sizeof(u_int32_t)+sizeof(int)*3,0);
+
+	//Obtengo el valor:
+
+	int valorVariable;
+
+	//recv(fd_memoria, &valorVariable,sizeof(int),0);
+
+	return valorVariable;
 }
 void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 {
@@ -152,7 +194,7 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 	int pagina, offset, value;
 	int codigo = 4; //codigo 4 es solicitud escritura a memoria
 
-	printf("direccion variable: %d", direccion_variable);
+	printf("Tengo que asignar el valor: %d en: %d\n", valor, direccion_variable);
 
 	pagina = direccion_variable / tamanioPagina;
 	offset = direccion_variable % tamanioPagina; //el resto de la division
@@ -588,10 +630,7 @@ int main(int argc, char **argv) {
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
 			free(instruccion);
 		}
-		/*registroStack* blabla = malloc(sizeof(registroStack));
-		blabla=list_get(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
-		printf("(%c,%d,%d,%d)",list_get(blabla->vars,0));
-		free(blabla);*/
+
 	}
 
 
