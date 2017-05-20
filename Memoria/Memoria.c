@@ -317,7 +317,9 @@ void *thread_proceso(int fd){
 	while(1){
 		bytes = recv(fd,&codigo,sizeof(int),0);
 		verificar_conexion_socket(fd, bytes);
-
+		if(codigo == 1){
+			send(fd, &data_config.marco_size, sizeof(int), 0);
+		}
 		if(codigo == 2){
 			espacio_reservado *espacio;
 			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);

@@ -156,6 +156,26 @@ t_queue* new_queue;
 t_list* todos_los_procesos;
 
 //FUNCIONES
+void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
+	bool _remove_socket(void* unaConex)
+	    {
+			proceso_conexion *conex = (proceso_conexion*) unaConex;
+			return conex->sock_fd == sockfd;
+	    }
+	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
+	free(conexion_encontrada);
+}
+
+proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
+	bool _remove_socket(void* unaConex)
+	    {
+			proceso_conexion *conex = (proceso_conexion*) unaConex;
+			return conex->sock_fd == sockfd;
+	    }
+	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
+	return conexion_encontrada;
+}
+
 entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
 	int i;
 	u_int32_t cantidad_instrucciones = metadata->instrucciones_size;
@@ -222,8 +242,9 @@ PCB* create_PCB(char* script, int fd_consola){
 	procesos_actuales++;
 	pthread_mutex_unlock(&mutex_procesos_actuales);
 
-	proceso_conexion *consola = list_get(lista_consolas,fd_consola);
+	proceso_conexion *consola = remove_by_fd_socket(lista_consolas,fd_consola);
 	consola->proceso = nuevo_PCB->pid;
+	list_add(lista_consolas, consola);
 
 	return nuevo_PCB;
 }
@@ -442,16 +463,6 @@ return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 //Todo lo de sockets
-
-void remove_by_fd_socket(t_list *lista, int sockfd){
-	bool _remove_socket(void* unaConex)
-	    {
-			proceso_conexion *conex = (proceso_conexion*) unaConex;
-			return conex->sock_fd == sockfd;
-	    }
-	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
-	free(conexion_encontrada);
-}
 
 int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
 	int newfd;
@@ -929,11 +940,11 @@ int main(int argc, char** argv) {
 						//Dado que no sabemos a que proceso pertenece dicho socket,
 						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
 						pthread_mutex_lock(&mutex_fd_cpus);
-						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
+						remove_and_destroy_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
 
 						pthread_mutex_lock(&mutex_fd_consolas);
-						remove_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
+						remove_and_destroy_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_consolas);
 
 						close(i);

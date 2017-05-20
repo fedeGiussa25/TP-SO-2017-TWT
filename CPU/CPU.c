@@ -72,7 +72,7 @@ PCB* nuevaPCB;
 cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
-int tamanioPagina=512; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
+int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
 bool stackOverflow = false;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
@@ -213,7 +213,7 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*2, &offset, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &value, sizeof(int));
 
-	//send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t),0); Giussa hace el receive de esto en memoria
+	send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t),0);
 
 	printf("Envie a guardar en memoria: (pag, off, valor) = (%d,%d,%d)\n", pagina, offset, value);
 
@@ -614,6 +614,10 @@ int main(int argc, char **argv) {
 	handshake(idProceso,fd_kernel);
 
 	fd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);
+	int cod = 1, tamanio;
+	send(fd_memoria, &cod, sizeof(int), 0);
+	recv(fd_memoria, &tamanio, sizeof(int), 0);
+	tamanioPagina = tamanio;
 
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
