@@ -454,12 +454,10 @@ void menu()
 
 
 
-void *get_in_addr(struct sockaddr *sa)
-{
-if (sa->sa_family == AF_INET) {
-return &(((struct sockaddr_in*)sa)->sin_addr);
-}
-return &(((struct sockaddr_in6*)sa)->sin6_addr);
+void *get_in_addr(struct sockaddr *sa){
+	if (sa->sa_family == AF_INET) 
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 //Todo lo de sockets
@@ -477,9 +475,8 @@ int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
 		perror("accept");
 			} else {
 				FD_SET(newfd, master);
-				if (newfd > *fdmax) {
-				*fdmax = newfd;
-					}
+				if (newfd > *fdmax)
+					*fdmax = newfd;
 			printf("selectserver: new connection from %s on ""socket %d\n",inet_ntop(direcServ.sin_family,get_in_addr((struct sockaddr*)&direcServ),remoteIP, INET6_ADDRSTRLEN),newfd);
 			}
 	return newfd;
@@ -505,29 +502,28 @@ int get_fd_listener(char* puerto){
 
 	for(p = ai; p != NULL; p = p->ai_next) {
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (listener < 0) {
+		if (listener < 0)
 			continue;
-				}
 		//Para ignorar el caso de socket en uso
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
 			close(listener);
 			continue;
-			}
+		}
 		break;
 	}
 
 	if (p == NULL) {
-	fprintf(stderr, "selectserver: failed to bind\n");
-	exit(2);
+		fprintf(stderr, "selectserver: failed to bind\n");
+		exit(2);
 	}
 
 	freeaddrinfo(ai); // all done with this shit
 
 	if (listen(listener, 10) == -1) {
-	perror("listen");
-	exit(3);
+		perror("listen");
+		exit(3);
 	}
 
 	return listener;
@@ -546,26 +542,26 @@ int get_fd_server(char* ip, char* puerto){
 	hints.ai_socktype = SOCK_STREAM;
 
 	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0) {
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
-			return 1;
-		}
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
+		return 1;
+	}
 
 	for(p = servinfo; p != NULL; p = p->ai_next) {
-			if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-				perror("client: socket");
-				continue;
-				}
-				if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-					close(sockfd);
-					perror("client: connect");
-					continue;
-					}
-			break;
-			}
-	if (p == NULL) {
-			fprintf(stderr, "client: failed to connect\n");
-			return 2;
+		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+			perror("client: socket");
+			continue;
 		}
+		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+			close(sockfd);
+			perror("client: connect");
+			continue;
+		}
+		break;
+	}
+	if (p == NULL) {
+		fprintf(stderr, "client: failed to connect\n");
+		return 2;
+	}
 
 	freeaddrinfo(servinfo);
 
@@ -634,9 +630,8 @@ int esta_en_uso(int fd){
 
 	for(i= 0; i< list_size(lista_en_ejecucion); i++){
 		cpu = list_get(lista_en_ejecucion,i);
-		if(cpu->sock_fd == fd){
+		if(cpu->sock_fd == fd)
 			en_uso =1;
-		}
 	}
 	return en_uso;
 }
@@ -647,11 +642,10 @@ int buscar_cpu_libre(){
 	proceso_conexion *cpu;
 	while(encontrado == 0 && i!=list_size(lista_cpus)){
 		cpu = list_get(lista_cpus, i);
-		if(esta_en_uso(cpu->sock_fd) == 0){
+		if(esta_en_uso(cpu->sock_fd) == 0)
 			encontrado = 1;
-		}else{
+		else
 			i++;
-		}
 	}
 	return i;
 }
@@ -664,6 +658,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	int codigo_cpu = 2, numbytes, page_counter, direccion;
 
 	//Le mando el codigo y el largo a la memoria
+	//INICIO SERIALIZACION PARA MEMORIAAAAA
 	sendbuf = malloc(sizeof(int)*3 + sizeof(u_int32_t) + sms->messageLength);
 	memcpy(sendbuf,&codigo_cpu,sizeof(int));
 	memcpy(sendbuf+sizeof(int),&(pcb_to_use->pid),sizeof(u_int32_t));
@@ -672,9 +667,11 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	memcpy(sendbuf+sizeof(int)*3+sizeof(u_int32_t),sms->realbuf,sms->messageLength);
 	printf("Mandamos a memoria!\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
+	//YA SERIALIZE Y MANDE A MEMORIA MIAMEEEEEEEEEE
 
 	//Me quedo esperando que responda memoria
 	printf("Y esperamos!\n");
+
 	numbytes = recv(sms->fd_mem, &page_counter, sizeof(int),0);
 	recv(sms->fd_mem, &direccion, sizeof(int),0);
 
@@ -728,13 +725,11 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	send(cpu->sock_fd, ultraBuffer, sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
-
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
 }
 
 void planificacion(int *grado_multiprog){
-	while(1)
-	{
+	while(1){
 		//Si esta funcionando la planificacion
 		if(plan_go){
 			int i;
@@ -752,7 +747,6 @@ void planificacion(int *grado_multiprog){
 				}
 			}
 			pthread_mutex_unlock(&mutex_new_queue);
-
 			pthread_mutex_lock(&mutex_ready_queue);
 			if(queue_size(ready_queue)>0){
 
@@ -786,12 +780,9 @@ void manejador_de_scripts(script_manager_setup* sms){
 	char* script = (char*) sms->realbuf;
 	pcb_to_use = create_PCB(script,sms->fd_consola);
 
-	if(procesos_actuales <= sms->grado_multiprog)
-	{
+	if(procesos_actuales <= sms->grado_multiprog)	
 		guardado_en_memoria(sms, pcb_to_use);
-	}
-	else
-	{
+	else{
 		//Lo dejo en New sin guardar en memoria
 		new_pcb* new = malloc(sizeof(new_pcb));
 		new->pcb = pcb_to_use;
@@ -815,7 +806,8 @@ void execute_write(int pid, int archivo, void* mensaje){
 			if(pid == aux->proceso)
 				//Le envio el mensaje a la consola :P
 				encontrado = true;
-			else i++;
+			else
+				i++;
 		}
 		if(!encontrado)
 			printf("Error, no exista la consola en la que se quiere imprimir");
@@ -826,9 +818,9 @@ void execute_write(int pid, int archivo, void* mensaje){
 //TODO el main
 
 int main(int argc, char** argv) {
-	if(argc == 0){
-	printf("Debe ingresar ruta de .config y archivo\n");
-	exit(1);
+	if(argc == 1){
+		printf("Debe ingresar ruta de .config y archivo\n");
+		exit(1);
 	}
 	//Variables para config
 	t_config *config_file;
@@ -918,7 +910,7 @@ int main(int argc, char** argv) {
 	pthread_t planif;
 	pthread_create(&planif,NULL,(void*)planificacion,&(data_config.grado_multiprog));
 
-	for(;;) {
+	while(1) {
 		read_fds = fd_procesos;
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
 			perror("select");
