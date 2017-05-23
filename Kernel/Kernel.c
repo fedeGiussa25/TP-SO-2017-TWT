@@ -91,7 +91,7 @@ typedef struct {
 } registroStack;
 
 typedef struct{
-	u_int32_t pid;
+	uint32_t pid;
 
 	uint32_t page_counter;
 	uint32_t direccion_inicio_codigo;
@@ -104,7 +104,7 @@ typedef struct{
 	char* lista_de_etiquetas;
 	uint32_t lista_de_etiquetas_length;
 	uint32_t exit_code;
-	uint32_t* estado;
+	char* estado;
 
 	t_list* stack_index;
 	uint32_t primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
@@ -139,7 +139,6 @@ bool plan_go = true;
 fd_set fd_procesos;
 
 kernel_config data_config;
-int tamanio_del_stack;
 
 //Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
@@ -229,7 +228,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	nuevo_PCB->estado = "Nuevo";
 
 
-	nuevo_PCB->tamanioStack=tamanio_del_stack;
+	nuevo_PCB->tamanioStack=data_config.stack_size;
 	nuevo_PCB->stackPointer=0;
 	nuevo_PCB->stack_index=list_create();
 
@@ -595,7 +594,6 @@ void cargar_config(t_config *config_file){
 	data_config.shared_vars = config_get_array_value(config_file, "SHARED_VARS");
 	data_config.stack_size = config_get_int_value(config_file, "STACK_SIZE");
 
-	tamanio_del_stack = data_config.stack_size;
 }
 
 void print_config(){
@@ -681,7 +679,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		if(page_counter > 0){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
-			pcb_to_use->primerPaginaStack=page_counter-tamanio_del_stack; //pagina donde arranca el stack
+			pcb_to_use->primerPaginaStack=page_counter-data_config.stack_size; //pagina donde arranca el stack
 			pcb_to_use->direccion_inicio_codigo = direccion;
 			pcb_to_use->estado = "Ready";
 			pthread_mutex_lock(&mutex_ready_queue);

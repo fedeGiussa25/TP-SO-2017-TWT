@@ -1,3 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/config.h>
+
+#include <commons/collections/list.h>
+#include <commons/collections/queue.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <pthread.h>
+#include "../config_shortcuts/config_shortcuts.h"
+#include "../config_shortcuts/config_shortcuts.c"
+#include <parser/metadata_program.h>
+#define FULLPCB 123
+
+#define MEMPCB 10101010
+
+
+
+typedef struct{
+	uint32_t inicio;
+	uint32_t offset;
+} entrada_indice_de_codigo;
+
+typedef struct {
+	t_list* args;
+	t_list* vars;
+	uint32_t ret_pos;
+	pagoffsize ret_var;
+} registroStack;
+
 typedef struct{
 	int sock_fd;
 	int proceso;
@@ -117,14 +152,36 @@ int get_fd_listener(char* puerto){
 }
 
 
-void *PCB_cereal(script_manager_setup *sms,uint32_t *pidPCB,uint32_t *stack_size ){
-	uint32_t codigo_cpu =2;
-	sendbuf = malloc(sizeof(uint32_t)*4 + sms->messageLength);
-	memcpy(sendbuf,&codigo_cpu,sizeof(int));
-	memcpy(sendbuf+sizeof(int),(pidPCB),sizeof(uint32_t));
-	memcpy(sendbuf+sizeof(int)+sizeof(uint32_t),(stack_size),sizeof(uint32_t));
-	memcpy(sendbuf+sizeof(int)*2+sizeof(uint32_t),&(sms->messageLength),sizeof(uint32_t));
-	memcpy(sendbuf+sizeof(int)*3+sizeof(uint32_t),sms->realbuf,sms->messageLength);
+void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
+	void *sendbuf;
+	switch(objetivo){
+		case MEMPCB:
+			uint32_t codigo_cpu =2;
+			sendbuf = malloc(sizeof(uint32_t)*4 + sms->messageLength);
+			memcpy(sendbuf,&codigo_cpu,sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int),&(pcb->pid),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)+sizeof(uint32_t),(stack_size),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)*2+sizeof(uint32_t),&(sms->messageLength),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)*3+sizeof(uint32_t),sms->realbuf,sms->messageLength);
+			break;
+		case FULLPCB:
+			uint32_t tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
+			uint32_t tamanio_indice_stack = 1*sizeof(registroStack)
+			sendbuf = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack);
+			memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+sizeof(uint32_t), &(pcb->direccion_inicio_codigo), sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+2*sizeof(uint32_t), &(pcb->program_counter), sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+3*sizeof(uint32_t), &(pcb->cantidad_de_instrucciones), sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+4*sizeof(uint32_t), &tamanio_indice_codigo, sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+5*sizeof(uint32_t), pcb->indice_de_codigo, tamanio_indice_codigo);
+			memcpy(ultraBuffer+sizeof(uint32_t)+5*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+6*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+7*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo, &tamanio_indice_stack, sizeof(uint32_t));
+			memcpy(ultraBuffer+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
+			break;
+	}
 
 	return sendbuf;
 }
@@ -135,7 +192,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 
 	//Le mando el codigo y el largo a la memoria
 	//INICIO SERIALIZACION PARA MEMORIAAAAA
-	sendbuf = PCB_cereal(sms,&(pcb_to_use->pid),&(data_config.stack_size));
+	sendbuf = PCB_cereal(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
 	
 	printf("Mandamos a memoria!\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
@@ -153,7 +210,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		if(page_counter > 0){
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
-			pcb_to_use->primerPaginaStack=page_counter-tamanio_del_stack; //pagina donde arranca el stack
+			pcb_to_use->primerPaginaStack=page_counter-data_config.stack_size; //pagina donde arranca el stack
 			pcb_to_use->direccion_inicio_codigo = direccion;
 			pcb_to_use->estado = "Ready";
 			pthread_mutex_lock(&mutex_ready_queue);
@@ -178,23 +235,10 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
-	void *ultraBuffer = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack);
-
-	memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
-	memcpy(ultraBuffer+sizeof(u_int32_t), &(pcb->page_counter), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+sizeof(int), &(pcb->direccion_inicio_codigo), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+2*sizeof(int), &(pcb->program_counter), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+3*sizeof(int), &(pcb->cantidad_de_instrucciones), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+4*sizeof(int), &tamanio_indice_codigo, sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int), pcb->indice_de_codigo, tamanio_indice_codigo);
-	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+6*sizeof(int)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+7*sizeof(int)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+8*sizeof(int)+tamanio_indice_codigo, &tamanio_indice_stack, sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+9*sizeof(int)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
+	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + tamanio_indice_codigo+tamanio_indice_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
