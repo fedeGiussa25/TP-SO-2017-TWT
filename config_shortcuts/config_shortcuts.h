@@ -21,12 +21,12 @@
 
 	typedef struct {
 		char *puerto;
-		int marcos;
-		int marco_size;
-		int entradas_cache;
-		int cache_x_proceso;
+		uint32_t marcos;
+		uint32_t marco_size;
+		uint32_t entradas_cache;
+		uint32_t cache_x_proceso;
 		char *reemplazo_cache;
-		int retardo_memoria;
+		uint32_t retardo_memoria;
 	} mem_config;
 
 	typedef struct {
@@ -36,14 +36,14 @@
 		char* puerto_memoria;
 		char* ip_fs;
 		char* puerto_fs;
-		int quantum;
-		int quantum_sleep;
+		uint32_t quantum;
+		uint32_t quantum_sleep;
 		char* algoritmo;
-		int grado_multiprog;
+		uint32_t grado_multiprog;
 		char** sem_ids;
-		int* sem_init;
+		uint32_t* sem_init;
 		char** shared_vars;
-		int stack_size;
+		uint32_t stack_size;
 	} kernel_config;
 
 	typedef struct {

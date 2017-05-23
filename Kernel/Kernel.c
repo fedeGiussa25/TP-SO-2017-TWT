@@ -42,8 +42,8 @@ pthread_mutex_t mutex_process_list;
 // Structs de conexiones
 //Todo lo de structs de PCB
 typedef struct{
-	int sock_fd;
-	int proceso;
+	uint32_t sock_fd;
+	uint32_t proceso;
 }proceso_conexion;
 
 // STRUCTS DE PCB
@@ -73,50 +73,50 @@ typedef struct{
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
 typedef struct{
-	int page;
-	int offset;
-	int size;
+	uint32_t page;
+	uint32_t offset;
+	uint32_t size;
 }pagoffsize;
 
 typedef struct{
-	u_int32_t inicio;
-	u_int32_t offset;
+	uint32_t inicio;
+	uint32_t offset;
 } entrada_indice_de_codigo;
 
 typedef struct {
 	t_list* args;
 	t_list* vars;
-	int ret_pos;
+	uint32_t ret_pos;
 	pagoffsize ret_var;
 } registroStack;
 
 typedef struct{
 	u_int32_t pid;
 
-	int page_counter;
-	int direccion_inicio_codigo;
-	int program_counter;
+	uint32_t page_counter;
+	uint32_t direccion_inicio_codigo;
+	uint32_t program_counter;
 
-	int cantidad_de_instrucciones;
+	uint32_t cantidad_de_instrucciones;
 	entrada_indice_de_codigo* indice_de_codigo;
 	//aca iria una referencia a la tabla de archivos del proceso
 
 	char* lista_de_etiquetas;
-	int lista_de_etiquetas_length;
-	int exit_code;
-	char* estado;
+	uint32_t lista_de_etiquetas_length;
+	uint32_t exit_code;
+	uint32_t* estado;
 
 	t_list* stack_index;
-	int primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
-	int stackPointer;
-	int tamanioStack;
+	uint32_t primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
+	uint32_t stackPointer;
+	uint32_t tamanioStack;
 }PCB;
 
 typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
-	int fd_consola; //La Consola que me mando el script
-	int fd_mem; //La memoria
-	int grado_multiprog; //El grado de multiprog actual
-	int messageLength; //El largo del script
+	uint32_t fd_consola; //La Consola que me mando el script
+	uint32_t fd_mem; //La memoria
+	uint32_t grado_multiprog; //El grado de multiprog actual
+	uint32_t messageLength; //El largo del script
 	void* realbuf; //El script serializado
 }script_manager_setup;
 
