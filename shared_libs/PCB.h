@@ -13,30 +13,59 @@
 #include <netdb.h>
 #include <pthread.h>
 #include "../config_shortcuts/config_shortcuts.h"
-#include "../config_shortcuts/config_shortcuts.c"
 #include <parser/metadata_program.h>
+
 #define FULLPCB 123
 
 #define MEMPCB 10101010
-
-
 
 typedef struct{
 	uint32_t inicio;
 	uint32_t offset;
 } entrada_indice_de_codigo;
 
-typedef struct {
+typedef struct{
+	uint32_t page;
+	uint32_t offset;
+	uint32_t size;
+}pagoffsize;
+
+typedef struct{
 	t_list* args;
 	t_list* vars;
 	uint32_t ret_pos;
 	pagoffsize ret_var;
-} registroStack;
+}registroStack;
 
 typedef struct{
 	int sock_fd;
 	int proceso;
 }proceso_conexion;
+
+typedef struct{
+	uint32_t pid;
+	uint32_t page_counter;
+	uint32_t direccion_inicio_codigo;
+	uint32_t program_counter;
+	uint32_t cantidad_de_instrucciones;
+	entrada_indice_de_codigo* indice_de_codigo;
+	char* lista_de_etiquetas;
+	uint32_t lista_de_etiquetas_length;
+	uint32_t exit_code;
+	char* estado;
+	t_list* stack_index;
+	uint32_t primerPaginaStack;
+	uint32_t stackPointer;
+	uint32_t tamanioStack;
+}PCB;
+
+typedef struct { //Estructura auxiliar para ejecutar el manejador de scripts
+	uint32_t fd_consola; //La Consola que me mando el script
+	uint32_t fd_mem; //La memoria
+	uint32_t grado_multiprog; //El grado de multiprog actual
+	uint32_t messageLength; //El largo del script
+	void* realbuf; //El script serializado
+}script_manager_setup;
 
 uint32_t enviar(uint32_t socketd, void *buf,uint32_t bytestoSend){
 	uint32_t numbytes;
@@ -154,9 +183,10 @@ int get_fd_listener(char* puerto){
 
 void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
 	void *sendbuf;
+	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack;
 	switch(objetivo){
 		case MEMPCB:
-			uint32_t codigo_cpu =2;
+			codigo_cpu = 2;
 			sendbuf = malloc(sizeof(uint32_t)*4 + sms->messageLength);
 			memcpy(sendbuf,&codigo_cpu,sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(int),&(pcb->pid),sizeof(uint32_t));
@@ -165,28 +195,28 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 			memcpy(sendbuf+sizeof(int)*3+sizeof(uint32_t),sms->realbuf,sms->messageLength);
 			break;
 		case FULLPCB:
-			uint32_t tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-			uint32_t tamanio_indice_stack = 1*sizeof(registroStack)
-			sendbuf = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack);
-			memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+sizeof(uint32_t), &(pcb->direccion_inicio_codigo), sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+2*sizeof(uint32_t), &(pcb->program_counter), sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+3*sizeof(uint32_t), &(pcb->cantidad_de_instrucciones), sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+4*sizeof(uint32_t), &tamanio_indice_codigo, sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+5*sizeof(uint32_t), pcb->indice_de_codigo, tamanio_indice_codigo);
-			memcpy(ultraBuffer+sizeof(uint32_t)+5*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+6*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+7*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo, &tamanio_indice_stack, sizeof(uint32_t));
-			memcpy(ultraBuffer+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
+			tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
+			tamanio_indice_stack = 1*sizeof(registroStack);
+			sendbuf = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo + tamanio_indice_stack);
+			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
+			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+sizeof(uint32_t), &(pcb->direccion_inicio_codigo), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), &(pcb->program_counter), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+3*sizeof(uint32_t), &(pcb->cantidad_de_instrucciones), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+4*sizeof(uint32_t), &tamanio_indice_codigo, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+5*sizeof(uint32_t), pcb->indice_de_codigo, tamanio_indice_codigo);
+			memcpy(sendbuf+sizeof(uint32_t)+5*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+6*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+7*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo,&tamanio_indice_stack, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
 			break;
 	}
 
 	return sendbuf;
 }
 
-void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
+/*void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	void *sendbuf;
 	uint32_t codigo_cpu = 2, numbytes, page_counter, direccion;
 
@@ -229,7 +259,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		}
 	}
 	if(numbytes != 0){perror("receive");}
-}
+}*/
 
 void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);

@@ -9,7 +9,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
-#include "../config_shortcuts/config_shortcuts.c"
 
 
 /*Sockets para recibir mensaje del Kernel*/

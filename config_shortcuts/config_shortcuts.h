@@ -56,8 +56,27 @@
 		char* puerto_kernel;
 	} consola_config;
 
-	t_config* config_create_from_relative_with_check(char **argv, char *cfgPath);
-	void checkArguments(int argc);
+
+	t_config* config_create_from_relative_with_check(char **argv, char *cfgPath){
+		char *nombre_archivo;
+		nombre_archivo = argv[1];
+		strcat(cfgPath, nombre_archivo);
+		return config_create(cfgPath);
+	}
+
+	void checkArguments(int argc){
+		if(argc == 1)
+		{
+		printf("Debe ingresar el nombre del archivo de configuracion\n");
+		exit(1);
+		}
+
+		if(argc != 2)
+		{
+		printf("Numero incorrecto de argumentos\n");
+		exit(1);
+		}
+	}
 
 
 #endif /* CONFIG_SHORTCUTS_H_ */

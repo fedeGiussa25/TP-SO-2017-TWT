@@ -22,7 +22,6 @@
 #include <signal.h>
 #include <commons/config.h>
 #include "../config_shortcuts/config_shortcuts.h"
-#include "../config_shortcuts/config_shortcuts.c"
 #include <parser/parser.h>
 #include <commons/collections/list.h>
 

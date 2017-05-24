@@ -24,8 +24,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "../config_shortcuts/config_shortcuts.h"
-#include "../config_shortcuts/config_shortcuts.c"
 #include <parser/metadata_program.h>
+#include "../shared_libs/PCB.h"
 
 //Todo lo de mutex
 pthread_mutex_t mutex_fd_cpus;
@@ -41,10 +41,11 @@ pthread_mutex_t mutex_process_list;
 
 // Structs de conexiones
 //Todo lo de structs de PCB
+/*
 typedef struct{
 	uint32_t sock_fd;
 	uint32_t proceso;
-}proceso_conexion;
+}proceso_conexion;*/
 
 // STRUCTS DE PCB
 //VOLO: "TAL VEZ DEBERIAMOS PONERLOS EN UN .h"
@@ -72,7 +73,7 @@ typedef struct{
 //Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
-typedef struct{
+/*typedef struct{
 	uint32_t page;
 	uint32_t offset;
 	uint32_t size;
@@ -88,9 +89,9 @@ typedef struct {
 	t_list* vars;
 	uint32_t ret_pos;
 	pagoffsize ret_var;
-} registroStack;
+} registroStack;*/
 
-typedef struct{
+/*typedef struct{
 	uint32_t pid;
 
 	uint32_t page_counter;
@@ -118,7 +119,7 @@ typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
 	uint32_t grado_multiprog; //El grado de multiprog actual
 	uint32_t messageLength; //El largo del script
 	void* realbuf; //El script serializado
-}script_manager_setup;
+}script_manager_setup;*/
 
 typedef struct{
 	PCB* pcb;
@@ -155,7 +156,7 @@ t_queue* new_queue;
 t_list* todos_los_procesos;
 
 //FUNCIONES
-void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
+/*void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
 	bool _remove_socket(void* unaConex)
 	    {
 			proceso_conexion *conex = (proceso_conexion*) unaConex;
@@ -163,9 +164,9 @@ void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
 	    }
 	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
 	free(conexion_encontrada);
-}
+}*/
 
-proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
+/*proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
 	bool _remove_socket(void* unaConex)
 	    {
 			proceso_conexion *conex = (proceso_conexion*) unaConex;
@@ -173,7 +174,7 @@ proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
 	    }
 	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
 	return conexion_encontrada;
-}
+}*/
 
 entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
 	int i;
@@ -241,9 +242,11 @@ PCB* create_PCB(char* script, int fd_consola){
 	procesos_actuales++;
 	pthread_mutex_unlock(&mutex_procesos_actuales);
 
+	pthread_mutex_lock(&mutex_fd_consolas);
 	proceso_conexion *consola = remove_by_fd_socket(lista_consolas,fd_consola);
 	consola->proceso = nuevo_PCB->pid;
 	list_add(lista_consolas, consola);
+	pthread_mutex_unlock(&mutex_fd_consolas);
 
 	return nuevo_PCB;
 }
@@ -453,7 +456,7 @@ void menu()
 
 
 
-void *get_in_addr(struct sockaddr *sa){
+/*void *get_in_addr(struct sockaddr *sa){
 	if (sa->sa_family == AF_INET) 
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
@@ -526,7 +529,7 @@ int get_fd_listener(char* puerto){
 	}
 
 	return listener;
-}
+}*/
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
 int get_fd_server(char* ip, char* puerto){
@@ -653,16 +656,11 @@ int buscar_cpu_libre(){
 
 void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	void *sendbuf;
-	int codigo_cpu = 2, numbytes, page_counter, direccion;
+	int numbytes, page_counter, direccion;
 
 	//Le mando el codigo y el largo a la memoria
 	//INICIO SERIALIZACION PARA MEMORIAAAAA
-	sendbuf = malloc(sizeof(int)*3 + sizeof(u_int32_t) + sms->messageLength);
-	memcpy(sendbuf,&codigo_cpu,sizeof(int));
-	memcpy(sendbuf+sizeof(int),&(pcb_to_use->pid),sizeof(u_int32_t));
-	memcpy(sendbuf+sizeof(int)+sizeof(u_int32_t),&(data_config.stack_size),sizeof(int));
-	memcpy(sendbuf+sizeof(int)*2+sizeof(u_int32_t),&(sms->messageLength),sizeof(int));
-	memcpy(sendbuf+sizeof(int)*3+sizeof(u_int32_t),sms->realbuf,sms->messageLength);
+	sendbuf = (void*) PCB_cereal(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
 	printf("Mandamos a memoria!\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
 	//YA SERIALIZE Y MANDE A MEMORIA MIAMEEEEEEEEEE
@@ -700,31 +698,17 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	if(numbytes != 0){perror("receive");}
 }
 
-void send_PCB(proceso_conexion *cpu, PCB *pcb){
+/*void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
-	void *ultraBuffer = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack);
+	void* ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
-	memcpy(ultraBuffer, &(pcb->pid), sizeof(u_int32_t));
-	memcpy(ultraBuffer+sizeof(u_int32_t), &(pcb->page_counter), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+sizeof(int), &(pcb->direccion_inicio_codigo), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+2*sizeof(int), &(pcb->program_counter), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+3*sizeof(int), &(pcb->cantidad_de_instrucciones), sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+4*sizeof(int), &tamanio_indice_codigo, sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int), pcb->indice_de_codigo, tamanio_indice_codigo);
-	memcpy(ultraBuffer+sizeof(u_int32_t)+5*sizeof(int)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+6*sizeof(int)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+7*sizeof(int)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+8*sizeof(int)+tamanio_indice_codigo, &tamanio_indice_stack, sizeof(int));
-	memcpy(ultraBuffer+sizeof(u_int32_t)+9*sizeof(int)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
-
-
-	send(cpu->sock_fd, ultraBuffer, sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo+tamanio_indice_stack,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(u_int32_t)*10 + tamanio_indice_codigo+tamanio_indice_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
-}
+}*/
 
 void planificacion(int *grado_multiprog){
 	while(1){
