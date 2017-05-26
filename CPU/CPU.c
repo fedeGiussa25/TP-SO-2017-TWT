@@ -82,6 +82,28 @@ bool stackOverflow = false;
  * (el twt es por the walking thread :))
  */
 
+void eliminar_proceso(u_int32_t PID){
+
+	u_int32_t codigo = 5;
+	void *buffer = malloc(2*sizeof(u_int32_t));
+
+	memcpy(buffer, &codigo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t), &PID, sizeof(u_int32_t));
+
+	send(fd_memoria, buffer, sizeof(u_int32_t)*2, 0);
+
+}
+
+void liberar_registro_stack(registroStack *registro){
+
+	while(list_size(registro->vars) > 0){
+		variable *unaVar = list_remove(registro->vars, 0);
+		free(unaVar);
+	}
+
+	free(registro);
+}
+
 t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 {
 	printf("Definir variable: %c\n", identificador_variable);
@@ -244,9 +266,18 @@ void twt_llamarConRetorno (t_nombre_etiqueta etiqueta, t_puntero donde_retornar)
 	printf("Soy llamarConRetorno\n");
 	return;
 }
+
 void twt_finalizar (void)
 {
 	printf("Soy finalizar\n");
+
+	while(list_size(nuevaPCB->stack_index) > 0){
+		registroStack *unRegistro = list_remove(nuevaPCB->stack_index,0);
+		liberar_registro_stack(unRegistro);
+	}
+	eliminar_proceso(nuevaPCB->pid);
+	printf("Se ha liberado el Stack del proceso\n");
+
 	return;
 }
 void twt_retornar(t_valor_variable retorno)
@@ -637,7 +668,7 @@ int main(int argc, char **argv) {
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
 			free(instruccion);
 		}
-
+		//TODO send(nuevaPCB); --Mandamos el PCB actualizado (mati supuestamente esta terminando lo de serializar)
 	}
 
 

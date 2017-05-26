@@ -864,7 +864,7 @@ int main(int argc, char** argv) {
 	send(sockfd_memoria, &handshake, sizeof(int), 0);
 	bytes_mem = recv(sockfd_memoria, &resp, sizeof(int), 0);
 	if(bytes_mem > 0 && resp == 1){
-				printf("%d\n",resp);
+				printf("Conectado con Memoria\n");
 	}else{
 		if(bytes_mem == -1){
 			perror("recieve");
