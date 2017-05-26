@@ -14,6 +14,15 @@ mem_config data_config;
 
 void *memoria;
 
+enum{
+	HANDSHAKE = 1,
+	NUEVO_PROCESO = 2,
+	BUSCAR_INSTRUCCION = 3,
+	GUARDAR_VALOR = 4,
+	ELIMINAR_PROCESO = 5,
+	OBTENER_VALOR = 6
+};
+
 typedef struct{
 	int page_counter;
 	int direccion;
@@ -29,15 +38,18 @@ typedef struct {
 
 //Backlog es la cantidad maxima que quiero de conexiones pendientes
 
-void verificar_conexion_socket(int fd, int estado){
-	if(estado == -1){
-		perror("recieve");
-		exit(3);
+int verificar_conexion_socket(int fd, int estado){
+	if(estado <= 0){
+		if(estado == -1){
+			perror("recieve");
+			}
+		if(estado == 0){
+			printf("Se desconecto el socket: %d\n", fd);
 		}
-	if(estado == 0){
-		printf("Se desconecto el socket: %d\n", fd);
 		close(fd);
+		return 0;
 	}
+	return 1;
 }
 
 	void poner_a_escuchar(int sockfd, struct sockaddr* server, int backlog)
@@ -149,6 +161,19 @@ int espacio_encontrado(int paginas_necesarias, int posicion, entrada_tabla *tabl
 	return encontrado;
 }
 
+void finalizar_proceso(int PID){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i;
+	int cant_paginas = data_config.marcos;
+
+	for(i= 0; i<cant_paginas; i++){
+		if(tabla[i].PID == PID){
+			tabla[i].PID = -2;
+			tabla[i].pagina = -2;
+		}
+	}
+}
+
 int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
 	int encontrado = 0, i = 0, j=0;
 	int numero_de_pagina = paginas_ocupadas;
@@ -210,6 +235,7 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 
 		int guardado_de_stack = buscar_espacio_stack(PID, stack, paginas_usadas);
 		if(guardado_de_stack == -1){
+			finalizar_proceso(PID);
 			espacio->direccion = -1;
 			espacio->page_counter = -1;
 			return espacio;
@@ -257,19 +283,6 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	return instruccion;
 }
 
-void finalizar_proceso(int PID){
-	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i;
-	int cant_paginas = data_config.marcos;
-
-	for(i= 0; i<cant_paginas; i++){
-		if(tabla[i].PID == PID){
-			tabla[i].PID = -2;
-			tabla[i].pagina = -2;
-		}
-	}
-}
-
 void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
@@ -309,96 +322,85 @@ void *thread_consola(){
 
 void *thread_proceso(int fd){
 	printf("Nueva conexion en socket %d\n", fd);
-	int bytes, codigo, messageLength;
+	int bytes, codigo, messageLength, flag = 1;
 	u_int32_t PID;
 	int pagina, paginas_stack, offset, inicio, value;
 
-	while(1){
+	while(flag == 1){
 		bytes = recv(fd,&codigo,sizeof(int),0);
-		verificar_conexion_socket(fd, bytes);
-		if(codigo == 1){
-			send(fd, &data_config.marco_size, sizeof(int), 0);
-		}
-		if(codigo == 2){
-			espacio_reservado *espacio;
-			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
-			verificar_conexion_socket(fd, bytes);
-			recv(fd, &paginas_stack, sizeof(int), 0);
-			recv(fd, &messageLength, sizeof(int), 0);
-			void* aux = malloc(messageLength+2);
-			memset(aux,0,messageLength+2);
-			recv(fd, aux, messageLength, 0);
-			memset(aux+messageLength+1,'\0',1);
+		flag = verificar_conexion_socket(fd, bytes);
+		if(flag == 1){
+			if(codigo == HANDSHAKE){
+				send(fd, &data_config.marco_size, sizeof(int), 0);
+			}
+			if(codigo == NUEVO_PROCESO){
+				espacio_reservado *espacio;
+				bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
+				recv(fd, &paginas_stack, sizeof(int), 0);
+				recv(fd, &messageLength, sizeof(int), 0);
+				void* aux = malloc(messageLength+2);
+				memset(aux,0,messageLength+2);
+				recv(fd, aux, messageLength, 0);
+				memset(aux+messageLength+1,'\0',1);
 
-			//char* charaux = (char*) aux;
-			//printf("Y este es el script:\n %s\n", charaux);
+				//char* charaux = (char*) aux;
+				//printf("Y este es el script:\n %s\n", charaux);
 
-			//Ahora buscamos espacio
-			espacio = buscar_espacio(PID, messageLength+2, aux, paginas_stack);
+				//Ahora buscamos espacio
+				espacio = buscar_espacio(PID, messageLength+2, aux, paginas_stack);
 
-			send(fd, &espacio->page_counter, sizeof(int), 0);
-			send(fd, &espacio->direccion, sizeof(int), 0);
+				send(fd, &espacio->page_counter, sizeof(int), 0);
+				send(fd, &espacio->direccion, sizeof(int), 0);
 
-			free(espacio);
-			free(aux);
-		}
-		if(codigo == 3){
+				free(espacio);
+				free(aux);
+			}
+			if(codigo == BUSCAR_INSTRUCCION){
 
-			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &pagina, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &inicio, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &offset, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
+				recv(fd, &PID, sizeof(u_int32_t), 0);
+				recv(fd, &pagina, sizeof(int), 0);
+				recv(fd, &inicio, sizeof(int), 0);
+				recv(fd, &offset, sizeof(int), 0);
 
-			char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
-			int tamanio = offset - 1;
-			void *buffer = malloc(sizeof(int) + tamanio +1);
-			memset(buffer, 0, sizeof(int) + tamanio +1);
-			memcpy(buffer, &tamanio, sizeof(int));
-			memcpy(buffer+sizeof(int), instruccion, tamanio);
-			memset(buffer+sizeof(int)+tamanio,'\0',1);
+				char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
+				int tamanio = offset - 1;
+				void *buffer = malloc(sizeof(int) + tamanio +1);
+				memset(buffer, 0, sizeof(int) + tamanio +1);
+				memcpy(buffer, &tamanio, sizeof(int));
+				memcpy(buffer+sizeof(int), instruccion, tamanio);
+				memset(buffer+sizeof(int)+tamanio,'\0',1);
 
-			send(fd, buffer, sizeof(int) + tamanio + 1, 0);
-			free(instruccion);
-			free(buffer);
-		}
-		if(codigo == 4){
-			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &pagina, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &offset, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &value, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
+				send(fd, buffer, sizeof(int) + tamanio + 1, 0);
+				free(instruccion);
+				free(buffer);
+			}
+			if(codigo == GUARDAR_VALOR){
+				recv(fd, &PID, sizeof(u_int32_t), 0);
+				recv(fd, &pagina, sizeof(int), 0);
+				recv(fd, &offset, sizeof(int), 0);
+				recv(fd, &value, sizeof(int), 0);
 
-			escritura(PID, pagina, offset, sizeof(int), &value);
+				escritura(PID, pagina, offset, sizeof(int), &value);
 
-		}
-		if(codigo == 5){
-			bytes = recv(fd, &PID, sizeof(int), 0);
-			finalizar_proceso(PID);
-			printf("Proceso %d borrado correctamente\n", PID);
-		}
-		if(codigo == 6){
-			bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &pagina, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &inicio, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
-			bytes = recv(fd, &offset, sizeof(int), 0);
-			verificar_conexion_socket(fd, bytes);
+			}
+			if(codigo == ELIMINAR_PROCESO){
+				recv(fd, &PID, sizeof(int), 0);
+				finalizar_proceso(PID);
+				printf("Proceso %d borrado correctamente\n", PID);
+			}
+			if(codigo == OBTENER_VALOR){
+				recv(fd, &PID, sizeof(u_int32_t), 0);
+				recv(fd, &pagina, sizeof(int), 0);
+				recv(fd, &inicio, sizeof(int), 0);
+				recv(fd, &offset, sizeof(int), 0);
 
-			int *valor = malloc(sizeof(int));
-			valor = (int *) lectura(PID, pagina, inicio, offset);
+				int *valor = malloc(sizeof(int));
+				valor = (int *) lectura(PID, pagina, inicio, offset);
 
-			value = *valor;
-			send(fd, &value, sizeof(int), 0);
-			free(valor);
+				value = *valor;
+				send(fd, &value, sizeof(int), 0);
+				free(valor);
+			}
 		}
 	}
 }
@@ -475,10 +477,9 @@ int main(int argc, char** argv){
 	/*Handshake*/
 
 	int handshake;
-	bytes = recv(newfd,&handshake,sizeof(int),0);
-	if(bytes > 0 && handshake == 1){
-				printf("%d\n",handshake);
-				send(newfd, &handshake, sizeof(int), 0);
+	bytes = recv(newfd,&handshake,sizeof(u_int32_t),0);
+	if(bytes > 0 && handshake == HANDSHAKE){
+				send(newfd, &data_config.marco_size, sizeof(u_int32_t), 0);
 	}else{
 		if(bytes == -1){
 			perror("recieve");

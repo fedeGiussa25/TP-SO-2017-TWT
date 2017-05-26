@@ -70,6 +70,8 @@ fd_set fd_procesos;
 
 kernel_config data_config;
 
+u_int32_t tamanio_pagina;
+
 //Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
 t_list* lista_consolas;
@@ -678,10 +680,12 @@ int main(int argc, char** argv) {
 
 	int handshake = 1;
 	int resp;
-	send(sockfd_memoria, &handshake, sizeof(int), 0);
-	bytes_mem = recv(sockfd_memoria, &resp, sizeof(int), 0);
-	if(bytes_mem > 0 && resp == 1){
+	send(sockfd_memoria, &handshake, sizeof(u_int32_t), 0);
+	bytes_mem = recv(sockfd_memoria, &resp, sizeof(u_int32_t), 0);
+	if(bytes_mem > 0 && resp > 0){
 				printf("Conectado con Memoria\n");
+				tamanio_pagina = resp;
+				printf("Tamaño de pagina = %d", resp);
 	}else{
 		if(bytes_mem == -1){
 			perror("recieve");
