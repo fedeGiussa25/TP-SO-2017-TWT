@@ -41,11 +41,6 @@ pthread_mutex_t mutex_process_list;
 
 // Structs de conexiones
 //Todo lo de structs de PCB
-/*
-typedef struct{
-	uint32_t sock_fd;
-	uint32_t proceso;
-}proceso_conexion;*/
 
 // STRUCTS DE PCB
 //VOLO: "TAL VEZ DEBERIAMOS PONERLOS EN UN .h"
@@ -55,78 +50,13 @@ typedef struct{
 //VOLO: "Asi soy yo ¯\_(ツ)_/¯"
 //GIUSSA: "Asi te quiero. Y justamente por estas cosas es que me encanta romperte los bolas"
 
-/*typedef struct{
-	int offset;
-	int size;
-}code_index_line;
-
-
-typedef struct{
-	char* id;
-	int page;
-	int offset;
-	int size;
-}idpagoffsize;
-
-*/
-
 //Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
-
-/*typedef struct{
-	uint32_t page;
-	uint32_t offset;
-	uint32_t size;
-}pagoffsize;
-
-typedef struct{
-	uint32_t inicio;
-	uint32_t offset;
-} entrada_indice_de_codigo;
-
-typedef struct {
-	t_list* args;
-	t_list* vars;
-	uint32_t ret_pos;
-	pagoffsize ret_var;
-} registroStack;*/
-
-/*typedef struct{
-	uint32_t pid;
-
-	uint32_t page_counter;
-	uint32_t direccion_inicio_codigo;
-	uint32_t program_counter;
-
-	uint32_t cantidad_de_instrucciones;
-	entrada_indice_de_codigo* indice_de_codigo;
-	//aca iria una referencia a la tabla de archivos del proceso
-
-	char* lista_de_etiquetas;
-	uint32_t lista_de_etiquetas_length;
-	uint32_t exit_code;
-	char* estado;
-
-	t_list* stack_index;
-	uint32_t primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
-	uint32_t stackPointer;
-	uint32_t tamanioStack;
-}PCB;
-
-typedef struct{ //Estructura auxiliar para ejecutar el manejador de scripts
-	uint32_t fd_consola; //La Consola que me mando el script
-	uint32_t fd_mem; //La memoria
-	uint32_t grado_multiprog; //El grado de multiprog actual
-	uint32_t messageLength; //El largo del script
-	void* realbuf; //El script serializado
-}script_manager_setup;*/
 
 typedef struct{
 	PCB* pcb;
 	script_manager_setup* sms;
 }new_pcb;
-
-// SI, HAY VARIOS PARECIDOS PERO VA A SER MUY MOLESTO USARLOS SI LOS ANIDO
 
 //Todo lo de variables globales
 int pid = 0;
@@ -135,7 +65,6 @@ int listener_cpu;
 int fdmax_cpu;
 int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
 bool plan_go = true;
-
 
 fd_set fd_procesos;
 
@@ -156,25 +85,6 @@ t_queue* new_queue;
 t_list* todos_los_procesos;
 
 //FUNCIONES
-/*void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
-	bool _remove_socket(void* unaConex)
-	    {
-			proceso_conexion *conex = (proceso_conexion*) unaConex;
-			return conex->sock_fd == sockfd;
-	    }
-	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
-	free(conexion_encontrada);
-}*/
-
-/*proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
-	bool _remove_socket(void* unaConex)
-	    {
-			proceso_conexion *conex = (proceso_conexion*) unaConex;
-			return conex->sock_fd == sockfd;
-	    }
-	proceso_conexion* conexion_encontrada =  list_remove_by_condition(lista,*_remove_socket);
-	return conexion_encontrada;
-}*/
 
 entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
 	int i;
@@ -348,7 +258,7 @@ void end_process(int PID, int socket_memoria, int sock_consola){
 		void* sendbuf_mem = malloc(sizeof(int)*2);
 		int codigo_para_borrar_paginas = 5;
 		memcpy(sendbuf_mem,&codigo_para_borrar_paginas,sizeof(int));
-		memcpy(sendbuf_mem+sizeof(int),&pid,sizeof(int));
+		memcpy(sendbuf_mem+sizeof(int),&PID,sizeof(int));
 		send(socket_memoria,sendbuf_mem,sizeof(int)*2,0);
 
 		//Y le aviso a la consola que se aborto el proceso
@@ -379,7 +289,6 @@ void print_commands()
 {
 	printf("\nComandos\n");
 	printf("\t list   - Lista de Procesos\n");
-	printf("\t end    - Finalizar Proceso\n");
 	printf("\t state  - Estado de un Proceso\n");
 	printf("\t plan   - Detener/Reanudar Planificacion\n\n");
 }
@@ -428,10 +337,6 @@ void menu()
 		{
 			print_PCB_list();
 		}
-		else if((strcmp(command, "end")) == 0)
-		{
-			//end_process(); //Faltan cositas
-		}
 		else if((strcmp(command, "state")) == 0)
 		{
 			pcb_state();
@@ -454,82 +359,6 @@ void menu()
 	}
 }
 
-
-
-/*void *get_in_addr(struct sockaddr *sa){
-	if (sa->sa_family == AF_INET) 
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-//Todo lo de sockets
-
-int sock_accept_new_connection(int listener, int *fdmax, fd_set *master){
-	int newfd;
-	uint32_t addrlen;
-	struct sockaddr_in direcServ;
-	char remoteIP[INET6_ADDRSTRLEN];
-
-	// manejamos las conexiones
-	addrlen = sizeof direcServ;
-	newfd = accept(listener,(struct sockaddr *)&direcServ,&addrlen);
-	if (newfd == -1) {
-		perror("accept");
-			} else {
-				FD_SET(newfd, master);
-				if (newfd > *fdmax)
-					*fdmax = newfd;
-			printf("selectserver: new connection from %s on ""socket %d\n",inet_ntop(direcServ.sin_family,get_in_addr((struct sockaddr*)&direcServ),remoteIP, INET6_ADDRSTRLEN),newfd);
-			}
-	return newfd;
-}
-
-//Recibe como parametros la ip y el puerto de la conexion y crea el socket que escuchara las nuevas conexiones.
-int get_fd_listener(char* puerto){
-
-	struct addrinfo hints, *ai, *p;
-	int listener, result;
-	int yes=1;
-
-	//configuramos el tipo de socket
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	if ((result = getaddrinfo(NULL, puerto, &hints, &ai)) != 0) {
-	fprintf(stderr, "selectserver: %s\n", gai_strerror(result));
-	exit(1);
-	}
-
-	for(p = ai; p != NULL; p = p->ai_next) {
-		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (listener < 0)
-			continue;
-		//Para ignorar el caso de socket en uso
-		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-
-		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
-			close(listener);
-			continue;
-		}
-		break;
-	}
-
-	if (p == NULL) {
-		fprintf(stderr, "selectserver: failed to bind\n");
-		exit(2);
-	}
-
-	freeaddrinfo(ai); // all done with this shit
-
-	if (listen(listener, 10) == -1) {
-		perror("listen");
-		exit(3);
-	}
-
-	return listener;
-}*/
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
 int get_fd_server(char* ip, char* puerto){
@@ -697,18 +526,6 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	}
 	if(numbytes != 0){perror("receive");}
 }
-
-/*void send_PCB(proceso_conexion *cpu, PCB *pcb){
-	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
-	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
-	void* ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
-
-	send(cpu->sock_fd, ultraBuffer, sizeof(u_int32_t)*10 + tamanio_indice_codigo+tamanio_indice_stack,0);
-
-	printf("Mande un PCB a una CPU :D\n\n");
-	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
-}*/
 
 void planificacion(int *grado_multiprog){
 	while(1){
