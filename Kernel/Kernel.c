@@ -58,6 +58,16 @@ typedef struct{
 	script_manager_setup* sms;
 }new_pcb;
 
+typedef struct{
+	char* ID;
+	u_int32_t valor;
+}variable_compartida;
+
+typedef struct{
+	char* ID;
+	u_int32_t valor;
+}semaforo;
+
 //Todo lo de variables globales
 int pid = 0;
 int mem_sock;
@@ -76,6 +86,10 @@ u_int32_t tamanio_pagina;
 t_list* lista_cpus;
 t_list* lista_consolas;
 t_list* lista_en_ejecucion;
+
+//Lista de Variables y Semaforos Ansisop
+t_list* variables_compartidas;
+t_list* semaforos;
 
 //Colas de planificacion
 t_queue* ready_queue;
@@ -455,6 +469,44 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+void settear_variables_Ansisop(){
+	int i = 0;
+	int j = 0;
+
+	while(data_config.shared_vars[i]!=NULL){
+		variable_compartida *unaVar = malloc(sizeof(variable_compartida));
+		unaVar->ID = data_config.shared_vars[i];
+		unaVar->valor = 0;
+		list_add(variables_compartidas, unaVar);
+		i++;
+	}
+
+	while(data_config.sem_ids[j] != NULL){
+		semaforo *unSem = malloc(sizeof(semaforo));
+		unSem->ID = data_config.sem_ids[j];
+		unSem->valor = data_config.sem_init[j];
+		list_add(semaforos, unSem);
+		j++;
+	}
+}
+
+void print_vars(){
+	int max_var = list_size(variables_compartidas);
+	int max_sem = list_size(semaforos);
+	int i = 0, j=0;
+	printf("Variables Compartidas:\n");
+	while(i < max_var){
+		variable_compartida *unaVar = list_get(variables_compartidas, i);
+		printf("Variable %s, valor = %d\n", unaVar->ID, unaVar->valor);
+		i++;
+	}
+	while(j < max_sem){
+		semaforo *unSem = list_get(semaforos, j);
+		printf("Semaforo %s, valor = %d\n", unSem->ID, unSem->valor);
+		j++;
+	}
+}
+
 int esta_en_uso(int fd){
 	int i;
 	int en_uso = 0;
@@ -657,6 +709,10 @@ int main(int argc, char** argv) {
 	//Lista con todos los procesos
 	todos_los_procesos = list_create();
 
+	//Variables_compartidas y semaforos
+	variables_compartidas = list_create();
+	semaforos = list_create();
+
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
 
@@ -668,7 +724,8 @@ int main(int argc, char** argv) {
 	config_file = config_create_from_relative_with_check(argv, cfgPath);
 	cargar_config(config_file);	//Carga la estructura data_config de Kernel
 	print_config();	//Adivina... la imprime por pantalla
-	//config_destroy(config_file);
+	settear_variables_Ansisop();//todo
+	print_vars();
 
 	free(cfgPath);
 
@@ -824,6 +881,7 @@ int main(int argc, char** argv) {
 
 							execute_write(pid,archivo,message);
 						}
+
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
 						if (codigo==50)
