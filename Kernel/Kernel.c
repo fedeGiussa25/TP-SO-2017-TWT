@@ -53,20 +53,32 @@ pthread_mutex_t mutex_process_list;
 //Si, agregue las otras cosas que va a tener el PCB como comentarios porque me da paja hacerlo
 //despues. Asi que lo hago ahora ¯\_(ツ)_/¯
 
+enum{
+	HANDSHAKE = 1,
+	ID_CPU = 1,
+	ID_CONSOLA = 2,
+	NUEVO_PROGRAMA = 2,
+	ELIMINAR_PROCESO = 3,
+	WRITE = 4,
+	ASIGNAR_VALOR_COMPARTIDA = 5,
+	BUSCAR_VALOR_COMPARTIDA = 6
+};
+
 typedef struct{
 	PCB* pcb;
 	script_manager_setup* sms;
 }new_pcb;
+
+//Si bien la estructura se llama variable_compartida,
+//este tipo de dato es el mismo que vamos a usar para los semaforos ya que poseen los mismo atributos
+//La idea de esto es no repetir ni logica ni codigo.
 
 typedef struct{
 	char* ID;
 	u_int32_t valor;
 }variable_compartida;
 
-typedef struct{
-	char* ID;
-	u_int32_t valor;
-}semaforo;
+typedef variable_compartida semaforo;
 
 //Todo lo de variables globales
 int pid = 0;
@@ -469,13 +481,15 @@ void print_config(){
 	printf("Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
+//Funciones de Capa Memoria
+
 void settear_variables_Ansisop(){
 	int i = 0;
 	int j = 0;
 
 	while(data_config.shared_vars[i]!=NULL){
 		variable_compartida *unaVar = malloc(sizeof(variable_compartida));
-		unaVar->ID = data_config.shared_vars[i];
+		unaVar->ID = data_config.shared_vars[i]+1;
 		unaVar->valor = 0;
 		list_add(variables_compartidas, unaVar);
 		i++;
@@ -506,6 +520,32 @@ void print_vars(){
 		j++;
 	}
 }
+//Es homogenea tanto para semaforos como para variables_compartidas
+variable_compartida *remove_by_ID(t_list *lista, char* ID){
+	bool _remove_element(void* list_element)
+	    {
+		variable_compartida *unaVar = (variable_compartida*) list_element;
+		return strcmp(ID, unaVar->ID)==0;
+	    }
+	variable_compartida* variable_buscada =  list_remove_by_condition(lista,*_remove_element);
+	return variable_buscada;
+}
+
+void asignar_valor_variable_compartida(char* ID, u_int32_t value){
+	variable_compartida *variable_a_modificar = remove_by_ID(variables_compartidas, ID);
+	variable_a_modificar->valor = value;
+	list_add(variables_compartidas, variable_a_modificar);
+}
+
+u_int32_t obtener_valor_variable_compartida(char* ID){
+	u_int32_t value;
+	variable_compartida *variable_a_modificar = remove_by_ID(variables_compartidas, ID);
+	value = variable_a_modificar->valor;
+	list_add(variables_compartidas, variable_a_modificar);
+	return value;
+}
+
+//Fin de funciones de capa memoria
 
 int esta_en_uso(int fd){
 	int i;
@@ -735,7 +775,7 @@ int main(int argc, char** argv) {
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
 	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
-	int handshake = 1;
+	int handshake = HANDSHAKE;
 	int resp;
 	send(sockfd_memoria, &handshake, sizeof(u_int32_t), 0);
 	bytes_mem = recv(sockfd_memoria, &resp, sizeof(u_int32_t), 0);
@@ -807,9 +847,9 @@ int main(int argc, char** argv) {
 					} else {
 						printf("Se recibio: %d\n", codigo);
 						//Si el codigo es 1 significa que el proceso del otro lado esta haciendo el handshake
-						if(codigo == 1){
+						if(codigo == HANDSHAKE){
 							recv(i, &processID,sizeof(int),0);
-							if(processID == 1){	//Si el processID es 1, sabemos que es una CPU
+							if(processID == ID_CPU){	//Si el processID es 1, sabemos que es una CPU
 								printf("Es una CPU\n");
 								nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
 								nueva_conexion_cpu->sock_fd = newfd;
@@ -820,7 +860,7 @@ int main(int argc, char** argv) {
 								printf("Hay %d cpus conectadas\n\n", list_size(lista_cpus));
 
 							}
-							if(processID == 2){	//Si en cambio el processID es 2, es una Consola
+							if(processID == ID_CONSOLA){	//Si en cambio el processID es 2, es una Consola
 								printf("Es una Consola\n");
 								nueva_conexion_consola = malloc(sizeof(proceso_conexion));
 								nueva_conexion_consola->sock_fd = newfd;
@@ -831,7 +871,7 @@ int main(int argc, char** argv) {
 								printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 							}
 						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
-						if(codigo == 2){
+						if(codigo == NUEVO_PROGRAMA){
 							//Agarro el resto del mensaje
 							printf("Ding, dong, bing, bong! Me llego un script!\n");
 
@@ -859,7 +899,7 @@ int main(int argc, char** argv) {
 							send(i, &error,sizeof(int),0); }
 						}
 						//Si el codigo es 3 significa que debo terminar el proceso
-						if (codigo == 3)
+						if (codigo == ELIMINAR_PROCESO)
 						{
 							//Cacheo el pid del proceso que tengo que borrar
 							int pid;
@@ -868,7 +908,7 @@ int main(int argc, char** argv) {
 							end_process(pid,sockfd_memoria,i);
 						}
 						//Si el codigo es 4 significa que quieren hacer un write
-						if(codigo == 4)
+						if(codigo == WRITE)
 						{
 							int archivo, pid, messageLength;
 							recv(i,&archivo,sizeof(int),0);
@@ -881,7 +921,34 @@ int main(int argc, char** argv) {
 
 							execute_write(pid,archivo,message);
 						}
+						if(codigo == ASIGNAR_VALOR_COMPARTIDA){
+							u_int32_t value, tamanio;
+							recv(i, &value, sizeof(u_int32_t),0);
+							recv(i, &tamanio, sizeof(u_int32_t),0);
 
+							char *id_var = malloc(tamanio);
+							recv(i, id_var, tamanio,0);
+
+							printf("Hay que modificar la variable %s con el valor %d\n", id_var, value);
+
+							asignar_valor_variable_compartida(id_var, value);
+							print_vars();
+						}
+						if(codigo == BUSCAR_VALOR_COMPARTIDA){
+							u_int32_t value, tamanio;
+							recv(i, &tamanio, sizeof(u_int32_t),0);
+
+							char *id_var = malloc(tamanio);
+							recv(i, id_var, tamanio,0);
+
+							printf("Hay que obtener el valor de la variable %s\n", id_var);
+
+							value = obtener_valor_variable_compartida(id_var);
+
+							printf("La variable %s tiene valor %d\n", id_var, value);
+
+							send(i, &value, sizeof(u_int32_t), 0);
+						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
 						if (codigo==50)

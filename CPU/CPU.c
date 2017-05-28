@@ -25,6 +25,15 @@
 #include <parser/parser.h>
 #include <commons/collections/list.h>
 
+enum{
+	HANDSHAKE = 1,
+	PEDIR_INSTRUCCION=3,
+	ASIGNAR_VALOR = 4,
+	ELIMINAR_PROCESO = 5,
+	ASIGNAR_VALOR_COMPARTIDA = 5,
+	BUSCAR_VALOR = 6
+};
+
 typedef struct{
 	int page;
 	int offset;
@@ -84,7 +93,7 @@ bool stackOverflow = false;
 
 void eliminar_proceso(u_int32_t PID){
 
-	u_int32_t codigo = 5;
+	u_int32_t codigo = ELIMINAR_PROCESO;
 	void *buffer = malloc(2*sizeof(u_int32_t));
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
@@ -185,7 +194,7 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 
 	//Mandamos a memoria la solicitud de lectura:
 
-	int codigo = 6; //Le puse 6 al codigo para solicitar leer un valor, si quieren lo cambian
+	int codigo = BUSCAR_VALOR; //Le puse 6 al codigo para solicitar leer un valor, si quieren lo cambian
 	int pag = direccion_variable / tamanioPagina;
 	int offset = direccion_variable % tamanioPagina;
 	int tamanio = sizeof(int);
@@ -217,7 +226,7 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 
 	printf("Soy asignar\n");
 	int pagina, offset, value;
-	int codigo = 4; //codigo 4 es solicitud escritura a memoria
+	int codigo = ASIGNAR_VALOR; //codigo 4 es solicitud escritura a memoria
 
 	printf("Tengo que asignar el valor: %d en: %d\n", valor, direccion_variable);
 
@@ -244,11 +253,42 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 {
 	printf("Soy obtenerValorCompartida\n");
-	return 0;
+	printf("Tengo que obtener el valor de %s\n",variable);
+
+	int value;
+	int codigo = BUSCAR_VALOR;
+	int largo = strlen(variable)+1;
+	void *buffer = malloc(sizeof(u_int32_t)*2 + largo);
+
+	memcpy(buffer, &codigo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t), &largo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t)*2, variable, largo);
+
+	send(fd_kernel, buffer, sizeof(u_int32_t)*2 + largo, 0);
+
+	recv(fd_kernel, &value, sizeof(u_int32_t),0);
+
+	printf("La variable %s tiene valor %d\n",variable,value);
+
+	return value;
 }
 t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_valor_variable valor)
 {
 	printf("Soy asignarValorCompartida\n");
+	printf("Tengo que asignar el valor: %d en: %s\n", valor, variable);
+
+	int codigo = ASIGNAR_VALOR_COMPARTIDA;
+	int largo = strlen(variable)+1;
+	void *buffer = malloc(sizeof(u_int32_t)*3 + largo);
+
+	memcpy(buffer, &codigo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t), &valor, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t)*2, &largo, sizeof(u_int32_t));
+	memcpy(buffer+sizeof(u_int32_t)*3, variable, largo);
+
+	send(fd_kernel, buffer, sizeof(u_int32_t)*3 + largo, 0);
+
+	free(buffer);
 	return 0;
 }
 void twt_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta)
@@ -486,7 +526,7 @@ char* pedirCodigoAMemoria(u_int32_t pid, int page_counter)
 }
 
 char* obtener_instruccion(PCB *pcb){
-	int codigo = 3;
+	int codigo = PEDIR_INSTRUCCION;
 	int messageLength, bytes, instruccion_a_buscar, inicio, offset, pagina_de_codigo = 0;
 
 	instruccion_a_buscar = pcb->program_counter;

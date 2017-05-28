@@ -2,12 +2,6 @@
 begin
 	variables a, b,c,d
 	a = 3
-	b = 5
-	a = b + 12
-	b=4
-	a=6
-	a=b+22
-	b=1
-	variables f,g,h
-	f=1
+	!Global = 5
+	a = !Global + 12
 end
