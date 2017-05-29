@@ -18,18 +18,22 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <time.h>
 #include <netdb.h>
 #include <pthread.h>
 #include "../config_shortcuts/config_shortcuts.h"
+#include "../config_shortcuts/config_shortcuts.c"
 
 
 int closeAllThreads = 0;		// si esta en uno, tengo que cerrar todos los hilos
 int idProceso = 2;
+int threads;		//nro de hilos aparte del principal
+pthread_mutex_t mutex;
 
 consola_config data_config;
 
 //Pasas la ip y el puerto para la conexion y devuelve el fd del servidor correspondiente
-int get_fd_server(char* ip, char* puerto){
+int get_fd_server(char* ip, char* puerto, char *thread){
 
 	struct addrinfo hints;
 	struct addrinfo *servinfo, *p;
@@ -40,27 +44,35 @@ int get_fd_server(char* ip, char* puerto){
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0) {
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
-			return 1;
-		}
+	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0)
+	{
+		printf("\n\nHilo %s - ", thread);
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
+		return 1;
+	}
 
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-			if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-				perror("client: socket");
-				continue;
-				}
-				if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-					close(sockfd);
-					perror("client: connect");
-					continue;
-					}
-			break;
-			}
-	if (p == NULL) {
-			fprintf(stderr, "client: failed to connect\n");
-			return 2;
+	for(p = servinfo; p != NULL; p = p->ai_next)
+	{
+		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
+			printf("\n\nHilo %s - error socket", thread);
+			perror("");
+			continue;
 		}
+		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+		{
+			close(sockfd);
+			printf("\n\nHilo %s - error connect", thread);
+			perror("");
+			continue;
+		}
+		break;
+	}
+	if (p == NULL)
+	{
+		fprintf(stderr, "\n\nHilo %s - error al conectar\n", thread);
+		return 2;
+	}
 
 	freeaddrinfo(servinfo);
 
@@ -68,14 +80,19 @@ int get_fd_server(char* ip, char* puerto){
 }
 
 
-int handshake_kernel()
+int handshake_kernel(char* thread)
 {
 	int codigo = 1;
 	int sockfd_kernel;
 
 	//Handshake
 
-	sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel);
+	sockfd_kernel = get_fd_server(data_config.ip_kernel,data_config.puerto_kernel, thread);
+	if(sockfd_kernel == 2)
+	{
+		printf("\n\nATENCION: No se ha podido conectar con el kernel");
+		return -1;
+	}
 
 	void* codbuf = malloc(sizeof(int)*2);
 	memcpy(codbuf,&codigo,sizeof(int));
@@ -147,9 +164,23 @@ void avisar_desconexion_kernel(int socket)
 }
 
 
+void printData(time_t start, time_t end, int printCount, int pid)
+{
+	printf("Informacion sobre el programa %d:", pid);
+	printf("\n\n\tLa hora de inicio del programa es: %s", ctime(&start));
+	printf("\n\tLa hora de finalizacion del programa es: %s", ctime(&end));
+	printf("\n\tLa cantidad de impresiones por pantalla es: %d", printCount);
+	printf("\n\tEl tiempo total de ejecucion del programa en segundos es: %d\n", (int)difftime(start, end));
+}
+
+
 void *script_thread(char *scriptName)
 {
-	int threadId = pthread_self();
+	char threadId[3];	//no creo que llegue a haber un hilo con id de mas de 2 digitos
+	threadId[0] = '\0';
+	sprintf(threadId, "%d", threads);
+
+	time_t startTime, endTime;
 	int codigo;
 	int sockfd_kernel;
 	FILE *file;
@@ -159,14 +190,16 @@ void *script_thread(char *scriptName)
 					// sabiendo que 1 char = 1 byte, al sacar el nro de bytes del archivo, se cuantos char tiene
 					// "off_t" = unsigned int 64
 
-	sockfd_kernel = handshake_kernel();
+	int printCounter = 0;		//para controlar cuantas impresiones hizo el programa a ejecutar
 
-	if(closeAllThreads)
+	sockfd_kernel = handshake_kernel(threadId);
+
+	if(sockfd_kernel == -1)
 	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
+		printf("ATENCION: No hay conexion con el kernel. El hilo se anulará. Vuelva a intentarlo luego de solucionar el problema");
+		goto end3;
 	}
+
 
 	//Manejo el script
 
@@ -177,37 +210,22 @@ void *script_thread(char *scriptName)
 	strcat(filePath, ".ansisop");  	// corri estas partes de la funcion "iniciar_programa" a acá para poder indicar de que script viene el msj que recibo de kernel
 									// asi no se me mezcla cuando haya varios mensajes cayendo de distintos hilos
 
-	if(closeAllThreads)
-	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
-	}
-
 
 	if ((file = fopen(filePath, "r")) == NULL)
 	{
-		printf("\n\nHilo %d, error al abrir el archivo", threadId);
+		printf("\n\nHilo %s, error al abrir el archivo", threadId);
 		perror("");
 		printf("\nIntente abrir el script nuevamente\n");
 		goto end;
 	}
 
-	printf("\n\nHilo %d: \n\t El archivo existe y fue abierto\n", threadId);
+	printf("\n\nHilo %s: \n\t El archivo existe y fue abierto\n", threadId);
 
 	stat(filePath, &st); //setea la info del archivo en la estructura 'st'
 	fileSize = st.st_size;
 
 	//char *script = clean_script(file, & scriptLength);  //con esto creo otra variable que come memoria y no se puede liberar... genera memory leaks
 														  //en la funcion se hacia el malloc() para el script, pero asi nunca lo podia liberar
-
-
-	if(closeAllThreads)
-	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
-	}
 
 
 	char *script = malloc(fileSize);
@@ -226,18 +244,10 @@ void *script_thread(char *scriptName)
 	char *cleanScript = realloc(script, scriptLength+1); //es 'scriptLength+1' porque sin ese '+1' el valgrind dice que hay error de escritura
 
 
-	printf("\n\n Hilo %d: Script \"%s\" procesado\n", threadId, scriptName);
-	printf("\n\nHilo %d:\n\t Contenido del script a enviar:\n\n%s", threadId, cleanScript);
+	printf("\n\nHilo %s: Script \"%s\" procesado\n", threadId, scriptName);
+	printf("\n\nHilo %s:\n\t Contenido del script a enviar:\n\n%s", threadId, cleanScript);
 
-
-	if(closeAllThreads)
-	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
-	}
-
-	void* realbuf = malloc((sizeof(int)*2)+scriptLength+1);
+	void *realbuf = malloc((sizeof(int)*2)+scriptLength+1);
 
 	codigo = 2;
 	int respuesta = 0;
@@ -248,47 +258,49 @@ void *script_thread(char *scriptName)
 	memcpy(realbuf+(sizeof(int)*2), cleanScript, scriptLength);
 
 
-	if(closeAllThreads)
+	if(send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0) == -1)
 	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
+		printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+		goto end2;
 	}
 
-
-	send(sockfd_kernel, realbuf, (sizeof(int)*2)+scriptLength, 0);
-
-	printf("\n\nHilo %d: Script \"%s\" enviado!\n", threadId, scriptName);
+	printf("\n\nHilo %s: Script \"%s\" enviado!\n", threadId, scriptName);
 
 
-	if(closeAllThreads)
+	if(recv(sockfd_kernel, &respuesta, sizeof(int), 0) == 0)		// devuelve -1 si hay error y 0 si el socket se desconecta
 	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
-		avisar_desconexion_kernel(sockfd_kernel);
-		goto end;
+		printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+		goto end2;
 	}
-
-
-	recv(sockfd_kernel, &respuesta, sizeof(int), 0);
 
 	if(respuesta < 0)
 	{
-		printf("\n\nHilo %d: No se pudo ejecutar el programa\n", threadId);
-		goto end;
-	}
-	else
-	{
-		printf("\n\nHilo %d: Se esta ejecutando el programa!\n", threadId);
-		recv(sockfd_kernel, &pid, sizeof(int), 0); 		// recibe el ID del proceso que ejecuta el script
+		printf("\n\nHilo %s: No se pudo ejecutar el programa\n", threadId);
+		goto end2;
 	}
 
+	printf("\n\nHilo %s: Se esta ejecutando el programa!\n", threadId);
 
-	if(closeAllThreads)
+		startTime = time(NULL);
+
+		if(recv(sockfd_kernel, &pid, sizeof(int), 0) == 0) 		// el recv recibe el ID del proceso que ejecuta el script
+		{
+			printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+			goto end2;
+		}
+		printf("\n\nHilo %s - El id del proceso es: %d\n", threadId, pid);
+
+
+
+
+	if(closeAllThreads == 1)
 	{
-		printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
+		printf("\n\nEl hilo %s asignado al script \"%s\" (PID: %d) ha sido desconectado!\n", threadId, scriptName, pid);
 		avisar_desconexion_kernel(sockfd_kernel);
+
 		goto end;
 	}
+
 
 
 	int messageSize;
@@ -296,43 +308,70 @@ void *script_thread(char *scriptName)
 
 	while(1)
 	{
-		recv(sockfd_kernel, &respuesta, sizeof(int), 0); //recibo el codigo que indica si llego al final del programa (del script enviado) o no
+		if(recv(sockfd_kernel, &respuesta, sizeof(int), 0) == 0) 	//recibe el codigo que indica si llego al final del programa (del script enviado) o no
+		{
+			printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+			goto end2;
+		}
 
 		if(respuesta == 5)	// el kernel quiere imprimir algo
 		{
-			recv(sockfd_kernel, &messageSize, sizeof(int), 0);
-			recv(sockfd_kernel, messageToPrint, messageSize, 0);
+			if(recv(sockfd_kernel, &messageSize, sizeof(int), 0) == 0)
+			{
+				printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+				goto end2;
+			}
+			if(recv(sockfd_kernel, messageToPrint, messageSize, 0) == 0)
+			{
+				printf("\n\nHilo %s: el kernel esta desconectado, el hilo sera terminado\n", threadId);
+				goto end2;
+			}
 
-			printf("\n\n Mensaje del script \"%s\": %s \n\n", scriptName, messageToPrint);
+			printCounter++;
+
+			printf("\n\n Mensaje del script \"%s\" (PID: %d): %s \n\n", scriptName, pid, messageToPrint);
 		}
 
 		if(respuesta == 6)	// el kernel indica que llego al fin del script
 		{
 			printf("\n\n Mensaje del script \"%s\" (PID: %d): Finalizo el programa satisfactoriamente! \n\n", scriptName, pid);
-			break;
+			endTime = time(NULL);
+			printData(startTime, endTime, printCounter, pid);
+
+			goto end;
 		}
 
 		if(respuesta == 7) //el kernel aborta el programa
 		{
 			printf("\n\n La ejecucion del script \"%s\" (PID: %d) ha sido abortada \n\n", scriptName, pid);		//deberia hacer algo mas por aca?
-			break;
+			goto end;
 		}
 
 
-		if(closeAllThreads)
+		if(closeAllThreads == 1)
 		{
-			printf("\n\nEl hilo %d asignado al script \"%s\" ha sido desconectado!\n", threadId, scriptName);
+			printf("\n\nEl hilo %s asignado al script \"%s\" (PID: %d) ha sido desconectado!\n", threadId, scriptName, pid);
 			avisar_desconexion_kernel(sockfd_kernel);
 			goto end;
 		}
 	}
 
+
 end:				// puse los goto para evitar repetir esto que sigue varias veces
+	free(messageToPrint);
+
+end2:
 	free(scriptName);
 	free(filePath);
 	free(realbuf);
 	free(cleanScript);
 	close(sockfd_kernel);
+
+end3:						//cae aca si sockfd_kernel = -1  -- es decir que no hay socket para conectar al kernel, por ende no lo tengo que liberar
+	pthread_mutex_lock(&mutex);
+	threads--;
+	pthread_mutex_unlock(&mutex);
+
 	pthread_exit(NULL);
 }
 
@@ -341,7 +380,7 @@ void iniciar_programa()
 {
 	char *fileName = malloc(31);
 
-	printf("Escriba el nombre del script a ejecutar: ");
+	//printf("Escriba el nombre del script a ejecutar: "); 	// leer 1er comentario en funcion "finalizar_programa"
 
 	if(scanf("%s", fileName) == EOF)	//verifica que no falle el scanf()
 	{
@@ -357,31 +396,30 @@ void iniciar_programa()
 	pthread_t script_tret;
 	int tret_value = -1;
 
+	threads++;
+
 	if((tret_value = pthread_create(&script_tret, NULL,(void*) script_thread, fileName)) != 0)
 	{
 		perror("Consola, linea 220, error al crear el hilo: ");
-		goto end;
 	}
 	else
 	{
 		printf("Hilo creado satisfactoriamente\n\n");
 		pthread_detach(script_tret);
 	}
-
-end:		;			// puse los goto para evitar repetir esto que sigue varias veces
-	//free(fileName);
 }
 
 
 void finalizar_programa()
 {
 	int sockfd_kernel;
-	int *pid;
+	int *pid = malloc(sizeof(int));
 	int codigo = 3;
 
-	sockfd_kernel = handshake_kernel();
+	sockfd_kernel = handshake_kernel("main");
 
-	printf("\nIngrese el ID del proceso a terminar: ");
+	//printf("\nIngrese el ID del proceso a terminar: ");  //saco esto porque antes de llamar a esta funcion puedo tirar "end 4" (por tanto, no es necesario pedir el id);
+														   //la funcion antes de llamar a esto lee el "end" (en su scanf), y el scanf en esta funcion lee el "4"
 
 	if(scanf("%d", pid) == EOF)
 	{
@@ -390,23 +428,27 @@ void finalizar_programa()
 	}
 
 
-	void * buffer = malloc(sizeof(int)*2);
+	void *buffer = malloc(sizeof(int)*2);
 
 	memcpy(buffer, &codigo, sizeof(int));
 	memcpy(buffer+sizeof(int), pid, sizeof(int));
 
 	printf("\nEl proceso sera terminado pronto!");
 
-	send(sockfd_kernel, buffer, sizeof(int)*2, 0);
+	if(send(sockfd_kernel, buffer, sizeof(int)*2, 0) == -1)
+	{
+		printf("\nEl kernel esta desconectado, no se pudo finalizar el programa (o ya ha sido finalizado al cerrar el kernel)\n");
+	}
 
 end:
 	free(buffer);
+	free(pid);
 }
 
 
 void desconectar_consola()
 {
-	printf("\nLos hilos se desconectaran en breve...");
+	printf("\nLos hilos se desconectaran en breve...\n");
 
 	closeAllThreads = 1;			// pense en hacerlo con 'pthread_cancel', pero no me dejaba liberar variables dinamicas
 									// tambien pense en cerrar todos los hilos desde acá, de alguna forma, teniendo una lista global con los hilos y sus sockets
@@ -421,12 +463,15 @@ void print_commands()
 	printf("\t end    - Finalizar Programa\n");
 	printf("\t dcon   - Desconectar Consola\n");
 	printf("\t cls    - Limpiar Mensajes\n");
+	printf("\t thlst  - Mostrar cantidad de hilos abiertos\n");
 	printf("\t exit   - Salir\n");
 	printf("\nIngrese un comando: ");
 }
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
+	threads = 0;
 
 	t_config *config;
 	//char *buf = malloc(256);
@@ -497,6 +542,7 @@ int main(int argc, char** argv) {
 		}
 		else if((strcmp(command, "dcon")) == 0)
 		{
+			closeAllThreads = 0;
 			desconectar_consola();
 			printf("\nIngrese un comando: ");
 		}
@@ -505,8 +551,14 @@ int main(int argc, char** argv) {
 			system("clear");
 			print_commands();
 		}
+		else if((strcmp(command, "thlst")) == 0)
+		{
+			printf("\nCantidad de hilos abiertos: %d", threads);
+			printf("\nIngrese un comando: ");
+		}
 		else if((strcmp(command, "exit")) == 0)
 		{
+			closeAllThreads = 0;
 			desconectar_consola();		// como esta funcion mata los hilos y libera todas sus variables, me aseguro de eso ejecutandola a la salida
 			goto end;
 		}
