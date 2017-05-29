@@ -25,6 +25,7 @@
 #include <parser/parser.h>
 #include <commons/collections/list.h>
 
+
 enum{
 	HANDSHAKE = 1,
 	PEDIR_INSTRUCCION=3,
@@ -52,7 +53,7 @@ typedef struct {
 	pagoffsize ret_var;
 } registroStack;
 
-typedef struct{
+/*typedef struct{
 	u_int32_t pid;
 
 	int page_counter;
@@ -67,7 +68,24 @@ typedef struct{
 	int primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
 	int stackPointer;
 	int tamanioStack;
-} PCB;
+} PCB;*/
+
+typedef struct{
+	uint32_t pid;
+	uint32_t page_counter;
+	uint32_t direccion_inicio_codigo;
+	uint32_t program_counter;
+	uint32_t cantidad_de_instrucciones;
+	entrada_indice_de_codigo* indice_de_codigo;
+	char* lista_de_etiquetas;
+	uint32_t lista_de_etiquetas_length;
+	uint32_t exit_code;
+	char* estado;
+	t_list* stack_index;
+	uint32_t primerPaginaStack;
+	uint32_t stackPointer;
+	uint32_t tamanioStack;
+}PCB;
 
 typedef struct{
 	char id;
@@ -574,24 +592,25 @@ PCB* recibirPCB()
 
 	u_int32_t pid;
 
-	int page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
+	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
 	stack_size, primerPagStack, stack_pointer;
 
 	PCB* pcb = malloc(sizeof(PCB));
 
-	int tamanio_indice_codigo, tamanio_indice_stack;
+	uint32_t tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas;
 
 	bytes_recv = recv(fd_kernel, &pid, sizeof(u_int32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv = recv(fd_kernel, &page_counter, sizeof(int),0);
+	bytes_recv = recv(fd_kernel, &page_counter, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv = recv(fd_kernel, &direccion_inicio_codigo, sizeof(int),0);
+
+	bytes_recv = recv(fd_kernel, &direccion_inicio_codigo, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv = recv(fd_kernel, &program_counter, sizeof(int),0);
+	bytes_recv = recv(fd_kernel, &program_counter, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv = recv(fd_kernel, &cantidad_de_instrucciones, sizeof(int),0);
+	bytes_recv = recv(fd_kernel, &cantidad_de_instrucciones, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv = recv(fd_kernel, &tamanio_indice_codigo, sizeof(int),0);
+	bytes_recv = recv(fd_kernel, &tamanio_indice_codigo, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
 	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
@@ -600,14 +619,14 @@ PCB* recibirPCB()
 	bytes_recv = recv(fd_kernel, indice_de_codigo, tamanio_indice_codigo,0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
-	bytes_recv=recv(fd_kernel, &stack_size,sizeof(int),0);
+	bytes_recv=recv(fd_kernel, &stack_size,sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv=recv(fd_kernel, &primerPagStack,sizeof(int),0);
+	bytes_recv=recv(fd_kernel, &primerPagStack,sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
-	bytes_recv=recv(fd_kernel, &stack_pointer,sizeof(int),0);
+	bytes_recv=recv(fd_kernel, &stack_pointer,sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
-	bytes_recv = recv(fd_kernel, &tamanio_indice_stack, sizeof(int),0);
+	bytes_recv = recv(fd_kernel, &tamanio_indice_stack, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
 	t_list* indice_de_stack = malloc(tamanio_indice_stack);
@@ -615,8 +634,30 @@ PCB* recibirPCB()
 	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
+	//recibo indice etiquetas:
+
+	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
+
+	bytes_recv = recv(fd_kernel, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
+	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
+
+	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
+
+	if(tamanio_indice_etiquetas>0)
+	{
+	bytes_recv = recv(fd_kernel, indice_de_etiquetas, tamanio_indice_etiquetas,0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);
+
+	printf("RECIBI indice ETIQUETAS\n\n");
+
+	}
+
 	pcb->pid = pid;
 	pcb->page_counter = page_counter;
+	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
+	pcb->lista_de_etiquetas=indice_de_etiquetas;
 	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
 	pcb->program_counter = program_counter;
 	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
@@ -700,6 +741,7 @@ int main(int argc, char **argv) {
 	while(1)
 	{
 		nuevaPCB = recibirPCB();
+		printf("RECIBI PCB\n");
 		print_PCB(nuevaPCB);
 
 		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)){

@@ -183,7 +183,7 @@ int get_fd_listener(char* puerto){
 
 void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
 	void *sendbuf;
-	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack;
+	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas;
 	switch(objetivo){
 		case MEMPCB:
 			codigo_cpu = 2;
@@ -197,9 +197,11 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 		case FULLPCB:
 			tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 			tamanio_indice_stack = 1*sizeof(registroStack);
-			sendbuf = malloc(sizeof(int)*9 + sizeof(u_int32_t) + tamanio_indice_codigo + tamanio_indice_stack);
+			tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
+			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + tamanio_indice_stack);
 			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
 			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
 			memcpy(sendbuf+sizeof(uint32_t)+sizeof(uint32_t), &(pcb->direccion_inicio_codigo), sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), &(pcb->program_counter), sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+3*sizeof(uint32_t), &(pcb->cantidad_de_instrucciones), sizeof(uint32_t));
@@ -210,6 +212,10 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 			memcpy(sendbuf+sizeof(uint32_t)+7*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo,&tamanio_indice_stack, sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
+
+			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_stack,&tamanio_indice_etiquetas, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_stack, pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
+
 			break;
 	}
 
@@ -264,11 +270,12 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
+	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + tamanio_indice_codigo+tamanio_indice_stack,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_indice_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.

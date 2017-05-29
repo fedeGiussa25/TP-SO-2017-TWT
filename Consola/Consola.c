@@ -22,7 +22,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include "../config_shortcuts/config_shortcuts.h"
-#include "../config_shortcuts/config_shortcuts.c"
+//#include "../config_shortcuts/config_shortcuts.c"
 
 
 int closeAllThreads = 0;		// si esta en uno, tengo que cerrar todos los hilos
