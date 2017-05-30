@@ -1,7 +1,0 @@
-#!/usr/bin/ansisop
-begin
-	variables a, b,c,d
-	a = 3
-	!Global = 5
-	a = !Global + 12
-end

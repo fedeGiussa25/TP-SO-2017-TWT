@@ -37,6 +37,7 @@ pthread_mutex_t mutex_ready_queue;
 pthread_mutex_t mutex_exit_queue;
 pthread_mutex_t mutex_exec_queue;
 pthread_mutex_t mutex_new_queue;
+pthread_mutex_t mutex_wait_queue;
 pthread_mutex_t mutex_process_list;
 
 // Structs de conexiones
@@ -61,7 +62,9 @@ enum{
 	ELIMINAR_PROCESO = 3,
 	WRITE = 4,
 	ASIGNAR_VALOR_COMPARTIDA = 5,
-	BUSCAR_VALOR_COMPARTIDA = 6
+	BUSCAR_VALOR_COMPARTIDA = 6,
+	WAIT = 7,
+	SIGNAL = 8
 };
 
 typedef struct{
@@ -80,6 +83,11 @@ typedef struct{
 
 typedef variable_compartida semaforo;
 
+typedef struct{
+	semaforo* sem;
+	t_queue* cola_de_bloqueados;
+} semaforo_cola;
+
 //Todo lo de variables globales
 int pid = 0;
 int mem_sock;
@@ -92,7 +100,7 @@ fd_set fd_procesos;
 
 kernel_config data_config;
 
-u_int32_t tamanio_pagina;
+uint32_t tamanio_pagina;
 
 //Lista de conexiones (Cpus y Consolas)
 t_list* lista_cpus;
@@ -193,16 +201,49 @@ void print_PCB(PCB* pcb){
 	printf("PID: %d, Estado: %s\n",pcb->pid,pcb->estado);
 }
 
+PCB *remove_and_get_PCB(int processid,t_queue* queue){
+	int i = 0, len;
+	t_list* lista_auxiliar = list_create();
+	len = queue_size(queue);
+	PCB *toReturn;
+	while(i<len){
+		//Saco un PCB y me fijo si es el que busco
+		PCB* aux = queue_pop(queue);
+		if(!(aux->pid == processid))
+		{
+			//Si no es, lo ubico en una lista auxiliar y aumento i para seguir buscando
+			list_add(lista_auxiliar,aux);
+			//Si lo es, no hago nada, mi objetivo era sacarlo y ya lo hice
+		}
+		else{
+			toReturn = aux;
+		}
+		i++;
+	}
+	//Cuando finalice me fijo si coloque algun PCB en la lista auxiliar
+	i = 0;
+	if(list_size(lista_auxiliar)>0){
+		//De ser asi...
+		while(i<list_size(lista_auxiliar)){
+			//Voy ubicandolos del ultimo al primero en la cola de vuelta para mantener el orden previo
+			PCB* aux = list_get(lista_auxiliar, i);
+			queue_push(queue,aux);
+			i++;
+		}
+	}
+	return toReturn;
+}
+
 //Esta funcion es un quilombo asi que la explico aca
 //No hay manera de sacar un objeto de un queue sin sacar todos los que tiene adelante
-void remove_PCB_from_specific_queue(PCB* pcb,t_queue* queue){
+void remove_PCB_from_specific_queue(int processid,t_queue* queue){
 	int i = 0, len;
 	t_list* lista_auxiliar = list_create();
 	len = queue_size(queue);
 	while(i<len){
 		//Saco un PCB y me fijo si es el que busco
 		PCB* aux = queue_pop(queue);
-		if(!(aux->pid == pcb->pid))
+		if(!(aux->pid == processid))
 		{
 			//Si no es, lo ubico en una lista auxiliar y aumento i para seguir buscando
 			list_add(lista_auxiliar,aux);
@@ -237,19 +278,19 @@ void remove_from_queue(PCB* pcb){
 	if(strcmp(pcb->estado,"New")==0)
 	{
 		pthread_mutex_lock(&mutex_new_queue);
-		remove_PCB_from_specific_queue(pcb,new_queue);
+		remove_PCB_from_specific_queue(pcb->pid,new_queue);
 		pthread_mutex_unlock(&mutex_new_queue);
 	}
 	else if(strcmp(pcb->estado,"Ready")==0)
 	{
 		pthread_mutex_lock(&mutex_ready_queue);
-		remove_PCB_from_specific_queue(pcb,ready_queue);
+		remove_PCB_from_specific_queue(pcb->pid,ready_queue);
 		pthread_mutex_unlock(&mutex_ready_queue);
 	}
 	else if(strcmp(pcb->estado,"Exec")==0)//No va a funcionar asi por siempre pero lo dejo como placeholder
 	{
 		pthread_mutex_lock(&mutex_exec_queue);
-		remove_PCB_from_specific_queue(pcb,exec_queue);
+		remove_PCB_from_specific_queue(pcb->pid,exec_queue);
 		pthread_mutex_unlock(&mutex_exec_queue);
 	}
 	else printf("PCB invalido, no se encuentra en ninguna cola");
@@ -499,7 +540,11 @@ void settear_variables_Ansisop(){
 		semaforo *unSem = malloc(sizeof(semaforo));
 		unSem->ID = data_config.sem_ids[j];
 		unSem->valor = data_config.sem_init[j];
-		list_add(semaforos, unSem);
+		semaforo_cola* el_semaforo_posta = malloc(sizeof(semaforo_cola));
+		t_queue* la_cola = queue_create();
+		el_semaforo_posta->sem = unSem;
+		el_semaforo_posta->cola_de_bloqueados = la_cola;
+		list_add(semaforos, el_semaforo_posta);
 		j++;
 	}
 }
@@ -515,8 +560,8 @@ void print_vars(){
 		i++;
 	}
 	while(j < max_sem){
-		semaforo *unSem = list_get(semaforos, j);
-		printf("Semaforo %s, valor = %d\n", unSem->ID, unSem->valor);
+		semaforo_cola *unSem = list_get(semaforos, j);
+		printf("Semaforo %s, valor = %d\n", unSem->sem->ID, unSem->sem->valor);
 		j++;
 	}
 }
@@ -531,6 +576,16 @@ variable_compartida *remove_by_ID(t_list *lista, char* ID){
 	return variable_buscada;
 }
 
+semaforo_cola *remove_semaforo_by_ID(t_list *lista, char* ID){
+	bool _remove_element(void* list_element)
+	    {
+		semaforo_cola *unSem = (semaforo_cola *) list_element;
+		return strcmp(ID, unSem->sem->ID)==0;
+	    }
+	semaforo_cola *semaforo_buscada = list_remove_by_condition(lista, *_remove_element);
+	return semaforo_buscada;
+}
+
 void asignar_valor_variable_compartida(char* ID, u_int32_t value){
 	variable_compartida *variable_a_modificar = remove_by_ID(variables_compartidas, ID);
 	variable_a_modificar->valor = value;
@@ -543,6 +598,22 @@ u_int32_t obtener_valor_variable_compartida(char* ID){
 	value = variable_a_modificar->valor;
 	list_add(variables_compartidas, variable_a_modificar);
 	return value;
+}
+
+void wait(char *id_semaforo, uint32_t PID){
+	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
+
+	pthread_mutex_lock(&mutex_exec_queue);
+	PCB *unPCB = remove_and_get_PCB(PID, exec_queue);
+	pthread_mutex_unlock(&mutex_exec_queue);
+
+	unSem->sem->valor = unSem->sem->valor - 1;
+
+	if(unSem->sem->valor < 0){
+		queue_push(unSem->cola_de_bloqueados, unPCB);
+	}
+
+	list_add(semaforos, unSem);
 }
 
 //Fin de funciones de capa memoria
@@ -729,9 +800,6 @@ int main(int argc, char** argv) {
 	fd_set read_fds;
 	int codigo, processID;
 	int messageLength;
-	void* realbuf;
-//	void* sendbuf;
-	char* message;
 
 	//Consolas y cpus
 	lista_cpus = list_create();
@@ -951,16 +1019,20 @@ int main(int argc, char** argv) {
 						}
 						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
 						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
-						if (codigo==50)
+						if (codigo==WAIT)
 						{
-							recv(i, &messageLength , sizeof(int), 0);
-							realbuf = malloc(messageLength+2);
-							memset(realbuf,0,messageLength+2);
-							recv(i, realbuf, messageLength, 0);
-							message = (char*) realbuf;
-							message[messageLength+1]='\0';
-							printf("CPU pide: Wait en semaforo: %s\n\n", message);
-							free(realbuf);
+							uint32_t PID;
+							recv(i,&PID, sizeof(uint32_t),0);
+							recv(i, &messageLength , sizeof(uint32_t), 0);
+							char *id_sem = malloc(messageLength);
+
+							recv(i, id_sem, messageLength, 0);
+
+							printf("CPU pide: Wait en semaforo: %s\n\n", id_sem);
+
+							wait(id_sem, PID);
+
+							free(id_sem);
 						}
 
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria

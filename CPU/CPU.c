@@ -32,7 +32,9 @@ enum{
 	ASIGNAR_VALOR = 4,
 	ELIMINAR_PROCESO = 5,
 	ASIGNAR_VALOR_COMPARTIDA = 5,
-	BUSCAR_VALOR = 6
+	BUSCAR_VALOR = 6,
+	WAIT = 7,
+	SIGNAL = 8
 };
 
 typedef struct{
@@ -351,19 +353,22 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
 	//Por ahora, twt_wait solo le manda al kernel el nombre del semaforo sobre el que hay
 	//que hacer wait (serializado-----> (codigo,largo del msj, msj))
-	int codigo = 50;
-	int messageLength = strlen((char *) identificador_semaforo);
-	void* buffer = malloc((sizeof(int)*2)+messageLength);
-	memcpy(buffer, &codigo, sizeof(int));
-	memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
-	memcpy(buffer + sizeof(int) + sizeof(int), (char *) identificador_semaforo, messageLength);
+	uint32_t codigo = WAIT;
+	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
+	void* buffer = malloc((sizeof(uint32_t)*3)+messageLength);
 
-	if(send(fd_kernel,buffer,sizeof(int)*2+messageLength,0)==-1)
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &nuevaPCB->pid, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, &messageLength, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*3, (char *) identificador_semaforo, messageLength);
+
+	if(send(fd_kernel,buffer,sizeof(int)*3+messageLength,0)==-1)
 			{
 				perror("send");
 				exit(3);
 			}
 	free(buffer);
+
 	return;
 }
 void twt_signal (t_nombre_semaforo identificador_semaforo)
