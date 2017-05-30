@@ -374,6 +374,22 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 void twt_signal (t_nombre_semaforo identificador_semaforo)
 {
 	printf("Soy signal\n");
+
+	uint32_t codigo = SIGNAL;
+	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
+	void* buffer = malloc((sizeof(uint32_t)*2)+messageLength);
+
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &messageLength, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, (char *) identificador_semaforo, messageLength);
+
+	if(send(fd_kernel,buffer,sizeof(int)*2+messageLength,0)==-1)
+			{
+				perror("send");
+				exit(3);
+			}
+	free(buffer);
+
 	return;
 }
 t_puntero twt_reservar (t_valor_variable espacio)

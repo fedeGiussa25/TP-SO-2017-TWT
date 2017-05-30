@@ -611,7 +611,25 @@ void wait(char *id_semaforo, uint32_t PID){
 	unSem->sem->valor = unSem->sem->valor - 1;
 
 	if(unSem->sem->valor < 0){
+		unPCB->estado = "Blocked";
 		queue_push(unSem->cola_de_bloqueados, unPCB);
+	}
+
+	list_add(semaforos, unSem);
+}
+
+void signal(char *id_semaforo){
+	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
+
+	unSem->sem->valor = unSem->sem->valor + 1;
+
+	if(unSem->sem->valor <= 0){
+		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
+		unPCB->estado = "Ready";
+
+		pthread_mutex_lock(&mutex_ready_queue);
+		queue_push(ready_queue, unPCB);
+		pthread_mutex_unlock(&mutex_ready_queue);
 	}
 
 	list_add(semaforos, unSem);
@@ -1033,9 +1051,23 @@ int main(int argc, char** argv) {
 
 							wait(id_sem, PID);
 
+							print_vars();
+
 							free(id_sem);
 						}
+						if(codigo==SIGNAL){
+							recv(i, &messageLength , sizeof(uint32_t), 0);
 
+							char *id_sem = malloc(messageLength);
+
+							recv(i, id_sem, messageLength, 0);
+
+							printf("CPU pide: Signal en semaforo: %s \n\n", id_sem);
+
+							signal(id_sem);
+
+							free(id_sem);
+						}
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
 
