@@ -324,17 +324,18 @@ void end_process(int PID, int socket_memoria, int sock_consola){
 	}
 	if(encontrado){
 		//Le aviso a memoria que le saque las paginas asignadas
-		void* sendbuf_mem = malloc(sizeof(int)*2);
-		int codigo_para_borrar_paginas = 5;
-		memcpy(sendbuf_mem,&codigo_para_borrar_paginas,sizeof(int));
-		memcpy(sendbuf_mem+sizeof(int),&PID,sizeof(int));
-		send(socket_memoria,sendbuf_mem,sizeof(int)*2,0);
+		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
+		uint32_t codigo_para_borrar_paginas = 5;
+		memcpy(sendbuf_mem,&codigo_para_borrar_paginas,sizeof(uint32_t));
+		memcpy(sendbuf_mem+sizeof(uint32_t),&PID,sizeof(uint32_t));
+		send(socket_memoria,sendbuf_mem,sizeof(uint32_t)*2,0);
 
 		//Y le aviso a la consola que se aborto el proceso
-		void* sendbuf_consola = malloc(sizeof(int));
-		int codigo_para_abortar_proceso = 7;
-		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(int));
-		send(sock_consola,sendbuf_consola,sizeof(int),0);
+		void* sendbuf_consola = malloc(sizeof(uint32_t));
+		uint32_t codigo_para_abortar_proceso = 7;
+		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
+		memcpy(sendbuf_consola+sizeof(uint32_t),&PID,sizeof(uint32_t));
+		send(sock_consola,sendbuf_consola,sizeof(uint32_t)*2,0);
 	}
 	printf("\n");
 }
