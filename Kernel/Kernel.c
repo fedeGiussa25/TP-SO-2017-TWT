@@ -606,7 +606,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_ready_queue);
-			send(sms->fd_consola,&page_counter,sizeof(int),0);
+			send(sms->fd_consola,&pcb_to_use->pid,sizeof(uint32_t),0);
 		}
 		//significa que no hay espacio
 		if(page_counter < 0){

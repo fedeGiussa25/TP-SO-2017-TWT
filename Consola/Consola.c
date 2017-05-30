@@ -27,8 +27,16 @@
 
 int closeAllThreads = 0;		// si esta en uno, tengo que cerrar todos los hilos
 int idProceso = 2;
-int threads;		//nro de hilos aparte del principal
+int threads;	//nro de hilos aparte del principal
+t_list* thread_list;
+
 pthread_mutex_t mutex;
+pthread_mutex_t thlist_mutex;
+
+typedef struct{
+	int pid;
+	char thread[3];
+}hilo_t;
 
 consola_config data_config;
 
@@ -173,6 +181,20 @@ void printData(time_t start, time_t end, int printCount, int pid)
 	printf("\n\tEl tiempo total de ejecucion del programa en segundos es: %d\n", (int)difftime(start, end));
 }
 
+void remover_de_lista(hilo_t* hilo){
+	int i = 0, dimension = list_size(thread_list);
+	bool encontrado = false;
+	pthread_mutex_lock(&thlist_mutex);
+	while(i < dimension && !encontrado){
+		hilo_t* aux = list_get(thread_list,i);
+		if(aux->thread && hilo->thread){
+			list_remove(thread_list,i);
+			encontrado = true;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&thlist_mutex);
+}
 
 void *script_thread(char *scriptName)
 {
@@ -273,13 +295,21 @@ void *script_thread(char *scriptName)
 		goto end2;
 	}
 
-	if(respuesta < 0)
+	if(respuesta <= 0)
 	{
 		printf("\n\nHilo %s: No se pudo ejecutar el programa\n", threadId);
 		goto end2;
 	}
 
-	printf("\n\nHilo %s: Se esta ejecutando el programa!\n", threadId);
+	printf("\n\nHilo %s: Se esta ejecutando el programa %d\n", threadId, respuesta);
+
+	hilo_t* esteHilo = malloc(sizeof(hilo_t));
+	strcpy(esteHilo->thread,threadId);
+	esteHilo->pid = respuesta;
+
+	pthread_mutex_lock(&thlist_mutex);
+	list_add(thread_list,esteHilo);
+	pthread_mutex_unlock(&thlist_mutex);
 
 		startTime = time(NULL);
 
@@ -361,6 +391,7 @@ end:				// puse los goto para evitar repetir esto que sigue varias veces
 	free(messageToPrint);
 
 end2:
+	remover_de_lista(esteHilo);
 	free(scriptName);
 	free(filePath);
 	free(realbuf);
@@ -455,6 +486,17 @@ void desconectar_consola()
 									// pero al final se me ocurrio esto que era menos engorroso (aunque tuve que llenar la funcion de los hilos de 'if')
 }
 
+void mostrar_hilos(){
+	int i = 0, dimension = list_size(thread_list);
+	if(dimension > 0){
+		while(i < dimension){
+			hilo_t* aux = list_get(thread_list,i);
+			printf("\n Hilo: %s ejecutando proceso: %d",aux->thread,aux->pid);
+			i++;
+		}
+	} else printf("\nNo hay hilos abiertos");
+	printf("\n\n");
+}
 
 void print_commands()
 {
@@ -463,7 +505,8 @@ void print_commands()
 	printf("\t end    - Finalizar Programa\n");
 	printf("\t dcon   - Desconectar Consola\n");
 	printf("\t cls    - Limpiar Mensajes\n");
-	printf("\t thlst  - Mostrar cantidad de hilos abiertos\n");
+	printf("\t thlist  - Mostrar hilos abiertos\n");
+	printf("\t thnum  - Mostrar cantidad de hilos abiertos\n");
 	printf("\t exit   - Salir\n");
 	printf("\nIngrese un comando: ");
 }
@@ -472,6 +515,8 @@ void print_commands()
 int main(int argc, char** argv)
 {
 	threads = 0;
+
+	thread_list = list_create();
 
 	t_config *config;
 	//char *buf = malloc(256);
@@ -551,7 +596,13 @@ int main(int argc, char** argv)
 			system("clear");
 			print_commands();
 		}
-		else if((strcmp(command, "thlst")) == 0)
+		else if((strcmp(command, "thlist")) == 0)
+		{
+			pthread_mutex_lock(&thlist_mutex);
+			mostrar_hilos();
+			pthread_mutex_unlock(&thlist_mutex);
+		}
+		else if((strcmp(command, "thnum")) == 0)
 		{
 			printf("\nCantidad de hilos abiertos: %d", threads);
 			printf("\nIngrese un comando: ");
