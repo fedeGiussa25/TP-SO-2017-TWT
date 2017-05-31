@@ -38,6 +38,13 @@ typedef struct{
 }registroStack;
 
 typedef struct{
+	char id;
+	int page;
+	int offset;
+	int size;
+}variable;
+
+typedef struct{
 	int sock_fd;
 	int proceso;
 }proceso_conexion;
@@ -180,10 +187,60 @@ int get_fd_listener(char* puerto){
 	return listener;
 }
 
+int corrimiento;
+void *sendbuf;
+
+void serializarVariables(variable* var);
+void serializarElestac(registroStack* registro);
+
+void serializarVariables(variable* var)
+{
+	memcpy(sendbuf+corrimiento, &(var->id), sizeof(char));
+	corrimiento = corrimiento+sizeof(char);
+	memcpy(sendbuf+corrimiento, &(var->offset), sizeof(int));
+	corrimiento = corrimiento+sizeof(int);
+	memcpy(sendbuf+corrimiento, &(var->page), sizeof(int));
+	corrimiento = corrimiento+sizeof(int);
+	memcpy(sendbuf+corrimiento, &(var->size), sizeof(int));
+	corrimiento = corrimiento+sizeof(int);
+}
+void serializarElestac(registroStack* registro)
+{
+
+	//Meto en el sendbuf los argumentos
+	int cantArgumentos = registro->args->elements_count;
+	memcpy(sendbuf+corrimiento, &cantArgumentos, sizeof(int));
+	corrimiento = corrimiento+sizeof(int);
+
+	list_iterate(registro->args, (void *) serializarVariables); //Funcion casteada a (void*) porque list_iterate lo requiere
+
+	//Meto en el sendbuf las variables
+
+	int cantVariables = registro->vars->elements_count;
+	memcpy(sendbuf+corrimiento, &cantVariables, sizeof(int));
+	corrimiento = corrimiento+sizeof(int);
+
+	list_iterate(registro->vars, (void *) serializarVariables);
+
+	//Meto en el sendbuf retPos
+
+	memcpy(sendbuf+corrimiento, &(registro->ret_pos), sizeof(uint32_t));
+	corrimiento = corrimiento + sizeof(uint32_t);
+
+	//Meto en el sendbuf retVar
+
+	memcpy(sendbuf+corrimiento, &(registro->ret_var.offset),sizeof(int));
+	corrimiento = corrimiento + sizeof(int);
+	memcpy(sendbuf+corrimiento, &(registro->ret_var.page),sizeof(int));
+	corrimiento = corrimiento + sizeof(int);
+	memcpy(sendbuf+corrimiento, &(registro->ret_var.size),sizeof(int));
+	corrimiento = corrimiento + sizeof(int);
+}
+
 
 void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
 	void *sendbuf;
-	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas;
+	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas, cantRegistros;
 	switch(objetivo){
 		case MEMPCB:
 			codigo_cpu = 2;
@@ -196,9 +253,12 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 			break;
 		case FULLPCB:
 			tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-			tamanio_indice_stack = 1*sizeof(registroStack);
+			//tamanio_indice_stack = calcularTamañoStack();
 			tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
-			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + tamanio_indice_stack);
+			cantRegistros = pcb->stack_index->elements_count; //Es la cantidad de registros de Stack
+
+			//Obviamente ese 100 en el malloc es provisorio, hasta que este la funcion que calcule el tamaño del stack en bytes
+			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + 100);
 			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
 			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
@@ -210,12 +270,17 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 			memcpy(sendbuf+sizeof(uint32_t)+5*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->tamanioStack),sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+6*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->primerPaginaStack),sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+7*sizeof(uint32_t)+tamanio_indice_codigo,&(pcb->stackPointer),sizeof(uint32_t));
-			memcpy(sendbuf+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo,&tamanio_indice_stack, sizeof(uint32_t));
-			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
+			memcpy(sendbuf+sizeof(uint32_t)+8*sizeof(uint32_t)+tamanio_indice_codigo,&cantRegistros, sizeof(uint32_t));
+			//memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,pcb->stack_index,tamanio_indice_stack);
 
-			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_stack,&tamanio_indice_etiquetas, sizeof(uint32_t));
-			memcpy(sendbuf+sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_stack, pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
+			memcpy(sendbuf+sizeof(uint32_t)+9*sizeof(uint32_t)+tamanio_indice_codigo,&tamanio_indice_etiquetas, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo, pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
 
+			//Corrimiento es el tamaño de lo que se guardo hasta ahora (falta el stack)
+
+			int corrimiento = sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_etiquetas;
+
+			list_iterate(pcb->stack_index, (void*) serializarElestac);
 			break;
 	}
 
@@ -269,13 +334,13 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 
 void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-	int tamanio_indice_stack = 1*sizeof(registroStack); //Esto es solo para probar
+	//int tamanio_indice_stack=calcularTamañoStack();
 	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_indice_stack,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+100,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.

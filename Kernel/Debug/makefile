@@ -34,7 +34,11 @@ Kernel: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
+<<<<<<< HEAD
 	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) Kernel
+=======
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Kernel
+>>>>>>> 5cdb8d5c88e3f25609e5707253a1a5157b30c3b6
 	-@echo ' '
 
 .PHONY: all clean dependents
