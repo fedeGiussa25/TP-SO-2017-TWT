@@ -50,7 +50,11 @@ Consola: $(OBJS) $(USER_OBJS)
 # Other Targets
 clean:
 <<<<<<< HEAD
+<<<<<<< HEAD
 	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(C_UPPER_DEPS)$(CXX_DEPS)$(OBJS)$(CPP_DEPS)$(C_DEPS) Consola
+=======
+	-$(RM) $(OBJS)$(C++_DEPS)$(C_DEPS)$(CC_DEPS)$(CPP_DEPS)$(EXECUTABLES)$(CXX_DEPS)$(C_UPPER_DEPS) Consola
+>>>>>>> 5cdb8d5c88e3f25609e5707253a1a5157b30c3b6
 =======
 	-$(RM) $(OBJS)$(C++_DEPS)$(C_DEPS)$(CC_DEPS)$(CPP_DEPS)$(EXECUTABLES)$(CXX_DEPS)$(C_UPPER_DEPS) Consola
 >>>>>>> 5cdb8d5c88e3f25609e5707253a1a5157b30c3b6
