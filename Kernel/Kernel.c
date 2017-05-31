@@ -64,7 +64,8 @@ enum{
 	ASIGNAR_VALOR_COMPARTIDA = 5,
 	BUSCAR_VALOR_COMPARTIDA = 6,
 	WAIT = 7,
-	SIGNAL = 8
+	SIGNAL = 8,
+	DESCONEXION = 9
 };
 
 typedef struct{
@@ -296,7 +297,21 @@ void remove_from_queue(PCB* pcb){
 	else printf("PCB invalido, no se encuentra en ninguna cola");
 }
 
-void end_process(int PID, int socket_memoria, int sock_consola){
+int buscar_consola_de_proceso(int processid){
+	pthread_mutex_lock(&mutex_fd_consolas);
+	int i = 0, dimension = list_size(lista_consolas), res = -1;
+	while(i < dimension){
+		proceso_conexion* aux = list_get(lista_consolas,i);
+		if(aux->proceso == processid){
+			res = aux->sock_fd;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&mutex_fd_consolas);
+	return res;
+}
+
+void end_process(int PID, int socket_memoria){
 	int i = 0;
 	bool encontrado = 0;
 	pthread_mutex_lock(&mutex_process_list);
@@ -333,9 +348,10 @@ void end_process(int PID, int socket_memoria, int sock_consola){
 		//Y le aviso a la consola que se aborto el proceso
 		void* sendbuf_consola = malloc(sizeof(uint32_t));
 		uint32_t codigo_para_abortar_proceso = 7;
+		int consola = buscar_consola_de_proceso(PID);
+		printf("Consola %d\n",consola);
 		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
-		memcpy(sendbuf_consola+sizeof(uint32_t),&PID,sizeof(uint32_t));
-		send(sock_consola,sendbuf_consola,sizeof(uint32_t)*2,0);
+		send(consola,sendbuf_consola,sizeof(uint32_t)*2,0);
 	}
 	printf("\n");
 }
@@ -910,7 +926,6 @@ int main(int argc, char** argv) {
 				} else {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
 					if ((nbytes = recv(i, &codigo, sizeof(int), 0)) <= 0) {
-
 						if (nbytes == 0) {
 							printf("selectserver: socket %d hung up\n", i);
 						} else {
@@ -992,7 +1007,7 @@ int main(int argc, char** argv) {
 							int pid;
 							recv(i,&pid,sizeof(int),0);
 							//Y llamo a la funcion que lo borra
-							end_process(pid,sockfd_memoria,i);
+							end_process(pid,sockfd_memoria);
 						}
 						//Si el codigo es 4 significa que quieren hacer un write
 						if(codigo == WRITE)

@@ -105,7 +105,7 @@ proceso_conexion *remove_by_fd_socket(t_list *lista, int sockfd){
 
 void remove_and_destroy_by_fd_socket(t_list *lista, int sockfd){
 	bool _remove_socket(void* unaConex)
-	    {
+  	    {
 			proceso_conexion *conex = (proceso_conexion*) unaConex;
 			return conex->sock_fd == sockfd;
 	    }
