@@ -158,6 +158,7 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	//Obtengo el ultimo registro de stack
 	registroStack* regStack = list_get(nuevaPCB->stack_index, nuevaPCB->stack_index->elements_count -1);
 
+
 	if(regStack == NULL)
 	{ 	// si no hay registros, creo uno nuevo
 		regStack = malloc(sizeof(registroStack));
@@ -172,7 +173,9 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	new_var->offset = var_offset;
 	new_var->size = sizeof(int);
 
+
 	list_add(regStack->vars, new_var);
+
 
 	printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
 
@@ -313,7 +316,8 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 }
 void twt_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta)
 {
-	printf("Soy irAlLabel\n");
+	printf("Soy irAlLabel para etiqueta\n");
+
 	return;
 }
 void twt_llamarSinRetorno(t_nombre_etiqueta etiqueta)
@@ -618,7 +622,8 @@ PCB* recibirPCB()
 
 	PCB* pcb = malloc(sizeof(PCB));
 
-	uint32_t tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas;
+	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
+	uint32_t cantRegistros;
 
 	bytes_recv = recv(fd_kernel, &pid, sizeof(u_int32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
@@ -647,13 +652,13 @@ PCB* recibirPCB()
 	bytes_recv=recv(fd_kernel, &stack_pointer,sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
-	bytes_recv = recv(fd_kernel, &tamanio_indice_stack, sizeof(uint32_t),0);
+	bytes_recv = recv(fd_kernel, &cantRegistros, sizeof(uint32_t),0);
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
-	t_list* indice_de_stack = malloc(tamanio_indice_stack);
+	/*t_list* indice_de_stack = malloc(tamanio_indice_stack);
 
 	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
-	verificar_conexion_socket(fd_kernel,bytes_recv);
+	verificar_conexion_socket(fd_kernel,bytes_recv);*/
 
 	//recibo indice etiquetas:
 
@@ -675,6 +680,107 @@ PCB* recibirPCB()
 
 	}
 
+
+	//-----Recibo indice de Stack-----
+
+	pcb->stack_index = list_create();
+	if(cantRegistros==0)
+	{
+		printf("Cantidad de registros: %d", cantRegistros);
+		cantRegistros=1; //Esto es para que entre al while (aunque no reciba nada) entonces hace
+						 //list_create para vars y args (no se me ocurrio otra manera todavia)
+	}
+
+	int registrosAgregados = 0;
+
+	int cantArgumentos, cantVariables;
+
+	while(registrosAgregados < cantRegistros)
+	{
+		bytes_recv = recv(fd_kernel, &cantArgumentos, sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+		printf("cant argums: %d\n", cantArgumentos);
+		registroStack* nuevoReg = malloc(sizeof(registroStack));
+
+		nuevoReg->args = list_create();
+
+		if(cantArgumentos>0) //Si tiene argumentos
+		{
+		//Recibo argumentos:
+
+		int argumentosAgregados = 0;
+
+		while(argumentosAgregados < cantArgumentos)
+		{
+			variable *nuevoArg = malloc(sizeof(variable));
+
+			bytes_recv = recv(fd_kernel, &(nuevoArg->id), sizeof(char),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevoArg->offset), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevoArg->page), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevoArg->size), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+
+			list_add(nuevoReg->args, nuevoArg);
+			argumentosAgregados++;
+		}
+		} //Fin recepcion argumentos
+
+		bytes_recv = recv(fd_kernel, &cantVariables, sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+
+		nuevoReg->vars= list_create();
+		printf("cant vars: %d\n", cantVariables);
+		if(cantVariables>0) //Si tiene variables
+		{
+		//Recibo variables:
+
+		int variablesAgregadas = 0;
+
+		while(variablesAgregadas < cantVariables)
+		{
+			variable *nuevaVar = malloc(sizeof(variable));
+
+			bytes_recv = recv(fd_kernel, &(nuevaVar->id), sizeof(char),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevaVar->offset), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevaVar->page), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+			bytes_recv = recv(fd_kernel, &(nuevaVar->size), sizeof(int),0);
+			verificar_conexion_socket(fd_kernel,bytes_recv);
+
+			list_add(nuevoReg->vars, nuevaVar);
+			variable* primeraVar = list_get(nuevoReg->vars,variablesAgregadas);
+			printf("(id,offset,page,size): (%c,%d,%d,%d,)\n",primeraVar->id,primeraVar->offset,primeraVar->page,primeraVar->size);
+
+			variablesAgregadas++;
+
+		}
+		} //Fin recepcion variables
+
+		//Recibo retPos
+
+		bytes_recv = recv(fd_kernel, &(nuevoReg->ret_pos), sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+
+		//Recibo retVar
+
+		bytes_recv = recv(fd_kernel, &(nuevoReg->ret_var.offset), sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+		bytes_recv = recv(fd_kernel, &(nuevoReg->ret_var.page), sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+		bytes_recv = recv(fd_kernel, &(nuevoReg->ret_var.size), sizeof(int),0);
+		verificar_conexion_socket(fd_kernel,bytes_recv);
+
+		list_add(pcb->stack_index, nuevoReg);
+
+		registrosAgregados++;
+
+	}//Fin recepcion Stack
+
 	pcb->pid = pid;
 	pcb->page_counter = page_counter;
 	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
@@ -686,7 +792,7 @@ PCB* recibirPCB()
 	pcb->tamanioStack = stack_size;
 	pcb->primerPaginaStack=primerPagStack;
 	pcb->stackPointer=stack_pointer;
-	pcb->stack_index=indice_de_stack;
+	//pcb->stack_index=indice_de_stack;
 
 	return pcb;
 }
@@ -773,7 +879,6 @@ int main(int argc, char **argv) {
 		}
 		//TODO send(nuevaPCB); --Mandamos el PCB actualizado (mati supuestamente esta terminando lo de serializar)
 	}
-
 
 	close(fd_kernel);
 	close(fd_memoria);
