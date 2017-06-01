@@ -218,7 +218,7 @@ void remover_de_lista(hilo_t* hilo)
 void script_thread(thread_setup* ts)
 {
 	struct tm *startTime, *endTime;
-	time_t t;
+	time_t t1, t2;
 	int codigo;
 	int sockfd_kernel;
 	FILE *file;
@@ -344,8 +344,8 @@ void script_thread(thread_setup* ts)
 	list_add(thread_list,esteHilo);
 	pthread_mutex_unlock(&thlist_mutex);
 
-	t = time(NULL);
-	startTime = localtime(&t);
+	t1 = time(NULL);
+	startTime = localtime(&t1);
 
 	/*
 	if(recv(sockfd_kernel, &pid, sizeof(int), 0) == 0) 		// el recv recibe el ID del proceso que ejecuta el script
@@ -419,8 +419,8 @@ void script_thread(thread_setup* ts)
 		avisar_desconexion_kernel(sockfd_kernel);
 	}
 
-	t = time(NULL);
-	endTime = localtime(&t);
+	t2 = time(NULL);
+	endTime = localtime(&t2);
 
 	printData(startTime, endTime, printCounter, esteHilo->pid);
 
