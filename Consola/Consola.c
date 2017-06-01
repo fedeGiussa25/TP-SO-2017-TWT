@@ -237,7 +237,7 @@ void script_thread(thread_setup* ts)
 	if(sockfd_kernel == -1)
 	{
 		printf("\nATENCION: No hay conexion con el kernel. El hilo se anulará. Vuelva a intentarlo luego de solucionar el problema\n");
-		pthread_exit(-1);
+		pthread_exit(NULL);
 	}
 
 
@@ -257,7 +257,7 @@ void script_thread(thread_setup* ts)
 		perror("");
 		printf("\nIntente abrir el script nuevamente\n");
 		free(filePath);
-		pthread_exit(-2);
+		pthread_exit(NULL);
 	}
 
 	printf("\nHilo %d: \n\t El archivo existe y fue abierto\n", ts->threadID);
@@ -306,7 +306,7 @@ void script_thread(thread_setup* ts)
 		free(filePath);
 		free(realbuf);
 		free(cleanScript);
-		pthread_exit(-1);
+		pthread_exit(NULL);
 	}
 
 	printf("\nHilo %d: Script \"%s\" enviado!\n", ts->threadID, ts->script);
@@ -320,7 +320,7 @@ void script_thread(thread_setup* ts)
 		free(filePath);
 		free(realbuf);
 		free(cleanScript);
-		pthread_exit(-1);
+		pthread_exit(NULL);
 	}
 
 	if(respuesta <= 0)
@@ -331,7 +331,7 @@ void script_thread(thread_setup* ts)
 		free(filePath);
 		free(realbuf);
 		free(cleanScript);
-		pthread_exit(-1);
+		pthread_exit(NULL);
 	}
 
 	printf("\nHilo %d: Se esta ejecutando el programa %d\n", ts->threadID, respuesta);
@@ -477,7 +477,7 @@ void iniciar_programa()
 void finalizar_programa()
 {
 	int sockfd_kernel;
-	//uint32_t respuesta;
+	uint32_t respuesta;
 	uint32_t *pid = malloc(sizeof(uint32_t));
 	uint32_t codigo = 3;
 
@@ -501,6 +501,11 @@ void finalizar_programa()
 
 	if(send(sockfd_kernel, buffer, sizeof(uint32_t)*2, 0) == -1)
 		printf("\nEl kernel esta desconectado, no se pudo finalizar el programa (o ya ha sido finalizado al cerrar el kernel)\n");
+
+	recv(sockfd_kernel,&respuesta, sizeof(uint32_t),0);
+
+	if(respuesta==0)
+		printf("El proceso seleccionado no ha sido creado o ya ha sido borrado\n");
 
 	free(buffer);
 	free(pid);

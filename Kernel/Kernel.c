@@ -311,7 +311,7 @@ int buscar_consola_de_proceso(int processid){
 	return res;
 }
 
-void end_process(int PID, int socket_memoria){
+void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	int i = 0;
 	bool encontrado = 0;
 	pthread_mutex_lock(&mutex_process_list);
@@ -321,21 +321,26 @@ void end_process(int PID, int socket_memoria){
 		if(PID == PCB->pid)	{
 			if(strcmp(PCB->estado,"Exit")!=0){
 				remove_from_queue(PCB);
-				PCB->exit_code = -7;
+				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
 				printf("El proceso ha sido finalizado\n");
+				encontrado = 1;
 			}
 			else{
 				printf("El proceso elegido ya esta finalizado\n");
 			}
-			encontrado = 1;
 		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_process_list);
 	if(!encontrado)	{
 		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+		void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
+		//Lo mando 0 para que sepa que no se pudo borrar el proceso
+		uint32_t codigo_de_cancelado_no_ok = 0;
+		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_no_ok,sizeof(uint32_t));
+		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
 	if(encontrado){
 		//Le aviso a memoria que le saque las paginas asignadas
@@ -349,9 +354,15 @@ void end_process(int PID, int socket_memoria){
 		void* sendbuf_consola = malloc(sizeof(uint32_t));
 		uint32_t codigo_para_abortar_proceso = 7;
 		int consola = buscar_consola_de_proceso(PID);
-		printf("Consola %d\n",consola);
 		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
 		send(consola,sendbuf_consola,sizeof(uint32_t)*2,0);
+
+		//Y al hilo que me mando el mensaje que fue lo que paso
+		void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
+		//Le mando 1 para que sepa que se pudo borrar
+		uint32_t codigo_de_cancelado_ok = 1;
+		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
+		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
 	printf("\n");
 }
@@ -813,6 +824,47 @@ void execute_write(int pid, int archivo, void* mensaje){
 	}
 	else printf("Not yet implemented");
 }
+/*
+bool existe_consola(int consoleid){
+	pthread_mutex_lock(&mutex_fd_consolas);
+	int i = 0, dimension = list_size(lista_consolas);
+	pthread_mutex_unlock(&mutex_fd_consolas);
+	while(i < dimension){
+		pthread_mutex_lock(&mutex_fd_consolas);
+		proceso_conexion* aux = list_get(lista_consolas,i);
+		if(aux->sock_fd==consoleid)	{
+			pthread_mutex_unlock(&mutex_fd_consolas);
+			return true;
+		}
+		i++;
+		pthread_mutex_unlock(&mutex_fd_consolas);
+	}
+	return false;
+}
+
+bool encolado(int consola){
+	if(existe_consola(consola)){
+		pthread_mutex_lock(&mutex_fd_consolas);
+		proceso_conexion* proceso_consola = list_get(lista_consolas,consola);
+		pthread_mutex_unlock(&mutex_fd_consolas);
+		pthread_mutex_lock(&mutex_process_list);
+		int i = 0, dimension = list_size(todos_los_procesos);
+		pthread_mutex_unlock(&mutex_process_list);
+		while(i < dimension){
+			pthread_mutex_lock(&mutex_process_list);
+			PCB* aux = list_get(todos_los_procesos,i);
+			if(proceso_consola->proceso==aux->pid)
+			{
+				pthread_mutex_unlock(&mutex_process_list);
+				return true;
+			}
+			i++;
+			pthread_mutex_unlock(&mutex_process_list);
+		}
+		pthread_mutex_unlock(&mutex_process_list);
+	}
+	return false;
+}*/
 
 //TODO el main
 
@@ -1007,7 +1059,7 @@ int main(int argc, char** argv) {
 							int pid;
 							recv(i,&pid,sizeof(int),0);
 							//Y llamo a la funcion que lo borra
-							end_process(pid,sockfd_memoria);
+							end_process(pid,sockfd_memoria,-7,i);
 						}
 						//Si el codigo es 4 significa que quieren hacer un write
 						if(codigo == WRITE)
