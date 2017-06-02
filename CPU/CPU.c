@@ -102,6 +102,7 @@ int fd_kernel;
 int fd_memoria;
 int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
 bool stackOverflow = false;
+bool programaTerminado = false;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -125,9 +126,16 @@ void eliminar_proceso(u_int32_t PID){
 
 void liberar_registro_stack(registroStack *registro){
 
-	while(list_size(registro->vars) > 0){
+	while(list_size(registro->vars) > 0)
+	{
 		variable *unaVar = list_remove(registro->vars, 0);
+		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (un argumento)
 		free(unaVar);
+	}
+	while(list_size(registro->args) > 0){
+		variable *unArg = list_remove(registro->args, 0);
+		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
+		free(unArg);
 	}
 
 	free(registro);
@@ -173,11 +181,15 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	new_var->offset = var_offset;
 	new_var->size = sizeof(int);
 
-
-	list_add(regStack->vars, new_var);
-
-
-	printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+	if(isdigit(identificador_variable)) //Si es un digito, es un argumento
+	{
+		list_add(regStack->args, new_var);
+		printf("Agregue el argumento: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+	} else
+	{
+		list_add(regStack->vars, new_var);
+		printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+	}
 
 	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
 	//Actualizo stackPointer
@@ -196,15 +208,31 @@ t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 	int i;
 	int posicion_variable;
 
-	//Recorro la lista de variables hasta encontrarla:
-	for(i=0;i<registroActual->vars->elements_count;i++)
+	if(isdigit(identificador_variable)) //Si es un digito, es un argumento
 	{
-		variable* variable = list_get(registroActual->vars, i);
-
-		if(variable->id == identificador_variable) //Cuando la encuentra:
+	//Recorro la lista de argumentos hasta encontrarla:
+		for(i=0;i<registroActual->args->elements_count;i++)
 		{
-			posicion_variable = (variable->page * tamanioPagina) + variable->offset;
-			return posicion_variable;
+			variable* argumento = list_get(registroActual->args, i);
+
+			if(argumento->id == identificador_variable) //Cuando lo encuentra:
+			{
+				posicion_variable = (argumento->page * tamanioPagina) + argumento->offset;
+				return posicion_variable;
+			}
+		}
+		} else //Si no, es una variable
+		{
+		//Recorro la lista de variables hasta encontrarla:
+		for(i=0;i<registroActual->vars->elements_count;i++)
+		{
+			variable* variable = list_get(registroActual->vars, i);
+
+			if(variable->id == identificador_variable) //Cuando la encuentra:
+			{
+				posicion_variable = (variable->page * tamanioPagina) + variable->offset;
+				return posicion_variable;
+			}
 		}
 	}
 	return -1;
@@ -320,37 +348,78 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 }
 void twt_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta)
 {
-	printf("Soy irAlLabel para etiqueta\n");
+	printf("Soy irAlLabel para etiqueta: %s\n", t_nombre_etiqueta);
+	t_puntero_instruccion posicionEtiqueta = metadata_buscar_etiqueta(t_nombre_etiqueta,nuevaPCB->lista_de_etiquetas,nuevaPCB->lista_de_etiquetas_length);
+	nuevaPCB->program_counter = posicionEtiqueta;
+	printf("Cambio el PC a: %d\n", posicionEtiqueta);
 
 	return;
 }
 void twt_llamarSinRetorno(t_nombre_etiqueta etiqueta)
 {
-	printf("Soy llamarSinRetorno\n");
+	printf("Soy llamarSinRetorno para funcion: %s\n", etiqueta);
+	registroStack* nuevoReg = malloc(sizeof(registroStack));
+	nuevoReg->args=list_create();
+	nuevoReg->vars=list_create();
+	nuevoReg->ret_pos = nuevaPCB->program_counter;
+	list_add(nuevaPCB->stack_index,nuevoReg);
+	twt_irAlLabel(etiqueta);
 	return;
+
 }
 void twt_llamarConRetorno (t_nombre_etiqueta etiqueta, t_puntero donde_retornar)
 {
-	printf("Soy llamarConRetorno\n");
+	printf("Soy llamarConRetorno para funcinon: %s \n", etiqueta);
+	//Crea un nuevo contexto de ejecucion
+	registroStack* nuevoReg = malloc(sizeof(registroStack));
+	nuevoReg->args=list_create();
+	nuevoReg->vars=list_create();
+
+	nuevoReg->ret_pos = nuevaPCB->program_counter;
+	nuevoReg->ret_var.page=donde_retornar / tamanioPagina;
+	nuevoReg->ret_var.offset=donde_retornar % tamanioPagina;
+	nuevoReg->ret_var.size=sizeof(int);
+
+	list_add(nuevaPCB->stack_index,nuevoReg);
+
+	twt_irAlLabel(etiqueta);
+
 	return;
+
 }
 
 void twt_finalizar (void)
 {
 	printf("Soy finalizar\n");
 
-	while(list_size(nuevaPCB->stack_index) > 0){
-		registroStack *unRegistro = list_remove(nuevaPCB->stack_index,0);
-		liberar_registro_stack(unRegistro);
+	registroStack* registroActual = list_remove(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
+
+	nuevaPCB->program_counter = registroActual->ret_pos;
+
+
+	if(list_size(nuevaPCB->stack_index)==0) //Si finalizó el main (begin en ansisop)
+	{
+		programaTerminado = true;
+		printf("Finalizo el programa\n");
+	} else
+	{
+		printf("Al finalizar la funcion, el PC vuelve a: %d\n", nuevaPCB->program_counter);
 	}
-	eliminar_proceso(nuevaPCB->pid);
-	printf("Se ha liberado el Stack del proceso\n");
+
+	liberar_registro_stack(registroActual);
 
 	return;
 }
 void twt_retornar(t_valor_variable retorno)
 {
-	printf("Soy retornar\n");
+	printf("Soy retornar con este valor: %i\n", retorno);
+	//Obtengo registro actual:
+
+	registroStack* regActual = list_get(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
+
+	t_puntero direccionRetorno = regActual->ret_var.page * tamanioPagina + regActual->ret_var.offset;
+
+	twt_asignar(direccionRetorno, retorno);
 	return;
 }
 
@@ -881,7 +950,8 @@ int main(int argc, char **argv) {
 		printf("RECIBI PCB\n");
 		print_PCB(nuevaPCB);
 
-		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)){
+		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)  && (programaTerminado == false) && (stackOverflow==false))
+		{
 			char *instruccion = obtener_instruccion(nuevaPCB);
 			printf("Instruccion: %s\n", instruccion);
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
@@ -889,7 +959,7 @@ int main(int argc, char **argv) {
 		}
 
 
-		//TODO send(nuevaPCB); --Mandamos el PCB actualizado (mati supuestamente esta terminando lo de serializar)
+		//TODO send(nuevaPCB);
 	}
 
 	close(fd_kernel);

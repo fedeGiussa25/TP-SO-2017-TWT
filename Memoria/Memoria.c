@@ -278,7 +278,7 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	int direccion_fisica = frame*tamanio_pagina;
 
 	//Copiamos la instruccion
-	memcpy(instruccion, memoria+direccion_fisica+inicio, offset-1);
+	memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
 
 	return instruccion;
 }
