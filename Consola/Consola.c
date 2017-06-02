@@ -33,6 +33,7 @@ t_list* thread_list;
 
 pthread_mutex_t mutex;
 pthread_mutex_t thlist_mutex;
+pthread_mutex_t finalizador_mutex;
 
 typedef struct{
 	int pid;
@@ -197,22 +198,24 @@ void printData(struct tm *start, struct tm *end, int printCount, int pid)
 
 void remover_de_lista(hilo_t* hilo)
 {
-	int i = 0, dimension = list_size(thread_list);
-	bool encontrado = false;
-
 	pthread_mutex_lock(&thlist_mutex);
-
+	int i = 0, dimension = list_size(thread_list);
+	pthread_mutex_unlock(&thlist_mutex);
+	bool encontrado = false;
 	while(i < dimension && !encontrado)
 	{
+		pthread_mutex_lock(&thlist_mutex);
 		hilo_t* aux = list_get(thread_list,i);
+		pthread_mutex_unlock(&thlist_mutex);
 		if(aux->thread == hilo->thread)
 		{
+			pthread_mutex_lock(&thlist_mutex);
 			list_remove(thread_list,i);
+			pthread_mutex_unlock(&thlist_mutex);
 			encontrado = true;
 		}
 		i++;
 	}
-	pthread_mutex_unlock(&thlist_mutex);
 }
 
 void script_thread(thread_setup* ts)
@@ -413,12 +416,6 @@ void script_thread(thread_setup* ts)
 		counter++;*/
 	}
 
-	if(closeAllThreads)
-	{
-		printf("\nEl hilo %d asignado al script \"%s\" (PID: %d) ha sido desconectado!\n", ts->threadID, ts->script, esteHilo->pid);
-		avisar_desconexion_kernel(sockfd_kernel);
-	}
-
 	t2 = time(NULL);
 	endTime = localtime(&t2);
 
@@ -458,7 +455,7 @@ void iniciar_programa()
 	int tret_value = -1;
 
 	thread_setup* ts = malloc(sizeof(thread_setup));
-	ts->script = fileName;
+	ts->script=fileName;
 	ts->threadID = threadCounter;
 	pthread_mutex_unlock(&mutex);
 
@@ -474,30 +471,25 @@ void iniciar_programa()
 }
 
 
-void finalizar_programa()
+void finalizar_programa(int pid, char* tipo_de_finalizacion)
 {
+	pthread_mutex_lock(&finalizador_mutex);
 	int sockfd_kernel;
 	uint32_t respuesta;
-	uint32_t *pid = malloc(sizeof(uint32_t));
-	uint32_t codigo = 3;
+	uint32_t codigo_finalizacion = 3;
+	uint32_t codigo_desconexion = 9;
 
 	sockfd_kernel = handshake_kernel("main");
 
-	//printf("\nIngrese el ID del proceso a terminar: ");  //saco esto porque antes de llamar a esta funcion puedo tirar "end 4" (por tanto, no es necesario pedir el id);
-														   //la funcion antes de llamar a esto lee el "end" (en su scanf), y el scanf en esta funcion lee el "4"
-
-	if(scanf("%d", pid) == EOF)
-	{
-		perror("\nError en linea 317, scanf");
-	}
-
-
 	void *buffer = malloc(sizeof(uint32_t)*2);
 
-	memcpy(buffer, &codigo, sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t), pid, sizeof(uint32_t));
+	if(strcmp(tipo_de_finalizacion,"End"))
+		memcpy(buffer, &codigo_finalizacion, sizeof(uint32_t));
 
-	printf("\nEl proceso sera terminado!\n");
+	if(strcmp(tipo_de_finalizacion,"Disconnect"))
+		memcpy(buffer, &codigo_desconexion, sizeof(uint32_t));
+
+	memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
 
 	if(send(sockfd_kernel, buffer, sizeof(uint32_t)*2, 0) == -1)
 		printf("\nEl kernel esta desconectado, no se pudo finalizar el programa (o ya ha sido finalizado al cerrar el kernel)\n");
@@ -508,18 +500,26 @@ void finalizar_programa()
 		printf("El proceso seleccionado no ha sido creado o ya ha sido borrado\n");
 
 	free(buffer);
-	free(pid);
 	close(sockfd_kernel);
+	pthread_mutex_unlock(&finalizador_mutex);
 }
 
 
 void desconectar_consola()
 {
 	printf("\nSe desconectaran los hilos\n");
-
-	closeAllThreads = true;			// pense en hacerlo con 'pthread_cancel', pero no me dejaba liberar variables dinamicas
-									// tambien pense en cerrar todos los hilos desde acá, de alguna forma, teniendo una lista global con los hilos y sus sockets
-									// pero al final se me ocurrio esto que era menos engorroso (aunque tuve que llenar la funcion de los hilos de 'if')
+	pthread_mutex_lock(&thlist_mutex);
+	int i = 0, dimension = list_size(thread_list);
+	pthread_mutex_unlock(&thlist_mutex);
+	while(i < dimension){
+		pthread_mutex_lock(&thlist_mutex);
+		hilo_t* unHilo = list_get(thread_list,i);
+		pthread_mutex_unlock(&thlist_mutex);
+		finalizar_programa(unHilo->pid,"Disconnect");
+		pthread_mutex_lock(&thlist_mutex);
+		dimension = list_size(thread_list);
+		pthread_mutex_unlock(&thlist_mutex);
+	}
 }
 
 
@@ -557,7 +557,6 @@ void print_commands()
 int main(int argc, char** argv)
 {
 	thread_list = list_create();
-	closeAllThreads = false;
 
 	t_config *config;
 
@@ -588,7 +587,13 @@ int main(int argc, char** argv)
 		}
 		else if((strcmp(command, "end")) == 0)
 		{
-			finalizar_programa();
+			int* pid = malloc(sizeof(uint32_t));
+			if(scanf("%d", pid) == EOF)
+				{
+					perror("\nError, scanf");
+				}
+			finalizar_programa(*pid,"End");
+			free(pid);
 			printf("\nIngrese un comando: ");
 		}
 		else if((strcmp(command, "dcon")) == 0)
@@ -631,7 +636,6 @@ int main(int argc, char** argv)
 			continue;
 		}
 	}
-
 
 	config_destroy(config);
 	free(cfgPath);
