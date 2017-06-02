@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 				recibir(kernel,(void *)&size_name,sizeof(uint32_t));
 				nameArchRequest = malloc(size_name);
 				recibir(kernel,(void *)nameArchRequest,size_name);
-				msg = size_name(nameArchRequest,data_config.montaje);
+				msg = sizeFile(nameArchRequest,data_config.montaje);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			default:
