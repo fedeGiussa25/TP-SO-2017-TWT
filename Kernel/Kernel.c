@@ -65,7 +65,8 @@ enum{
 	BUSCAR_VALOR_COMPARTIDA = 6,
 	WAIT = 7,
 	SIGNAL = 8,
-	DESCONEXION = 9
+	DESCONEXION = 9,
+	PROCESO_FINALIZADO_CORRECTAMENTE = 10
 };
 
 typedef struct{
@@ -738,6 +739,199 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	if(numbytes != 0){perror("receive");}
 }
 
+PCB* recibirPCB(uint32_t fd_socket)
+{
+
+	u_int32_t pid;
+
+	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
+	stack_size, primerPagStack, stack_pointer, codigo;
+
+	PCB* pcb = malloc(sizeof(PCB));
+
+	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
+	uint32_t cantRegistros;
+
+	recv(fd_socket, &codigo, sizeof(u_int32_t),0);
+
+
+	printf("Se recibio codigo operacion %d, se recibe un PCB\n", codigo);
+
+	recv(fd_socket, &pid, sizeof(u_int32_t),0);
+
+	recv(fd_socket, &page_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &direccion_inicio_codigo, sizeof(uint32_t),0);
+
+	recv(fd_socket, &program_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &cantidad_de_instrucciones, sizeof(uint32_t),0);
+
+	recv(fd_socket, &tamanio_indice_codigo, sizeof(uint32_t),0);
+
+
+	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
+
+
+	recv(fd_socket, indice_de_codigo, tamanio_indice_codigo,0);
+
+
+	recv(fd_socket, &stack_size,sizeof(uint32_t),0);
+
+	recv(fd_socket, &primerPagStack,sizeof(uint32_t),0);
+
+	recv(fd_socket, &stack_pointer,sizeof(uint32_t),0);
+
+
+	recv(fd_socket, &cantRegistros, sizeof(uint32_t),0);
+
+
+	/*t_list* indice_de_stack = malloc(tamanio_indice_stack);
+
+	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
+	verificar_conexion_socket(fd_kernel,bytes_recv);*/
+
+	//recibo indice etiquetas:
+
+	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
+
+	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
+
+
+	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
+
+	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
+
+	if(tamanio_indice_etiquetas>0)
+	{
+	recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
+
+
+	printf("RECIBI indice ETIQUETAS\n\n");
+
+	}
+
+
+	//-----Recibo indice de Stack-----
+
+	pcb->stack_index = list_create();
+	/*if(cantRegistros==0)
+	{
+		printf("Cantidad de registros: %d", cantRegistros);
+		cantRegistros=1; //Esto es para que entre al while (aunque no reciba nada) entonces hace
+						 //list_create para vars y args (no se me ocurrio otra manera todavia)
+	}*/
+
+	int registrosAgregados = 0;
+
+	int cantArgumentos, cantVariables;
+
+	if(cantRegistros>0){
+
+
+	while(registrosAgregados < cantRegistros)
+	{
+		recv(fd_socket, &cantArgumentos, sizeof(int),0);
+
+		printf("cant argums: %d\n", cantArgumentos);
+		registroStack* nuevoReg = malloc(sizeof(registroStack));
+
+		nuevoReg->args = list_create();
+
+		if(cantArgumentos>0) //Si tiene argumentos
+		{
+		//Recibo argumentos:
+
+		int argumentosAgregados = 0;
+
+		while(argumentosAgregados < cantArgumentos)
+		{
+			variable *nuevoArg = malloc(sizeof(variable));
+
+			recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
+
+			recv(fd_socket, &(nuevoArg->offset), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoArg->page), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoArg->size), sizeof(int),0);
+
+
+			list_add(nuevoReg->args, nuevoArg);
+			argumentosAgregados++;
+		}
+		} //Fin recepcion argumentos
+
+		recv(fd_socket, &cantVariables, sizeof(int),0);
+
+
+		nuevoReg->vars= list_create();
+		printf("cant vars: %d\n", cantVariables);
+		if(cantVariables>0) //Si tiene variables
+		{
+		//Recibo variables:
+
+		int variablesAgregadas = 0;
+
+		while(variablesAgregadas < cantVariables)
+		{
+			variable *nuevaVar = malloc(sizeof(variable));
+
+			recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
+
+			recv(fd_socket, &(nuevaVar->offset), sizeof(int),0);
+
+			recv(fd_socket, &(nuevaVar->page), sizeof(int),0);
+
+			recv(fd_socket, &(nuevaVar->size), sizeof(int),0);
+
+
+			list_add(nuevoReg->vars, nuevaVar);
+			variable* primeraVar = list_get(nuevoReg->vars,variablesAgregadas);
+			printf("(id,offset,page,size): (%c,%d,%d,%d,)\n",primeraVar->id,primeraVar->offset,primeraVar->page,primeraVar->size);
+
+			variablesAgregadas++;
+
+		}
+		} //Fin recepcion variables
+
+		//Recibo retPos
+
+		recv(fd_socket, &(nuevoReg->ret_pos), sizeof(int),0);
+
+
+		//Recibo retVar
+
+		recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(int),0);
+
+		recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(int),0);
+
+		recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(int),0);
+
+		list_add(pcb->stack_index, nuevoReg);
+
+		registrosAgregados++;
+
+
+	}//Fin recepcion Stack
+	}
+
+	pcb->pid = pid;
+	pcb->page_counter = page_counter;
+	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
+	pcb->lista_de_etiquetas=indice_de_etiquetas;
+	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
+	pcb->program_counter = program_counter;
+	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
+	pcb->indice_de_codigo = indice_de_codigo;
+	pcb->tamanioStack = stack_size;
+	pcb->primerPaginaStack=primerPagStack;
+	pcb->stackPointer=stack_pointer;
+	//pcb->stack_index=indice_de_stack;
+
+	return pcb;
+}
+
 void planificacion(int *grado_multiprog){
 	while(1){
 		//Si esta funcionando la planificacion
@@ -768,7 +962,8 @@ void planificacion(int *grado_multiprog){
 					list_add(lista_en_ejecucion, cpu);
 					PCB *pcb_to_use = queue_pop(ready_queue);
 
-					send_PCB(cpu, pcb_to_use);
+					uint32_t codigo = 10;
+					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
 
 					pcb_to_use->estado = "Exec";
 					pthread_mutex_lock(&mutex_exec_queue);
@@ -1142,6 +1337,24 @@ int main(int argc, char** argv) {
 							recv(i,&pid,sizeof(int),0);
 							//Y llamo a la funcion que lo borra
 							end_process(pid,sockfd_memoria,-6,i);
+						}
+						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
+							PCB *unPCB = recibirPCB(i);
+
+							proceso_conexion *unaCPU = remove_by_fd_socket(lista_en_ejecucion, i);
+
+							uint32_t PID = unPCB->pid;
+
+							pthread_mutex_lock(&mutex_exec_queue);
+							remove_PCB_from_specific_queue(PID, exec_queue);
+							pthread_mutex_unlock(&mutex_exec_queue);
+
+							pthread_mutex_lock(&mutex_exit_queue);
+							queue_push(exit_queue, unPCB);
+							pthread_mutex_unlock(&mutex_exit_queue);
+
+
+
 						}
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem

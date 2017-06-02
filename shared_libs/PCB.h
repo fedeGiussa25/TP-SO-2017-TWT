@@ -353,16 +353,23 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 	if(numbytes != 0){perror("receive");}
 }*/
 
-void send_PCB(proceso_conexion *cpu, PCB *pcb){
+void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 	//int tamanio_indice_stack=calcularTamañoStack();
 	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
+	uint32_t tamanio_total_buffer = sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack;
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack,0);
+	//Creamos un buffer completo, que ademas del PCB llevara un codigo.
+	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(uint32_t));
+	memcpy(ultimateBuffer, &codigo, sizeof(uint32_t));
+	memcpy(ultimateBuffer+sizeof(uint32_t), ultraBuffer, tamanio_total_buffer);
 
-	printf("Mande un PCB a una CPU :D\n\n");
+	send(sock_fd, ultimateBuffer, sizeof(uint32_t) + tamanio_total_buffer,0);
+
+	printf("Mande un PCB :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
+	free(ultimateBuffer); //Vos tambien.
 }

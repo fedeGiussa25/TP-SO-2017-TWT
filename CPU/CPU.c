@@ -24,6 +24,7 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include <parser/parser.h>
 #include <commons/collections/list.h>
+#include "../shared_libs/PCB.h"
 
 
 enum{
@@ -37,72 +38,13 @@ enum{
 	SIGNAL = 8
 };
 
-typedef struct{
-	int page;
-	int offset;
-	int size;
-}pagoffsize;
-
-typedef struct{
-	u_int32_t inicio;
-	u_int32_t offset;
-} entrada_indice_de_codigo;
-
-typedef struct {
-	t_list* args;
-	t_list* vars;
-	int ret_pos;
-	pagoffsize ret_var;
-} registroStack;
-
-/*typedef struct{
-	u_int32_t pid;
-
-	int page_counter;
-	int direccion_inicio_codigo;
-	int program_counter;
-
-	int cantidad_de_instrucciones;
-	entrada_indice_de_codigo* indice_de_codigo;
-
-
-	t_list* stack_index;
-	int primerPaginaStack; //Seria la cant de paginas del codigo porque viene despues del codigo
-	int stackPointer;
-	int tamanioStack;
-} PCB;*/
-
-typedef struct{
-	uint32_t pid;
-	uint32_t page_counter;
-	uint32_t direccion_inicio_codigo;
-	uint32_t program_counter;
-	uint32_t cantidad_de_instrucciones;
-	entrada_indice_de_codigo* indice_de_codigo;
-	char* lista_de_etiquetas;
-	uint32_t lista_de_etiquetas_length;
-	uint32_t exit_code;
-	char* estado;
-	t_list* stack_index;
-	uint32_t primerPaginaStack;
-	uint32_t stackPointer;
-	uint32_t tamanioStack;
-}PCB;
-
-typedef struct{
-	char id;
-	int page;
-	int offset;
-	int size;
-}variable;
-
 PCB* nuevaPCB;
 cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
 int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
-bool stackOverflow = false;
-bool programaTerminado = false;
+bool stackOverflow;
+bool programaTerminado;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -125,14 +67,17 @@ void eliminar_proceso(u_int32_t PID){
 }
 
 void liberar_registro_stack(registroStack *registro){
+	int i, j;
+	int cant_vars = list_size(registro->vars);
+	int cant_args = list_size(registro->args);
 
-	while(list_size(registro->vars) > 0)
-	{
+	for(i=0; i< cant_vars; i++){
 		variable *unaVar = list_remove(registro->vars, 0);
 		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (un argumento)
 		free(unaVar);
 	}
-	while(list_size(registro->args) > 0){
+
+	for(j=0; j< cant_args; j++){
 		variable *unArg = list_remove(registro->args, 0);
 		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
 		free(unArg);
@@ -407,7 +352,7 @@ void twt_finalizar (void)
 	}
 
 	liberar_registro_stack(registroActual);
-
+	printf("Se ha ejecutado el end\n");
 	return;
 }
 void twt_retornar(t_valor_variable retorno)
@@ -430,6 +375,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
 	//Por ahora, twt_wait solo le manda al kernel el nombre del semaforo sobre el que hay
 	//que hacer wait (serializado-----> (codigo,largo del msj, msj))
+	printf("Soy wait\n");
 	uint32_t codigo = WAIT;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
 	void* buffer = malloc((sizeof(uint32_t)*3)+messageLength);
@@ -691,19 +637,22 @@ PCB* recibirPCB()
 	u_int32_t pid;
 
 	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
-	stack_size, primerPagStack, stack_pointer;
+	stack_size, primerPagStack, stack_pointer, codigo;
 
 	PCB* pcb = malloc(sizeof(PCB));
 
 	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
 	uint32_t cantRegistros;
 
-	bytes_recv = recv(fd_kernel, &pid, sizeof(u_int32_t),0);
+	bytes_recv = recv(fd_kernel, &codigo, sizeof(u_int32_t),0);
 
 	verificar_conexion_socket(fd_kernel,bytes_recv);
 
-	recv(fd_kernel, &page_counter, sizeof(uint32_t),0);
+	printf("Se recibio codigo operacion %d, se recibe un PCB\n", codigo);
 
+	recv(fd_kernel, &pid, sizeof(u_int32_t),0);
+
+	recv(fd_kernel, &page_counter, sizeof(uint32_t),0);
 
 	recv(fd_kernel, &direccion_inicio_codigo, sizeof(uint32_t),0);
 
@@ -943,21 +892,26 @@ int main(int argc, char **argv) {
 	//analizadorLinea la pongo solo para probar si llama a las primitivas
 	//analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 
+	uint32_t codigo;
 
 	while(1)
 	{
 		nuevaPCB = recibirPCB();
 		printf("RECIBI PCB\n");
 		print_PCB(nuevaPCB);
+		stackOverflow = false;
+		programaTerminado = false;
 
-		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)  && (programaTerminado == false) && (stackOverflow==false))
+		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false))
 		{
 			char *instruccion = obtener_instruccion(nuevaPCB);
 			printf("Instruccion: %s\n", instruccion);
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
 			free(instruccion);
 		}
-
+		eliminar_proceso(nuevaPCB->pid);
+		codigo = 10;
+		//send_PCB(fd_kernel, nuevaPCB, codigo);
 
 		//TODO send(nuevaPCB);
 	}
