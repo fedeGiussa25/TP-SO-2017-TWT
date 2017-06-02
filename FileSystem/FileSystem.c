@@ -45,6 +45,15 @@ uint32_t exist(char *nombreArchivo,char *rutaBase){
 	return var;
 }
 
+char* obtieneNombreArchivo(uint32_t socketReceiver){
+	uint32_t size_name;
+	char *nombre;
+	recibir(socketReceiver,(void *)&size_name,sizeof(uint32_t));
+	nombre = malloc(size_name);
+	recibir(socketReceiver,(void *)nombre,size_name);
+	return nombre;
+}
+
 int main(int argc, char** argv)
 {
 	t_config *config;
@@ -84,16 +93,12 @@ int main(int argc, char** argv)
 		recibir(kernel,(void *)&msg,sizeof(uint32_t));
 		switch(msg){
 			case EXIST_MSG:
-				recibir(kernel,(void *)&size_name,sizeof(uint32_t));
-				nameArchRequest = malloc(size_name);
-				recibir(kernel,(void *)nameArchRequest,size_name);
+				nameArchRequest = obtieneNombreArchivo(kernel);
 				msg = exist(nameArchRequest,data_config.montaje);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			case SIZE_MSG:
-				recibir(kernel,(void *)&size_name,sizeof(uint32_t));
-				nameArchRequest = malloc(size_name);
-				recibir(kernel,(void *)nameArchRequest,size_name);
+				nameArchRequest = obtieneNombreArchivo(kernel);
 				msg = sizeFile(nameArchRequest,data_config.montaje);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
@@ -102,11 +107,9 @@ int main(int argc, char** argv)
 				msg= -10;
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 		}
-		if(flag){
+		if(flag)
 			free(nameArchRequest);
-			size_name = 0;
-			msg= 0;
-		}
+			
 	}
 
 	free(cfgPath);
