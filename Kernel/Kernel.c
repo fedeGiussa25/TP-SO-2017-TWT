@@ -1135,6 +1135,14 @@ int main(int argc, char** argv) {
 
 							free(id_sem);
 						}
+						//Si recibo 9 significa que se desconecto la consola
+						if(codigo==DESCONEXION){
+							//Cacheo el pid del proceso que tengo que borrar
+							int pid;
+							recv(i,&pid,sizeof(int),0);
+							//Y llamo a la funcion que lo borra
+							end_process(pid,sockfd_memoria,-6,i);
+						}
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
 						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
 
