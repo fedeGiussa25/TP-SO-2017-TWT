@@ -11,28 +11,37 @@
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "socketEze.h"
+#define SIZE_MSG 11
+#define EXIST_MSG 12
 
 fs_config data_config;
 
-uint32_t sizeFile(char *nombreArchivo){
+uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	archivo = fopen(nombreArchivo,"r");
+	char *fullPath = malloc(sizeof(nombreArchivo) + sizeof(rutaBase));
+	strcpy(fullPath,rutaBase);
+	strcat(fullPath,nombreArchivo);
+	archivo = fopen(fullPath,"r");
 	if(!archivo)
 		return -1;
 	fseek(archivo,0,SEEK_END);
 	uint32_t dimension = ftell(archivo);
 	fclose(archivo);
+	free(fullPath);
 	return dimension;
 }
 
-
-uint32_t exist(char *nombreArchivo){
+uint32_t exist(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	archivo = fopen(nombreArchivo,"r");
+	char *fullPath = malloc(sizeof(nombreArchivo) + sizeof(rutaBase));
+	strcpy(fullPath,rutaBase);
+	strcat(fullPath,nombreArchivo);
+	archivo = fopen(fullPath,"r");
 	uint32_t var = true;
 	if(!archivo)
 		var = false;
 	fclose(archivo);
+	free(fullPath);
 	return var;
 }
 
@@ -44,16 +53,12 @@ int main(int argc, char** argv)
 	char *cfgPath = malloc(sizeof("../../FileSystem/") + strlen(argv[1])+1);
 	*cfgPath = '\0';
 	strcpy(cfgPath, "../../FileSystem/");
-
 	config = config_create_from_relative_with_check(argv, cfgPath);
-
 	//Leemos los datos
 	data_config.puerto = config_get_string_value(config, "PUERTO");
 	data_config.montaje = config_get_string_value(config, "PUNTO_MONTAJE");
-
 	printf("PORT = %s\n", data_config.puerto);
 	printf("Montaje = %s\n", data_config.montaje);
-
 
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 
@@ -61,14 +66,47 @@ int main(int argc, char** argv)
 	uint32_t miSocket = server(atoi(data_config.puerto),1);
 	//end
 
-	aceptarCliente(miSocket,1);
+	//ASI FUNCIONA EL MUNDO FILESYSTEM
+//					///								///
+//		MENSAJE		///	dimension TEXT	//	TEXT	///
+//	exist	size	///								///
+	uint32_t kernel;
+	if(kernel = aceptarCliente(miSocket,1) == -1)
+		exit(5);
+
 	DIR *mount = opendir(data_config.montaje);
 	if(!mount)
 		exit(3);
-
+	char *nameArchRequest;
+	uint32_t msg,size_name;
 	while(1){
-
-
+		int flag=1;
+		recibir(kernel,(void *)&msg,sizeof(uint32_t));
+		switch(msg){
+			case EXIST_MSG:
+				recibir(kernel,(void *)&size_name,sizeof(uint32_t));
+				nameArchRequest = malloc(size_name);
+				recibir(kernel,(void *)nameArchRequest,size_name);
+				msg = exist(nameArchRequest,data_config.montaje);
+				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+				break;
+			case SIZE_MSG:
+				recibir(kernel,(void *)&size_name,sizeof(uint32_t));
+				nameArchRequest = malloc(size_name);
+				recibir(kernel,(void *)nameArchRequest,size_name);
+				msg = size_name(nameArchRequest,data_config.montaje);
+				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+				break;
+			default:
+				flag = 0;
+				msg= -10;
+				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+		}
+		if(flag){
+			free(nameArchRequest);
+			size_name = 0;
+			msg= 0;
+		}
 	}
 
 	free(cfgPath);

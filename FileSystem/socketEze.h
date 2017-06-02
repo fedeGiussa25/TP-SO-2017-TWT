@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -113,7 +115,7 @@ uint32_t server(uint32_t puerto,uint32_t cantidadConexiones){
 	return socketServer;
 }
 
-uint32_t cliente(char *ip,uint32_t puerto,uint32_t handshake){
+void cliente(char *ip,uint32_t puerto,uint32_t handshake){
 	uint32_t sockCliente = initSocket();
 	struct sockaddr_in direccion = initAddr(inet_addr(ip),puerto);
 	makeConnection(sockCliente,&direccion,handshake);
@@ -133,9 +135,11 @@ uint32_t aceptarCliente(uint32_t sockfd, uint32_t handshake){
 	struct sockaddr_in remoteaddr;
 	uint32_t newfd;
 	uint32_t addrlen = sizeof(remoteaddr);
+
 	if ((newfd = accept(sockfd, (struct sockaddr*)&remoteaddr,&addrlen)) == -1)
 	{
 		perror("accept");
+		return -1;
 	} else {
 		printf("aceptando A.. %s\n",inet_ntoa(remoteaddr.sin_addr));
 		if(!verificarPaquete(newfd,handshake)){
