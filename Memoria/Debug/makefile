@@ -34,7 +34,7 @@ Memoria: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) Memoria
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Memoria
 	-@echo ' '
 
 .PHONY: all clean dependents

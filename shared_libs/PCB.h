@@ -189,9 +189,11 @@ int get_fd_listener(char* puerto){
 
 int corrimiento;
 void *sendbuf;
+u_int32_t tamanio_stack;
 
 void serializarVariables(variable* var);
 void serializarElestac(registroStack* registro);
+void sumar_tamanio_registro(registroStack* unRegistro);
 
 void serializarVariables(variable* var)
 {
@@ -237,6 +239,20 @@ void serializarElestac(registroStack* registro)
 	corrimiento = corrimiento + sizeof(int);
 }
 
+registroStack* registro;
+
+void sumar_tamanio_registro(registroStack *unRegistro){
+
+	uint32_t tamanio_argumentos = sizeof(variable)*list_size(unRegistro->args);
+	uint32_t tamanio_variables = sizeof(variable)*list_size(unRegistro->vars);
+
+	uint32_t tamanio_resto = sizeof(pagoffsize)+sizeof(uint32_t);
+
+
+	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto;
+
+	printf("tamanio del stack es %d\n", tamanio_stack);
+}
 
 void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
 	void *sendbuf;
@@ -257,8 +273,13 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 			tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 			cantRegistros = pcb->stack_index->elements_count; //Es la cantidad de registros de Stack
 
-			//Obviamente ese 100 en el malloc es provisorio, hasta que este la funcion que calcule el tamaño del stack en bytes
-			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + 100);
+			tamanio_stack = 0;
+
+			if(cantRegistros>0){
+				list_iterate(pcb->stack_index, (void*) sumar_tamanio_registro);
+			}
+
+			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + tamanio_stack);
 			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
 			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
 			memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
@@ -278,7 +299,7 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 
 			//Corrimiento es el tamaño de lo que se guardo hasta ahora (falta el stack)
 
-			int corrimiento = sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_etiquetas;
+			corrimiento = sizeof(uint32_t)+10*sizeof(uint32_t)+tamanio_indice_codigo+tamanio_indice_etiquetas;
 
 			list_iterate(pcb->stack_index, (void*) serializarElestac);
 			break;
@@ -340,7 +361,7 @@ void send_PCB(proceso_conexion *cpu, PCB *pcb){
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
 
-	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+100,0);
+	send(cpu->sock_fd, ultraBuffer, sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack,0);
 
 	printf("Mande un PCB a una CPU :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
