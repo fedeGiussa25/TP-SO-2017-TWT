@@ -421,6 +421,7 @@ void script_thread(thread_setup* ts)
 
 	printData(startTime, endTime, printCounter, esteHilo->pid);
 
+	printf("\nEl hilo %d ha pasado a mejor vida\n", esteHilo->thread);
 	free(ts->script);
 	remover_de_lista(esteHilo);
 	free(esteHilo);
@@ -428,7 +429,6 @@ void script_thread(thread_setup* ts)
 	free(filePath);
 	free(realbuf);
 	free(cleanScript);
-	printf("\nEl hilo %d ha pasado a mejor vida\n", esteHilo->thread);
 	close(sockfd_kernel);
 }
 
