@@ -66,7 +66,9 @@ enum{
 	WAIT = 7,
 	SIGNAL = 8,
 	DESCONEXION = 9,
-	PROCESO_FINALIZADO_CORRECTAMENTE = 10
+	PROCESO_FINALIZADO_CORRECTAMENTE = 10,
+	FILE_SIZE = 11,
+	FILE_EXISTS = 12
 };
 
 typedef struct{
@@ -397,9 +399,11 @@ void print_PCB_list(){
 void print_commands()
 {
 	printf("\nComandos\n");
-	printf("\t list   - Lista de Procesos\n");
-	printf("\t state  - Estado de un Proceso\n");
-	printf("\t plan   - Detener/Reanudar Planificacion\n\n");
+	printf("\t list    - Lista de Procesos\n");
+	printf("\t state   - Estado de un Proceso\n");
+	printf("\t plan    - Detener/Reanudar Planificacion\n");
+	printf("\t f_exist - Existencia de un archivo\n");
+	printf("\t f_size  - Dimension de un archivo\n\n");
 }
 
 void pcb_state()
@@ -437,31 +441,98 @@ void pcb_state()
 	free(PID);
 }
 
-void menu()
+void file_handler(int sockfs, int tipo){
+	//Pongo los tipos de codigo que puedo mandar
+	uint32_t codigo_size = FILE_SIZE;
+	uint32_t codigo_exists = FILE_EXISTS;
+	uint32_t codigo_fail = -20;
+
+	//Por ahora cacheo el nombre del archivo por pantalla
+	char* archivo = malloc(100);
+	printf("Ingrese el nombre del archivo: ");
+	scanf("%s",archivo);
+	uint32_t dimension = strlen(archivo);
+
+	void* buffer = malloc(sizeof(uint32_t)*2+dimension);
+
+	//Meto el codigo segun corresponda
+	switch(tipo){
+		case FILE_SIZE:
+			memcpy(buffer,&codigo_size,sizeof(uint32_t));
+			printf("Codigo: %d\n", codigo_size);
+			break;
+		case FILE_EXISTS:
+			memcpy(buffer,&codigo_exists,sizeof(uint32_t));
+			printf("Codigo: %d\n", codigo_exists);
+			break;
+		default:
+			memcpy(buffer,&codigo_fail,sizeof(uint32_t));
+			break;
+	}
+
+	//Meto el resto del mensaje
+	memcpy(buffer+sizeof(uint32_t),&dimension,sizeof(uint32_t));
+	memcpy(buffer+sizeof(uint32_t)*2,archivo,sizeof(uint32_t));
+
+	printf("Dimension: %d\n", dimension);
+	printf("Archivo: %s\n", archivo);
+
+	//Mando el mensaje y espero la respuesta
+	send(sockfs,buffer,sizeof(uint32_t)*2+dimension,0);
+	uint32_t respuesta = 0;
+	recv(sockfs,&respuesta,sizeof(uint32_t),0);
+
+	//Dependiendo del tipo de operacion respondo de manera distinta
+	switch(tipo){
+			case FILE_SIZE:
+				if(respuesta > 0)
+					printf("El archivo %s tiene un tamaño de %d\n",archivo,respuesta);
+				if(respuesta == 0)
+					printf("Algo raro paso, probablemente se haya desconetado FS\n");
+				break;
+			case FILE_EXISTS:
+				if(respuesta == true)
+					printf("El archivo %s existe\n",archivo);
+				if(respuesta == false)
+					printf("El archivo %s no existe\n",archivo);
+				break;
+			default:
+				break;
+		}
+	if(respuesta == -10) printf("Algo salio muy mal\n");
+	printf("\n");
+}
+
+
+void menu(int* sockfs)
 {
 	while(1)
 	{
 		char* command = malloc(20);
 		scanf("%s", command);
-		if((strcmp(command, "list")) == 0)
-		{
+		if((strcmp(command, "list")) == 0){
 			print_PCB_list();
 		}
-		else if((strcmp(command, "state")) == 0)
-		{
+		else if((strcmp(command, "state")) == 0){
 			pcb_state();
 		}
-		else if((strcmp(command, "plan")) == 0)
-		{
+		else if((strcmp(command, "plan")) == 0){
 			if(plan_go){
 				plan_go=false;
-				printf("Se ha detenido la planificacion\n\n");}
+				printf("Se ha detenido la planificacion\n\n");
+			}
 			else{
 				plan_go=true;
-				printf("Se ha reanudado la planificacion\n\n");}
+				printf("Se ha reanudado la planificacion\n\n");
+			}
 		}
-		else
-		{
+		else if((strcmp(command, "f_exist") == 0)){
+			file_handler(*sockfs,FILE_EXISTS);
+		}
+		else if((strcmp(command, "f_size") == 0)){
+				file_handler(*sockfs,FILE_SIZE);
+		}
+		else{
 			printf("Comando incorrecto. Ingrese otro comando: \n");
 			continue;
 		}
@@ -1026,47 +1097,6 @@ void execute_write(int pid, int archivo, void* mensaje){
 	}
 	else printf("Not yet implemented");
 }
-/*
-bool existe_consola(int consoleid){
-	pthread_mutex_lock(&mutex_fd_consolas);
-	int i = 0, dimension = list_size(lista_consolas);
-	pthread_mutex_unlock(&mutex_fd_consolas);
-	while(i < dimension){
-		pthread_mutex_lock(&mutex_fd_consolas);
-		proceso_conexion* aux = list_get(lista_consolas,i);
-		if(aux->sock_fd==consoleid)	{
-			pthread_mutex_unlock(&mutex_fd_consolas);
-			return true;
-		}
-		i++;
-		pthread_mutex_unlock(&mutex_fd_consolas);
-	}
-	return false;
-}
-
-bool encolado(int consola){
-	if(existe_consola(consola)){
-		pthread_mutex_lock(&mutex_fd_consolas);
-		proceso_conexion* proceso_consola = list_get(lista_consolas,consola);
-		pthread_mutex_unlock(&mutex_fd_consolas);
-		pthread_mutex_lock(&mutex_process_list);
-		int i = 0, dimension = list_size(todos_los_procesos);
-		pthread_mutex_unlock(&mutex_process_list);
-		while(i < dimension){
-			pthread_mutex_lock(&mutex_process_list);
-			PCB* aux = list_get(todos_los_procesos,i);
-			if(proceso_consola->proceso==aux->pid)
-			{
-				pthread_mutex_unlock(&mutex_process_list);
-				return true;
-			}
-			i++;
-			pthread_mutex_unlock(&mutex_process_list);
-		}
-		pthread_mutex_unlock(&mutex_process_list);
-	}
-	return false;
-}*/
 
 //TODO el main
 
@@ -1081,8 +1111,8 @@ int main(int argc, char** argv) {
 
 	//Variables para conexiones con servidores
 	char *buf = malloc(256);
-	int sockfd_memoria;//, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
-	int bytes_mem;//, bytes_fs;
+	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
+	int bytes_mem, bytes_fs;
 
 	//variables para conexiones con clientes
 	int listener, fdmax, newfd, nbytes;
@@ -1130,7 +1160,7 @@ int main(int argc, char** argv) {
 
 	//Servidores
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	//sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	int handshake = HANDSHAKE;
 	int resp;
@@ -1139,7 +1169,7 @@ int main(int argc, char** argv) {
 	if(bytes_mem > 0 && resp > 0){
 				printf("Conectado con Memoria\n");
 				tamanio_pagina = resp;
-				printf("Tamaño de pagina = %d", resp);
+				printf("Tamaño de pagina = %d\n", resp);
 	}else{
 		if(bytes_mem == -1){
 			perror("recieve");
@@ -1148,6 +1178,23 @@ int main(int argc, char** argv) {
 		if(bytes_mem == 0){
 			printf("Se desconecto el socket: %d\n", sockfd_memoria);
 			close(sockfd_memoria);
+		}
+	}
+
+	resp = 0;
+	send(sockfd_fs, &handshake, sizeof(u_int32_t), 0);
+	bytes_fs = recv(sockfd_fs, &resp, sizeof(u_int32_t), 0);
+	if(bytes_fs > 0 && resp == 1){
+		printf("Conectado con FS\n");
+	}
+	else{
+		if(bytes_mem == -1){
+			perror("recieve");
+			exit(3);
+		}
+		if(bytes_mem == 0){
+			printf("Se desconecto el socket: %d\n", sockfd_fs);
+			close(sockfd_fs);
 		}
 	}
 
@@ -1161,7 +1208,7 @@ int main(int argc, char** argv) {
 	//Hilo menu + print command
 	print_commands();
 	pthread_t men;
-	pthread_create(&men,NULL,(void*)menu,NULL);
+	pthread_create(&men,NULL,(void*)menu,&sockfd_fs);
 
 	//Hilo planficacion
 	pthread_t planif;

@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 
 	//todo el server declaradito aca
-	uint32_t miSocket = server(atoi(data_config.puerto),1);
+	uint32_t miSocket = server(/*atoi(data_config.puerto)*/5009,1);
 	//end
 
 	//ASI FUNCIONA EL MUNDO FILESYSTEM
@@ -80,12 +80,12 @@ int main(int argc, char** argv)
 //		MENSAJE		///	dimension TEXT	//	TEXT	///
 //	exist	size	///								///
 	uint32_t kernel;
-	if(kernel = aceptarCliente(miSocket,1) == -1)
+	if((kernel = aceptarCliente(miSocket,1)) == -1)
 		exit(5);
 
 	DIR *mount = opendir(data_config.montaje);
-	if(!mount)
-		exit(3);
+//	if(!mount)
+//		exit(3);
 	char *nameArchRequest;
 	uint32_t msg,size_name;
 	while(1){
