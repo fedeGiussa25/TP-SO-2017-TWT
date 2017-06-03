@@ -485,10 +485,12 @@ void file_handler(int sockfs, int tipo){
 	//Dependiendo del tipo de operacion respondo de manera distinta
 	switch(tipo){
 			case FILE_SIZE:
-				if(respuesta > 0)
+				if(respuesta >= 1)
 					printf("El archivo %s tiene un tamaño de %d\n",archivo,respuesta);
 				if(respuesta == 0)
 					printf("Algo raro paso, probablemente se haya desconetado FS\n");
+				if(respuesta == -1)
+					printf("El archivo %s no existe\n",archivo);
 				break;
 			case FILE_EXISTS:
 				if(respuesta == true)

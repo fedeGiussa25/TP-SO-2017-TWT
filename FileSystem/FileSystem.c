@@ -22,8 +22,11 @@ uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	strcpy(fullPath,rutaBase);
 	strcat(fullPath,nombreArchivo);
 	archivo = fopen(fullPath,"r");
-	if(!archivo)
+	if(!archivo){
+		//Agrego el free para evitar memory leaks
+		free(fullPath);
 		return -1;
+	}
 	fseek(archivo,0,SEEK_END);
 	uint32_t dimension = ftell(archivo);
 	fclose(archivo);
@@ -38,8 +41,11 @@ uint32_t exist(char *nombreArchivo,char *rutaBase){
 	strcat(fullPath,nombreArchivo);
 	archivo = fopen(fullPath,"r");
 	uint32_t var = true;
-	if(!archivo)
-		var = false;
+	if(!archivo){
+		//Antes tratabas de cerrar el archivo aunque no estuviese abierto y rompia
+		free(fullPath);
+		return var = false;
+	}
 	fclose(archivo);
 	free(fullPath);
 	return var;
@@ -72,6 +78,8 @@ int main(int argc, char** argv)
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 
 	//todo el server declaradito aca
+
+	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
 	uint32_t miSocket = server(/*atoi(data_config.puerto)*/5009,1);
 	//end
 
@@ -83,9 +91,10 @@ int main(int argc, char** argv)
 	if((kernel = aceptarCliente(miSocket,1)) == -1)
 		exit(5);
 
-	DIR *mount = opendir(data_config.montaje);
-//	if(!mount)
-//		exit(3);
+	//NO ESTOY SEGURO COMO ANDA EL MOUNT PERO SI LE TIRAS ESTO FUNCA, POR FAVOR MIRALO EZE
+	DIR *mount = opendir(".");
+	if(!mount)
+		exit(3);
 	char *nameArchRequest;
 	uint32_t msg,size_name;
 	while(1){
