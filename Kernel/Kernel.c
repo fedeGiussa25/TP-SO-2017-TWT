@@ -422,6 +422,7 @@ void pcb_state()
 			if(*PID == PCB->pid)
 			{
 				print_PCB(PCB);
+				printf("Estado: %s\n", PCB->estado);
 				encontrado = 1;
 			}
 			i++;
@@ -1347,6 +1348,7 @@ int main(int argc, char** argv) {
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
 							PCB *unPCB = recibirPCB(i);
 							print_PCB(unPCB);
+							unPCB->estado = "exit";
 							proceso_conexion *unaCPU = remove_by_fd_socket(lista_en_ejecucion, i);
 
 							uint32_t PID = unPCB->pid;
@@ -1359,7 +1361,9 @@ int main(int argc, char** argv) {
 							queue_push(exit_queue, unPCB);
 							pthread_mutex_unlock(&mutex_exit_queue);
 
-
+							int fd_consola = buscar_consola_de_proceso(unPCB->pid);
+							uint32_t finalizado = 6;
+							send(fd_consola, &finalizado, sizeof(uint32_t),0);
 
 						}
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria

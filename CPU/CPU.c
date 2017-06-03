@@ -69,19 +69,19 @@ void eliminar_proceso(u_int32_t PID){
 void liberar_registro_stack(registroStack *registro){
 	int i, j;
 	int cant_vars = list_size(registro->vars);
-	int cant_args = list_size(registro->args);
+	//int cant_args = list_size(registro->args);
 
 	for(i=0; i< cant_vars; i++){
 		variable *unaVar = list_remove(registro->vars, 0);
 		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (un argumento)
 		free(unaVar);
 	}
-
+/*
 	for(j=0; j< cant_args; j++){
 		variable *unArg = list_remove(registro->args, 0);
-		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
+		//nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
 		free(unArg);
-	}
+	}*/
 
 	free(registro);
 }
@@ -339,8 +339,6 @@ void twt_finalizar (void)
 
 	registroStack* registroActual = list_remove(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
 
-	nuevaPCB->program_counter = registroActual->ret_pos;
-
 
 	if(list_size(nuevaPCB->stack_index)==0) //Si finalizó el main (begin en ansisop)
 	{
@@ -348,6 +346,7 @@ void twt_finalizar (void)
 		printf("Finalizo el programa\n");
 	} else
 	{
+		nuevaPCB->program_counter = registroActual->ret_pos;
 		printf("Al finalizar la funcion, el PC vuelve a: %d\n", nuevaPCB->program_counter);
 	}
 

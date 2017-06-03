@@ -401,7 +401,7 @@ void script_thread(thread_setup* ts)
 		{
 			printf("\nMensaje del script \"%s\" (PID: %d): Finalizo el programa satisfactoriamente!\n", ts->script, esteHilo->pid);
 			endTime = time(NULL);
-			printData(startTime, endTime, printCounter, esteHilo->pid);
+			//printData(startTime, endTime, printCounter, esteHilo->pid);
 			break;
 		}
 

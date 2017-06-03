@@ -5,13 +5,14 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <semaphore.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
 
 mem_config data_config;
-
+pthread_mutex_t mutex_memoria;
 void *memoria;
 
 enum{
@@ -308,7 +309,9 @@ void *thread_consola(){
 		char *command = malloc(20);
 		scanf("%s", command);
 		if((strcmp(command, "dump")) == 0){
+			pthread_mutex_lock(&mutex_memoria);
 			dump_de_tabla();
+			pthread_mutex_unlock(&mutex_memoria);
 		}else{
 			if(strcmp(command, "clear") == 0){
 				system("clear");
@@ -330,6 +333,7 @@ void *thread_proceso(int fd){
 		bytes = recv(fd,&codigo,sizeof(int),0);
 		flag = verificar_conexion_socket(fd, bytes);
 		if(flag == 1){
+			pthread_mutex_lock(&mutex_memoria);
 			if(codigo == HANDSHAKE){
 				send(fd, &data_config.marco_size, sizeof(int), 0);
 			}
@@ -356,6 +360,7 @@ void *thread_proceso(int fd){
 				free(aux);
 			}
 			if(codigo == BUSCAR_INSTRUCCION){
+				usleep(data_config.retardo_memoria);
 
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
@@ -375,6 +380,7 @@ void *thread_proceso(int fd){
 				free(buffer);
 			}
 			if(codigo == GUARDAR_VALOR){
+				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
@@ -384,11 +390,13 @@ void *thread_proceso(int fd){
 
 			}
 			if(codigo == ELIMINAR_PROCESO){
+				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(int), 0);
 				finalizar_proceso(PID);
 				printf("Proceso %d borrado correctamente\n", PID);
 			}
 			if(codigo == OBTENER_VALOR){
+				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &inicio, sizeof(int), 0);
@@ -402,6 +410,7 @@ void *thread_proceso(int fd){
 				free(valor);
 			}
 		}
+		pthread_mutex_unlock(&mutex_memoria);
 	}
 }
 
