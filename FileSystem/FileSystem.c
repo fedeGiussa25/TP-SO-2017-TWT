@@ -72,15 +72,19 @@ int main(int argc, char** argv)
 	//Leemos los datos
 	data_config.puerto = config_get_string_value(config, "PUERTO");
 	data_config.montaje = config_get_string_value(config, "PUNTO_MONTAJE");
-	printf("PORT = %s\n", data_config.puerto);
+	uint32_t puerto = atoi(data_config.puerto);
+
+	printf("PORT = %d\n", puerto);
 	printf("Montaje = %s\n", data_config.montaje);
-
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
-
 	//todo el server declaradito aca
-
+	/*
+	DIR *mount = opendir(data_config.montaje);
+	if(!mount)
+		exit(3);
+	*/
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
-	uint32_t miSocket = server(/*atoi(data_config.puerto)*/5009,1);
+	uint32_t miSocket = server(puerto,1);
 	//end
 
 	//ASI FUNCIONA EL MUNDO FILESYSTEM
@@ -92,13 +96,10 @@ int main(int argc, char** argv)
 		exit(5);
 
 	//NO ESTOY SEGURO COMO ANDA EL MOUNT PERO SI LE TIRAS ESTO FUNCA, POR FAVOR MIRALO EZE
-	DIR *mount = opendir(".");
-	if(!mount)
-		exit(3);
+	
 	char *nameArchRequest;
-	uint32_t msg,size_name;
+	uint32_t msg;
 	while(1){
-		int flag=1;
 		recibir(kernel,(void *)&msg,sizeof(uint32_t));
 		switch(msg){
 			case EXIST_MSG:
@@ -112,13 +113,11 @@ int main(int argc, char** argv)
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			default:
-				flag = 0;
+
 				msg= -10;
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 		}
-		if(flag)
-			free(nameArchRequest);
-			
+
 	}
 
 	free(cfgPath);
