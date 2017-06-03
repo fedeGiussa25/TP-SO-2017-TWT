@@ -251,7 +251,6 @@ void sumar_tamanio_registro(registroStack *unRegistro){
 
 	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto;
 
-	printf("tamanio del stack es %d\n", tamanio_stack);
 }
 
 void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
