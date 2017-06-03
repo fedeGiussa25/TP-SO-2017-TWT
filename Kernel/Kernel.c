@@ -160,6 +160,21 @@ void print_metadata(t_metadata_program* metadata){
 	printf("***FIN DE LA METADATA***\n\n");
 }
 
+void print_PCB(PCB* pcb){
+	int i;
+	printf("\nPID: %d\n", pcb->pid);
+	printf("page_counter: %d\n", pcb->page_counter);
+	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
+	printf("program_counter: %d\n", pcb->program_counter);
+	printf("cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
+	printf("primer pagina del stack: %d\n", pcb->primerPaginaStack);
+	printf("stack pointer: %d\n", pcb->stackPointer);
+	printf("Stack size: %d\n\n", pcb->tamanioStack);
+	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
+		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
+	}
+	printf("\n");
+}
 
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script, int fd_consola){
@@ -197,10 +212,6 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_unlock(&mutex_fd_consolas);
 
 	return nuevo_PCB;
-}
-
-void print_PCB(PCB* pcb){
-	printf("PID: %d, Estado: %s\n",pcb->pid,pcb->estado);
 }
 
 PCB *remove_and_get_PCB(int processid,t_queue* queue){
@@ -751,11 +762,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
 	uint32_t cantRegistros;
-
-	recv(fd_socket, &codigo, sizeof(u_int32_t),0);
-
-
-	printf("Se recibio codigo operacion %d, se recibe un PCB\n", codigo);
 
 	recv(fd_socket, &pid, sizeof(u_int32_t),0);
 
@@ -1340,7 +1346,7 @@ int main(int argc, char** argv) {
 						}
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
 							PCB *unPCB = recibirPCB(i);
-
+							print_PCB(unPCB);
 							proceso_conexion *unaCPU = remove_by_fd_socket(lista_en_ejecucion, i);
 
 							uint32_t PID = unPCB->pid;

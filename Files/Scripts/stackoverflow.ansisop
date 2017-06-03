@@ -1,20 +1,23 @@
 #!/usr/bin/ansisop
 begin
-	f
+	variables a,b
+	b <- f a
 end
 
 function f
-	variables a
+	variables a,b
 	a=1
-	print a
-	g
+	#print a
+	b <- g a
+return a
 end
 
 function g
-	variables a
+	variables a,b
 	a=0
-	print a
-	f
+	#print a
+	b <- f a
+	return a
 end
 
 

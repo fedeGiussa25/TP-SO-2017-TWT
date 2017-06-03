@@ -911,7 +911,7 @@ int main(int argc, char **argv) {
 		}
 		eliminar_proceso(nuevaPCB->pid);
 		codigo = 10;
-		//send_PCB(fd_kernel, nuevaPCB, codigo);
+		send_PCB(fd_kernel, nuevaPCB, codigo);
 
 		//TODO send(nuevaPCB);
 	}
