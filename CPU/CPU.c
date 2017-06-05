@@ -25,6 +25,8 @@
 #include <parser/parser.h>
 #include <commons/collections/list.h>
 #include "../shared_libs/PCB.h"
+#include <ctype.h>
+
 
 
 enum{
@@ -117,6 +119,7 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	{ 	// si no hay registros, creo uno nuevo
 		regStack = malloc(sizeof(registroStack));
 		regStack->vars = list_create();
+		regStack->args = list_create();
 		// Guardo el nuevo registro en el índice:
 		list_add(nuevaPCB->stack_index, regStack);
 	}
@@ -373,8 +376,6 @@ void twt_retornar(t_valor_variable retorno)
  */
 void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
-	//Por ahora, twt_wait solo le manda al kernel el nombre del semaforo sobre el que hay
-	//que hacer wait (serializado-----> (codigo,largo del msj, msj))
 	printf("Soy wait\n");
 	uint32_t codigo = WAIT;
 	int32_t valor;
@@ -716,12 +717,6 @@ PCB* recibirPCB()
 	//-----Recibo indice de Stack-----
 
 	pcb->stack_index = list_create();
-	/*if(cantRegistros==0)
-	{
-		printf("Cantidad de registros: %d", cantRegistros);
-		cantRegistros=1; //Esto es para que entre al while (aunque no reciba nada) entonces hace
-						 //list_create para vars y args (no se me ocurrio otra manera todavia)
-	}*/
 
 	int registrosAgregados = 0;
 
@@ -788,8 +783,6 @@ PCB* recibirPCB()
 
 
 			list_add(nuevoReg->vars, nuevaVar);
-			variable* primeraVar = list_get(nuevoReg->vars,variablesAgregadas);
-			printf("(id,offset,page,size): (%c,%d,%d,%d,)\n",primeraVar->id,primeraVar->offset,primeraVar->page,primeraVar->size);
 
 			variablesAgregadas++;
 
@@ -828,7 +821,6 @@ PCB* recibirPCB()
 	pcb->tamanioStack = stack_size;
 	pcb->primerPaginaStack=primerPagStack;
 	pcb->stackPointer=stack_pointer;
-	//pcb->stack_index=indice_de_stack;
 
 	return pcb;
 }
@@ -896,9 +888,6 @@ int main(int argc, char **argv) {
 	//Y aqui termina la CPU, esperando e imprimiendo mensajes hasta el fin de los tiempos
 	//O hasta que cierres el programa
 	//Lo que pase primero
-
-	//analizadorLinea la pongo solo para probar si llama a las primitivas
-	//analizadorLinea("variables a, b", &funciones, &fcs_kernel);
 
 	uint32_t codigo;
 

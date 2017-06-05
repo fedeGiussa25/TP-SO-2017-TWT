@@ -871,18 +871,11 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 	recv(fd_socket, &cantRegistros, sizeof(uint32_t),0);
 
-
-	/*t_list* indice_de_stack = malloc(tamanio_indice_stack);
-
-	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
-	verificar_conexion_socket(fd_kernel,bytes_recv);*/
-
 	//recibo indice etiquetas:
 
 	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
 
 	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
-
 
 	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
 
@@ -892,7 +885,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 	{
 	recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
 
-
 	printf("RECIBI indice ETIQUETAS\n\n");
 
 	}
@@ -901,19 +893,12 @@ PCB* recibirPCB(uint32_t fd_socket)
 	//-----Recibo indice de Stack-----
 
 	pcb->stack_index = list_create();
-	/*if(cantRegistros==0)
-	{
-		printf("Cantidad de registros: %d", cantRegistros);
-		cantRegistros=1; //Esto es para que entre al while (aunque no reciba nada) entonces hace
-						 //list_create para vars y args (no se me ocurrio otra manera todavia)
-	}*/
 
 	int registrosAgregados = 0;
 
 	int cantArgumentos, cantVariables;
 
 	if(cantRegistros>0){
-
 
 	while(registrosAgregados < cantRegistros)
 	{
@@ -973,8 +958,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 
 			list_add(nuevoReg->vars, nuevaVar);
-			variable* primeraVar = list_get(nuevoReg->vars,variablesAgregadas);
-			printf("(id,offset,page,size): (%c,%d,%d,%d,)\n",primeraVar->id,primeraVar->offset,primeraVar->page,primeraVar->size);
 
 			variablesAgregadas++;
 
@@ -984,7 +967,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 		//Recibo retPos
 
 		recv(fd_socket, &(nuevoReg->ret_pos), sizeof(int),0);
-
 
 		//Recibo retVar
 
@@ -997,7 +979,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 		list_add(pcb->stack_index, nuevoReg);
 
 		registrosAgregados++;
-
 
 	}//Fin recepcion Stack
 	}
@@ -1013,7 +994,6 @@ PCB* recibirPCB(uint32_t fd_socket)
 	pcb->tamanioStack = stack_size;
 	pcb->primerPaginaStack=primerPagStack;
 	pcb->stackPointer=stack_pointer;
-	//pcb->stack_index=indice_de_stack;
 
 	return pcb;
 }
