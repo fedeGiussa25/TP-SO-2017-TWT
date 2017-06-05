@@ -325,6 +325,16 @@ int buscar_consola_de_proceso(int processid){
 	return res;
 }
 
+PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
+	bool _remove_element(void* list_element)
+	    {
+		PCB *unPCB = (PCB*) list_element;
+		return unPCB->pid == PID;
+	    }
+	PCB* PCB_buscado =  list_remove_by_condition(lista,*_remove_element);
+	return PCB_buscado;
+}
+
 void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	int i = 0;
 	bool encontrado = 0;
@@ -714,21 +724,14 @@ u_int32_t obtener_valor_variable_compartida(char* ID){
 	return value;
 }
 
-void wait(char *id_semaforo, uint32_t PID){
+int32_t wait(char *id_semaforo, uint32_t PID){
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
-
-	pthread_mutex_lock(&mutex_exec_queue);
-	PCB *unPCB = remove_and_get_PCB(PID, exec_queue);
-	pthread_mutex_unlock(&mutex_exec_queue);
 
 	unSem->sem->valor = unSem->sem->valor - 1;
 
-	if(unSem->sem->valor < 0){
-		unPCB->estado = "Blocked";
-		queue_push(unSem->cola_de_bloqueados, unPCB);
-	}
-
 	list_add(semaforos, unSem);
+
+	return unSem->sem->valor;
 }
 
 void signal(char *id_semaforo){
@@ -738,7 +741,10 @@ void signal(char *id_semaforo){
 
 	if(unSem->sem->valor <= 0){
 		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
-		unPCB->estado = "Ready";
+
+		PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+		PCB_a_modif->estado = "Ready";
+		list_add(todos_los_procesos, PCB_a_modif);
 
 		pthread_mutex_lock(&mutex_ready_queue);
 		queue_push(ready_queue, unPCB);
@@ -1354,22 +1360,42 @@ int main(int argc, char** argv) {
 
 							send(i, &value, sizeof(u_int32_t), 0);
 						}
-						//Si el codigo es 50, significa que CPU me mando que necesita hacer WAIT
-						//Y WAIT  es una operacion privilegiada, solo yo, kernel, la puedo hacer ;)
 						if (codigo==WAIT)
 						{
 							uint32_t PID;
+							int32_t valor;
 							recv(i,&PID, sizeof(uint32_t),0);
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 							char *id_sem = malloc(messageLength);
-
 							recv(i, id_sem, messageLength, 0);
-
 							printf("CPU pide: Wait en semaforo: %s\n\n", id_sem);
-
-							wait(id_sem, PID);
-
+							valor = wait(id_sem, PID);
 							print_vars();
+
+							send(i, &valor, sizeof(int32_t), 0);
+
+							if(valor < 0){
+								uint32_t primerMensaje;
+								recv(i, &primerMensaje, sizeof(uint32_t), 0);
+								PCB *unPCB = recibirPCB(i);
+								print_PCB(unPCB);
+
+								semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
+
+								pthread_mutex_lock(&mutex_exec_queue);
+								PCB *viejoPCB = remove_and_get_PCB(PID, exec_queue);
+								//todo liberar este pcb
+								pthread_mutex_unlock(&mutex_exec_queue);
+
+								PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+								PCB_a_modif->estado = "Ready";
+								list_add(todos_los_procesos, PCB_a_modif);
+
+								remove_by_fd_socket(lista_en_ejecucion, i);
+
+								queue_push(unSem->cola_de_bloqueados, unPCB);
+								list_add(semaforos, unSem);
+							}
 
 							free(id_sem);
 						}
@@ -1383,6 +1409,7 @@ int main(int argc, char** argv) {
 							printf("CPU pide: Signal en semaforo: %s \n\n", id_sem);
 
 							signal(id_sem);
+							print_vars();
 
 							free(id_sem);
 						}
@@ -1397,22 +1424,13 @@ int main(int argc, char** argv) {
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
 							PCB *unPCB = recibirPCB(i);
 							print_PCB(unPCB);
-							unPCB->estado = "exit";
-							proceso_conexion *unaCPU = remove_by_fd_socket(lista_en_ejecucion, i);
+							remove_by_fd_socket(lista_en_ejecucion, i);
 
 							uint32_t PID = unPCB->pid;
 
-							pthread_mutex_lock(&mutex_exec_queue);
-							remove_PCB_from_specific_queue(PID, exec_queue);
-							pthread_mutex_unlock(&mutex_exec_queue);
-
-							pthread_mutex_lock(&mutex_exit_queue);
-							queue_push(exit_queue, unPCB);
-							pthread_mutex_unlock(&mutex_exit_queue);
-
 							int fd_consola = buscar_consola_de_proceso(unPCB->pid);
-							uint32_t finalizado = 6;
-							send(fd_consola, &finalizado, sizeof(uint32_t),0);
+
+							end_process(PID,sockfd_memoria,0,fd_consola);
 
 						}
 						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria

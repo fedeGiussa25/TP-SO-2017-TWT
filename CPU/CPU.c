@@ -45,6 +45,7 @@ int fd_memoria;
 int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
 bool stackOverflow;
 bool programaTerminado;
+bool procesoBloqueado;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -376,6 +377,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 	//que hacer wait (serializado-----> (codigo,largo del msj, msj))
 	printf("Soy wait\n");
 	uint32_t codigo = WAIT;
+	int32_t valor;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
 	void* buffer = malloc((sizeof(uint32_t)*3)+messageLength);
 
@@ -390,6 +392,13 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 				exit(3);
 			}
 	free(buffer);
+
+	recv(fd_kernel, &valor, sizeof(int32_t), 0);
+
+	if(valor < 0){
+		procesoBloqueado = true;
+		printf("Upa, se bloqueo el proceso!\n");
+	}
 
 	return;
 }
@@ -900,15 +909,15 @@ int main(int argc, char **argv) {
 		print_PCB(nuevaPCB);
 		stackOverflow = false;
 		programaTerminado = false;
+		procesoBloqueado = false;
 
-		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false))
+		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
 		{
 			char *instruccion = obtener_instruccion(nuevaPCB);
 			printf("Instruccion: %s\n", instruccion);
 			analizadorLinea(instruccion, &funciones, &fcs_kernel);
 			free(instruccion);
 		}
-		eliminar_proceso(nuevaPCB->pid);
 		codigo = 10;
 		send_PCB(fd_kernel, nuevaPCB, codigo);
 
