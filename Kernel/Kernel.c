@@ -352,9 +352,9 @@ PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 
 void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	int i = 0;
-	uint32_t encontrado = 0;
+	bool encontrado = 0;
 	pthread_mutex_lock(&mutex_process_list);
-	while(i<list_size(todos_los_procesos) && encontrado==0)
+	while(i<list_size(todos_los_procesos) && !encontrado)
 	{
 		PCB* PCB = list_get(todos_los_procesos,i);
 		if(PID == PCB->pid)	{
@@ -373,18 +373,15 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_process_list);
-	//Si me pidieron borrar el proceso pero no lo encontre...
-	if(encontrado == 0 && exit_code == -7){
-		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
-		void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-		//Le mando 0 para que sepa que no se pudo borrar el proceso
-		memcpy(sendbuf_consola_mensajera,&encontrado,sizeof(uint32_t));
-		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
+	void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
+	if(!encontrado){
+	 		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+			//Lo mando 0 para que sepa que no se pudo borrar el proceso
+			uint32_t codigo_de_cancelado_no_ok = 0;
+			memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_no_ok,sizeof(uint32_t));
+			send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
-	//Si encontre el proceso...
-	if(encontrado == 1){
-		uint32_t codigo_consola;
-
+	if(encontrado){
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
 		uint32_t codigo_para_borrar_paginas = 5;
@@ -392,28 +389,30 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 		memcpy(sendbuf_mem+sizeof(uint32_t),&PID,sizeof(uint32_t));
 		send(socket_memoria,sendbuf_mem,sizeof(uint32_t)*2,0);
 
-		//Aca me fijo porque termino segun su exit_code
-		switch(exit_code){
-			//Finalizado correctamente, la consola interpreta el 6 como "Termino el proceso"
-			case 0:
-				codigo_consola = 6;
-				break;
-			//Por desconexion o "end" (exit_codes 6 y 7) aviso a la consola y al hilo que
-			//me notifico que se pudo borrar el proceso
-			default:
-				codigo_consola = 7;
-				void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-				memcpy(sendbuf_consola_mensajera,&encontrado,sizeof(uint32_t));
-				send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
-				break;
-		}
-		//Aca mando el mensaje a la consola que ejecuto
+		uint32_t codigo_para_abortar_proceso;
 		void* sendbuf_consola = malloc(sizeof(uint32_t));
+
+		if(exit_code==0)
+			//Si el codigo es 0 termino bien, sino hubo error
+			codigo_para_abortar_proceso = 6;
+		else
+			codigo_para_abortar_proceso = 7;
+
 		int consola = buscar_consola_de_proceso(PID);
-		memcpy(sendbuf_consola,&codigo_consola,sizeof(uint32_t));
+		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
 		send(consola,sendbuf_consola,sizeof(uint32_t)*2,0);
+
+		//Y al hilo que me mando el mensaje que fue lo que paso
+		//Le mando 1 para que sepa que se pudo borrar
+		uint32_t codigo_de_cancelado_ok = 1;
+		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
+		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
+
+		free(sendbuf_mem);
+		free(sendbuf_consola);
 	}
 	printf("\n");
+	free(sendbuf_consola_mensajera);
 }
 
 void print_PCB_list(){

@@ -376,6 +376,7 @@ void script_thread(thread_setup* ts)
 		if(recv(sockfd_kernel, &respuesta2, sizeof(int), 0) == 0) 	//recibe el codigo que indica si llego al final del programa (del script enviado) o no
 		{
 			printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", ts->threadID);
+			remover_de_lista(esteHilo);
 			break;
 		}
 
@@ -384,11 +385,13 @@ void script_thread(thread_setup* ts)
 			if(recv(sockfd_kernel, &messageSize, sizeof(int), 0) == 0)
 			{
 				printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", ts->threadID);
+				remover_de_lista(esteHilo);
 				break;
 			}
 			if(recv(sockfd_kernel, messageToPrint, messageSize, 0) == 0)
 			{
 				printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", ts->threadID);
+				remover_de_lista(esteHilo);
 				break;
 			}
 
@@ -401,6 +404,7 @@ void script_thread(thread_setup* ts)
 		{
 			printf("\nMensaje del script \"%s\" (PID: %d): Finalizo el programa satisfactoriamente!\n", ts->script, esteHilo->pid);
 			endTime = time(NULL);
+			remover_de_lista(esteHilo);
 			//printData(startTime, endTime, printCounter, esteHilo->pid);
 			break;
 		}
@@ -408,6 +412,7 @@ void script_thread(thread_setup* ts)
 		if(respuesta2 == 7) //el kernel aborta el programa
 		{
 			printf("\nLa ejecucion del script \"%s\" (PID: %d) ha sido abortada\n", ts->script, esteHilo->pid);
+			remover_de_lista(esteHilo);
 			break;
 		}
 		/*
@@ -423,7 +428,6 @@ void script_thread(thread_setup* ts)
 
 	printf("\nEl hilo %d ha pasado a mejor vida\n", esteHilo->thread);
 	free(ts->script);
-	remover_de_lista(esteHilo);
 	free(esteHilo);
 	free(ts);
 	free(filePath);
@@ -483,10 +487,10 @@ void finalizar_programa(int pid, char* tipo_de_finalizacion)
 
 	void *buffer = malloc(sizeof(uint32_t)*2);
 
-	if(strcmp(tipo_de_finalizacion,"End"))
+	if(strcmp(tipo_de_finalizacion,"End")==0)
 		memcpy(buffer, &codigo_finalizacion, sizeof(uint32_t));
 
-	if(strcmp(tipo_de_finalizacion,"Disconnect"))
+	if(strcmp(tipo_de_finalizacion,"Disconnect")==0)
 		memcpy(buffer, &codigo_desconexion, sizeof(uint32_t));
 
 	memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
@@ -515,8 +519,10 @@ void desconectar_consola()
 		pthread_mutex_lock(&thlist_mutex);
 		hilo_t* unHilo = list_get(thread_list,i);
 		pthread_mutex_unlock(&thlist_mutex);
+
 		finalizar_programa(unHilo->pid,"Disconnect");
-		pthread_mutex_lock(&thlist_mutex);
+
+		pthread_mutex_lock(&thlist_mutex);;
 		dimension = list_size(thread_list);
 		pthread_mutex_unlock(&thlist_mutex);
 	}
