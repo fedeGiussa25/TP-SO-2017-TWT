@@ -191,10 +191,11 @@ int corrimiento;
 void *sendbuf;
 u_int32_t tamanio_stack;
 
+/*
 void serializarVariables(variable* var);
 void serializarElestac(registroStack* registro);
 void sumar_tamanio_registro(registroStack* unRegistro);
-
+*/
 void serializarVariables(variable* var)
 {
 	memcpy(sendbuf+corrimiento, &(var->id), sizeof(char));
@@ -248,7 +249,14 @@ void sumar_tamanio_registro(registroStack *unRegistro){
 
 	uint32_t tamanio_resto = sizeof(pagoffsize)+sizeof(uint32_t);
 
-	uint32_t cantVarsYArgs = sizeof(uint32_t)*2;
+	uint32_t cantVarsYArgs;
+
+	if(list_size(unRegistro->args)>0){
+		cantVarsYArgs = sizeof(uint32_t);
+	}
+	if(list_size(unRegistro->vars)>0){
+		cantVarsYArgs = cantVarsYArgs + sizeof(uint32_t);
+	}
 
 
 	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto + cantVarsYArgs;

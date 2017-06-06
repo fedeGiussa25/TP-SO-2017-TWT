@@ -31,6 +31,8 @@
 pthread_mutex_t mutex_fd_cpus;
 pthread_mutex_t mutex_fd_consolas;
 pthread_mutex_t mutex_procesos_actuales;
+pthread_mutex_t mutex_semaforos_ansisop;
+pthread_mutex_t mutex_vCompartidas_ansisop;
 
 //Los mutex para las colas
 pthread_mutex_t mutex_ready_queue;
@@ -749,38 +751,32 @@ u_int32_t obtener_valor_variable_compartida(char* ID){
 }
 
 int32_t wait(char *id_semaforo, uint32_t PID){
+	pthread_mutex_lock(&mutex_semaforos_ansisop);
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
-
 	unSem->sem->valor = unSem->sem->valor - 1;
-
 	list_add(semaforos, unSem);
-
+	pthread_mutex_unlock(&mutex_semaforos_ansisop);
 	return unSem->sem->valor;
 }
 
 void signal(char *id_semaforo){
+	pthread_mutex_lock(&mutex_semaforos_ansisop);
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
-
 	unSem->sem->valor = unSem->sem->valor + 1;
-
-	if(unSem->sem->valor <= 0){
+	if(queue_size(unSem->cola_de_bloqueados)>0){
 		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
-
 		pthread_mutex_lock(&mutex_process_list);
-		PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-		pthread_mutex_unlock(&mutex_process_list);
-
+		PCB *PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
 		PCB_a_modif->estado = "Ready";
-		pthread_mutex_lock(&mutex_process_list);
 		list_add(todos_los_procesos, PCB_a_modif);
 		pthread_mutex_unlock(&mutex_process_list);
-
 		pthread_mutex_lock(&mutex_ready_queue);
 		queue_push(ready_queue, unPCB);
 		pthread_mutex_unlock(&mutex_ready_queue);
 	}
 
 	list_add(semaforos, unSem);
+	pthread_mutex_unlock(&mutex_semaforos_ansisop);
 }
 
 //Fin de funciones de capa memoria
@@ -1222,6 +1218,8 @@ int main(int argc, char** argv) {
 
 	fdmax = listener;
 
+	pthread_mutex_init(&mutex_semaforos_ansisop, NULL);
+
 	//Hilo menu + print command
 	print_commands();
 	pthread_t men;
@@ -1389,31 +1387,29 @@ int main(int argc, char** argv) {
 								PCB *unPCB = recibirPCB(i);
 								print_PCB(unPCB);
 
+								remove_by_fd_socket(lista_en_ejecucion, i);
+
+								printf("check 1\n");
+								pthread_mutex_lock(&mutex_semaforos_ansisop);
 								semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
 
+								printf("check 2\n");
 								pthread_mutex_lock(&mutex_exec_queue);
 								PCB *viejoPCB = remove_and_get_PCB(PID, exec_queue);
+								//todo liberar este pcb
 								pthread_mutex_unlock(&mutex_exec_queue);
 
 								pthread_mutex_lock(&mutex_process_list);
-								remove_PCB_from_list(todos_los_procesos,viejoPCB->pid);
-								pthread_mutex_unlock(&mutex_process_list);
-								//todo liberar este pcb
-
-								pthread_mutex_lock(&mutex_process_list);
 								PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-								pthread_mutex_unlock(&mutex_process_list);
-
 								PCB_a_modif->estado = "Ready";
-
-								pthread_mutex_lock(&mutex_process_list);
 								list_add(todos_los_procesos, PCB_a_modif);
 								pthread_mutex_unlock(&mutex_process_list);
 
-								remove_by_fd_socket(lista_en_ejecucion, i);
-
+								printf("check 3\n");
 								queue_push(unSem->cola_de_bloqueados, unPCB);
 								list_add(semaforos, unSem);
+								pthread_mutex_unlock(&mutex_semaforos_ansisop);
+								printf("termino too\n");
 							}
 
 							free(id_sem);
@@ -1455,7 +1451,7 @@ int main(int argc, char** argv) {
 						//Si un proceso termino su rafaga...
 						if(codigo == FIN_DE_RAFAGA){
 							//Lo recibo...
-							PCB *pcb_modificado = recibirPCB(i);
+							/*PCB *pcb_modificado = recibirPCB(i);
 
 							//Saco la CPU de la lista de ejecucion
 							remove_by_fd_socket(lista_en_ejecucion, i);
@@ -1479,7 +1475,7 @@ int main(int argc, char** argv) {
 							pthread_mutex_lock(&mutex_ready_queue);
 							queue_push(ready_queue,pcb_modificado);
 							pthread_mutex_unlock(&mutex_ready_queue);
-
+*/
 							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
 							//free(pcb_viejo);
 						}

@@ -652,7 +652,7 @@ PCB* recibirPCB()
 	PCB* pcb = malloc(sizeof(PCB));
 
 	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
-	uint32_t cantRegistros;
+	uint32_t cantRegistros =0;
 
 	bytes_recv = recv(fd_kernel, &codigo, sizeof(u_int32_t),0);
 
@@ -721,7 +721,7 @@ PCB* recibirPCB()
 
 	int registrosAgregados = 0;
 
-	int cantArgumentos, cantVariables;
+	int cantArgumentos=0, cantVariables=0;
 
 	if(cantRegistros>0){
 
