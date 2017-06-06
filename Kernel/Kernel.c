@@ -40,6 +40,7 @@ pthread_mutex_t mutex_new_queue;
 pthread_mutex_t mutex_wait_queue;
 pthread_mutex_t mutex_process_list;
 
+
 // Structs de conexiones
 //Todo lo de structs de PCB
 
@@ -68,7 +69,8 @@ enum{
 	DESCONEXION = 9,
 	PROCESO_FINALIZADO_CORRECTAMENTE = 10,
 	FILE_SIZE = 11,
-	FILE_EXISTS = 12
+	FILE_EXISTS = 12,
+	FIN_DE_RAFAGA = 13
 };
 
 typedef struct{
@@ -203,6 +205,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_lock(&mutex_process_list);
 	list_add(todos_los_procesos,nuevo_PCB);
 	pthread_mutex_unlock(&mutex_process_list);
+
 	pthread_mutex_lock(&mutex_procesos_actuales);
 	procesos_actuales++;
 	pthread_mutex_unlock(&mutex_procesos_actuales);
@@ -214,6 +217,18 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_unlock(&mutex_fd_consolas);
 
 	return nuevo_PCB;
+}
+
+void remove_PCB_from_list(t_list* lista, int pid){
+	int i = 0, dimension = list_size(lista), encontrado = 0;
+	while(!encontrado && i < dimension){
+		PCB* aux = list_get(lista,i);
+		if(aux->pid == pid){
+			list_remove(lista,i);
+			encontrado = 1;
+		}
+		i++;
+	}
 }
 
 PCB *remove_and_get_PCB(int processid,t_queue* queue){
@@ -337,9 +352,9 @@ PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 
 void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	int i = 0;
-	bool encontrado = 0;
+	uint32_t encontrado = 0;
 	pthread_mutex_lock(&mutex_process_list);
-	while(i<list_size(todos_los_procesos) && !encontrado)
+	while(i<list_size(todos_los_procesos) && encontrado==0)
 	{
 		PCB* PCB = list_get(todos_los_procesos,i);
 		if(PID == PCB->pid)	{
@@ -358,15 +373,18 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_process_list);
-	if(!encontrado)	{
+	//Si me pidieron borrar el proceso pero no lo encontre...
+	if(encontrado == 0 && exit_code == -7){
 		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 		void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-		//Lo mando 0 para que sepa que no se pudo borrar el proceso
-		uint32_t codigo_de_cancelado_no_ok = 0;
-		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_no_ok,sizeof(uint32_t));
+		//Le mando 0 para que sepa que no se pudo borrar el proceso
+		memcpy(sendbuf_consola_mensajera,&encontrado,sizeof(uint32_t));
 		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
-	if(encontrado){
+	//Si encontre el proceso...
+	if(encontrado == 1){
+		uint32_t codigo_consola;
+
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
 		uint32_t codigo_para_borrar_paginas = 5;
@@ -374,19 +392,26 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 		memcpy(sendbuf_mem+sizeof(uint32_t),&PID,sizeof(uint32_t));
 		send(socket_memoria,sendbuf_mem,sizeof(uint32_t)*2,0);
 
-		//Y le aviso a la consola que se aborto el proceso
+		//Aca me fijo porque termino segun su exit_code
+		switch(exit_code){
+			//Finalizado correctamente, la consola interpreta el 6 como "Termino el proceso"
+			case 0:
+				codigo_consola = 6;
+				break;
+			//Por desconexion o "end" (exit_codes 6 y 7) aviso a la consola y al hilo que
+			//me notifico que se pudo borrar el proceso
+			default:
+				codigo_consola = 7;
+				void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
+				memcpy(sendbuf_consola_mensajera,&encontrado,sizeof(uint32_t));
+				send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
+				break;
+		}
+		//Aca mando el mensaje a la consola que ejecuto
 		void* sendbuf_consola = malloc(sizeof(uint32_t));
-		uint32_t codigo_para_abortar_proceso = 7;
 		int consola = buscar_consola_de_proceso(PID);
-		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
+		memcpy(sendbuf_consola,&codigo_consola,sizeof(uint32_t));
 		send(consola,sendbuf_consola,sizeof(uint32_t)*2,0);
-
-		//Y al hilo que me mando el mensaje que fue lo que paso
-		void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-		//Le mando 1 para que sepa que se pudo borrar
-		uint32_t codigo_de_cancelado_ok = 1;
-		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
-		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
 	printf("\n");
 }
@@ -742,9 +767,14 @@ void signal(char *id_semaforo){
 	if(unSem->sem->valor <= 0){
 		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
 
+		pthread_mutex_lock(&mutex_process_list);
 		PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+		pthread_mutex_unlock(&mutex_process_list);
+
 		PCB_a_modif->estado = "Ready";
+		pthread_mutex_lock(&mutex_process_list);
 		list_add(todos_los_procesos, PCB_a_modif);
+		pthread_mutex_unlock(&mutex_process_list);
 
 		pthread_mutex_lock(&mutex_ready_queue);
 		queue_push(ready_queue, unPCB);
@@ -1364,12 +1394,22 @@ int main(int argc, char** argv) {
 
 								pthread_mutex_lock(&mutex_exec_queue);
 								PCB *viejoPCB = remove_and_get_PCB(PID, exec_queue);
-								//todo liberar este pcb
 								pthread_mutex_unlock(&mutex_exec_queue);
 
+								pthread_mutex_lock(&mutex_process_list);
+								remove_PCB_from_list(todos_los_procesos,viejoPCB->pid);
+								pthread_mutex_unlock(&mutex_process_list);
+								//todo liberar este pcb
+
+								pthread_mutex_lock(&mutex_process_list);
 								PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+								pthread_mutex_unlock(&mutex_process_list);
+
 								PCB_a_modif->estado = "Ready";
+
+								pthread_mutex_lock(&mutex_process_list);
 								list_add(todos_los_procesos, PCB_a_modif);
+								pthread_mutex_unlock(&mutex_process_list);
 
 								remove_by_fd_socket(lista_en_ejecucion, i);
 
@@ -1413,9 +1453,37 @@ int main(int argc, char** argv) {
 							end_process(PID,sockfd_memoria,0,fd_consola);
 
 						}
-						//send(sockfd_memoria, buf, sizeof buf,0);	//Le mandamos a la memoria
-						//send(sockfd_fs, buf, sizeof buf,0);	//Le mandamos al filesystem
+						//Si un proceso termino su rafaga...
+						if(codigo == FIN_DE_RAFAGA){
+							//Lo recibo...
+							PCB *pcb_modificado = recibirPCB(i);
 
+							//Saco la CPU de la lista de ejecucion
+							remove_by_fd_socket(lista_en_ejecucion, i);
+
+							//Busco la version anterior del PCB y la saco de Exec
+							pthread_mutex_lock(&mutex_exec_queue);
+							PCB *pcb_viejo = remove_and_get_PCB(pcb_modificado->pid,exec_queue);
+							pthread_mutex_unlock(&mutex_exec_queue);
+
+							//Tambien la saco de la lista de procesos
+							pthread_mutex_lock(&mutex_process_list);
+							remove_PCB_from_list(todos_los_procesos,pcb_viejo->pid);
+							pthread_mutex_unlock(&mutex_process_list);
+
+							//Meto el PCB modificado en la lista de procesos
+							pthread_mutex_lock(&mutex_process_list);
+							remove_PCB_from_list(todos_los_procesos,pcb_viejo->pid);
+							pthread_mutex_unlock(&mutex_process_list);
+
+							//Meto el modificado en Ready
+							pthread_mutex_lock(&mutex_ready_queue);
+							queue_push(ready_queue,pcb_modificado);
+							pthread_mutex_unlock(&mutex_ready_queue);
+
+							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
+							//free(pcb_viejo);
+						}
 						memset(buf,0,256);
 					}
 				}
