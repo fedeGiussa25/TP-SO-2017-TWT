@@ -11,6 +11,8 @@
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "socketEze.h"
+#include <errno.h>
+
 #define SIZE_MSG 11
 #define EXIST_MSG 12
 
@@ -18,7 +20,7 @@ fs_config data_config;
 
 uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	char *fullPath = malloc(sizeof(nombreArchivo) + sizeof(rutaBase));
+	char *fullPath = malloc(strlen(nombreArchivo) + strlen(rutaBase));
 	strcpy(fullPath,rutaBase);
 	strcat(fullPath,nombreArchivo);
 	archivo = fopen(fullPath,"r");
@@ -36,7 +38,7 @@ uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 
 uint32_t exist(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	char *fullPath = malloc(sizeof(nombreArchivo) + sizeof(rutaBase));
+	char *fullPath = malloc(strlen(nombreArchivo) + strlen(rutaBase));
 	strcpy(fullPath,rutaBase);
 	strcat(fullPath,nombreArchivo);
 	archivo = fopen(fullPath,"r");
@@ -65,24 +67,21 @@ int main(int argc, char** argv)
 	t_config *config;
 
 	checkArguments(argc);
-	char *cfgPath = malloc(sizeof("../../FileSystem/") + strlen(argv[1])+1);
-	*cfgPath = '\0';
-	strcpy(cfgPath, "../../FileSystem/");
-	config = config_create_from_relative_with_check(argv, cfgPath);
-	//Leemos los datos
+	config = config_create(argv[1]);
 	data_config.puerto = config_get_string_value(config, "PUERTO");
 	data_config.montaje = config_get_string_value(config, "PUNTO_MONTAJE");
 	uint32_t puerto = atoi(data_config.puerto);
-
+	char *montaje = malloc(strlen(data_config.montaje));
+	strcpy(montaje,data_config.montaje);
 	printf("PORT = %d\n", puerto);
 	printf("Montaje = %s\n", data_config.montaje);
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 	//todo el server declaradito aca
-	/*
-	DIR *mount = opendir(data_config.montaje);
+	DIR *mount = opendir(montaje);
 	if(!mount)
+		
 		exit(3);
-	*/
+	
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
 	uint32_t miSocket = server(puerto,1);
 	//end
@@ -104,12 +103,12 @@ int main(int argc, char** argv)
 		switch(msg){
 			case EXIST_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = exist(nameArchRequest,data_config.montaje);
+				msg = exist(nameArchRequest,montaje);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			case SIZE_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = sizeFile(nameArchRequest,data_config.montaje);
+				msg = sizeFile(nameArchRequest,montaje);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			default:
@@ -119,8 +118,6 @@ int main(int argc, char** argv)
 		}
 
 	}
-
-	free(cfgPath);
 
 	return 0;
 }
