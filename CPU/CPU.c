@@ -396,6 +396,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 
 	recv(fd_kernel, &valor, sizeof(int32_t), 0);
 
+
 	if(valor < 0){
 		procesoBloqueado = true;
 		printf("Upa, se bloqueo el proceso!\n");

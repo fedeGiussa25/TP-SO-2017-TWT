@@ -248,8 +248,10 @@ void sumar_tamanio_registro(registroStack *unRegistro){
 
 	uint32_t tamanio_resto = sizeof(pagoffsize)+sizeof(uint32_t);
 
+	uint32_t cantVarsYArgs = sizeof(uint32_t)*2;
 
-	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto;
+
+	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto + cantVarsYArgs;
 
 }
 
