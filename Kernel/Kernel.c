@@ -27,12 +27,21 @@
 #include <parser/metadata_program.h>
 #include "../shared_libs/PCB.h"
 
-//Todo lo de mutex
+//Mutex de listas de conexion
 pthread_mutex_t mutex_fd_cpus;
 pthread_mutex_t mutex_fd_consolas;
+
+//Mutex de listas de procesos
 pthread_mutex_t mutex_procesos_actuales;
+pthread_mutex_t mutex_in_exec;
+pthread_mutex_t mutex_process_list;
+
+//Mutex de capa de memoria
 pthread_mutex_t mutex_semaforos_ansisop;
 pthread_mutex_t mutex_vCompartidas_ansisop;
+
+//Mutex de capa de FS
+pthread_mutex_t mutex_archivos_x_proceso;
 
 //Los mutex para las colas
 pthread_mutex_t mutex_ready_queue;
@@ -40,7 +49,6 @@ pthread_mutex_t mutex_exit_queue;
 pthread_mutex_t mutex_exec_queue;
 pthread_mutex_t mutex_new_queue;
 pthread_mutex_t mutex_wait_queue;
-pthread_mutex_t mutex_process_list;
 
 
 // Structs de conexiones
@@ -96,6 +104,13 @@ typedef struct{
 	t_queue* cola_de_bloqueados;
 } semaforo_cola;
 
+typedef struct{
+	int pid;
+	t_list* fd;
+	t_list* flag;
+	t_list* referencia_a_tabla_principal;
+} tabla_de_archivos_de_proceso;
+
 //Todo lo de variables globales
 int pid = 0;
 int mem_sock;
@@ -127,6 +142,9 @@ t_queue* new_queue;
 
 //Listado con los procesos del sistema
 t_list* todos_los_procesos;
+
+//Listado de tablas de archivos
+t_list* archivos_por_proceso;
 
 //FUNCIONES
 
@@ -217,6 +235,16 @@ PCB* create_PCB(char* script, int fd_consola){
 	consola->proceso = nuevo_PCB->pid;
 	list_add(lista_consolas, consola);
 	pthread_mutex_unlock(&mutex_fd_consolas);
+
+	tabla_de_archivos_de_proceso* pft = malloc(sizeof(tabla_de_archivos_de_proceso));
+	pft->pid = nuevo_PCB->pid;
+	list_create(pft->fd);
+	list_create(pft->flag);
+	list_create(pft->referencia_a_tabla_principal);
+
+	pthread_mutex_lock(&mutex_archivos_x_proceso);
+	list_add(archivos_por_proceso,pft);
+	pthread_mutex_unlock(&mutex_archivos_x_proceso);
 
 	return nuevo_PCB;
 }
@@ -786,11 +814,13 @@ int esta_en_uso(int fd){
 	int en_uso = 0;
 	proceso_conexion *cpu;
 
+	pthread_mutex_lock(&mutex_in_exec);
 	for(i= 0; i< list_size(lista_en_ejecucion); i++){
 		cpu = list_get(lista_en_ejecucion,i);
 		if(cpu->sock_fd == fd)
 			en_uso =1;
 	}
+	pthread_mutex_unlock(&mutex_in_exec);
 	return en_uso;
 }
 
@@ -1050,7 +1080,9 @@ void planificacion(int *grado_multiprog){
 
 				if(list_size(lista_cpus)>0 && i<list_size(lista_cpus)){
 					proceso_conexion *cpu = list_get(lista_cpus,i);
+					pthread_mutex_lock(&mutex_in_exec);
 					list_add(lista_en_ejecucion, cpu);
+					pthread_mutex_unlock(&mutex_in_exec);
 					PCB *pcb_to_use = queue_pop(ready_queue);
 
 					uint32_t codigo = 10;
@@ -1387,7 +1419,9 @@ int main(int argc, char** argv) {
 								PCB *unPCB = recibirPCB(i);
 								print_PCB(unPCB);
 
+								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
 
 								printf("check 1\n");
 								pthread_mutex_lock(&mutex_semaforos_ansisop);
@@ -1439,7 +1473,9 @@ int main(int argc, char** argv) {
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
 							PCB *unPCB = recibirPCB(i);
 							print_PCB(unPCB);
+							pthread_mutex_lock(&mutex_in_exec);
 							remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
 
 							uint32_t PID = unPCB->pid;
 
@@ -1454,7 +1490,9 @@ int main(int argc, char** argv) {
 							/*PCB *pcb_modificado = recibirPCB(i);
 
 							//Saco la CPU de la lista de ejecucion
+							pthread_mutex_lock(&mutex_in_exec);
 							remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
 
 							//Busco la version anterior del PCB y la saco de Exec
 							pthread_mutex_lock(&mutex_exec_queue);
@@ -1468,7 +1506,7 @@ int main(int argc, char** argv) {
 
 							//Meto el PCB modificado en la lista de procesos
 							pthread_mutex_lock(&mutex_process_list);
-							remove_PCB_from_list(todos_los_procesos,pcb_viejo->pid);
+							list_add(todos_los_procesos,pcb_modificado);
 							pthread_mutex_unlock(&mutex_process_list);
 
 							//Meto el modificado en Ready
