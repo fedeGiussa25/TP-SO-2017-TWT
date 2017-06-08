@@ -70,6 +70,7 @@ enum{
 	ID_CPU = 1,
 	ID_CONSOLA = 2,
 	NUEVO_PROGRAMA = 2,
+	FD_INICIAL_ARCHIVOS = 3,
 	ELIMINAR_PROCESO = 3,
 	WRITE = 4,
 	ASIGNAR_VALOR_COMPARTIDA = 5,
@@ -80,7 +81,11 @@ enum{
 	PROCESO_FINALIZADO_CORRECTAMENTE = 10,
 	FILE_SIZE = 11,
 	FILE_EXISTS = 12,
-	FIN_DE_RAFAGA = 13
+	FIN_DE_RAFAGA = 13,
+	ABRIR_ARCHIVO = 14,
+	LEER_ARCHIVO = 15,
+	ESCRIBIR_ARCHIVO = 16,
+	CERRAR_ARCHIVO = 17
 };
 
 typedef struct{
@@ -105,11 +110,16 @@ typedef struct{
 } semaforo_cola;
 
 typedef struct{
-	int pid;
-	t_list* fd;
-	t_list* flag;
-	t_list* referencia_a_tabla_principal;
-} tabla_de_archivos_de_proceso;
+	int pid;									//Se podria hacer una estructura que representa a una fila de la tabla,
+	t_list* fd;									//y despues otra estructura que representa a la tabla
+	t_list* flag;								//(con un pid y una lista de la primer estructura), pero es mas facil
+	t_list* referencia_a_tabla_principal;		//acceder a la tabla con esta estructura (y es mas facil manejar 1 lista que 2)
+} tabla_de_archivos_de_proceso;					//(es mas facil acceder a esta tabla para el programa, pero mas lio de programacion)
+
+typedef struct{
+	t_list* ruta_del_archivo;
+	t_list* instancias_abiertas_del_archivo;
+} tabla_global_de_archivos;
 
 //Todo lo de variables globales
 int pid = 0;
@@ -313,9 +323,11 @@ void remove_PCB_from_specific_queue(int processid,t_queue* queue){
 	}
 	//Cuando finalice me fijo si coloque algun PCB en la lista auxiliar
 	i = 0;
-	if(list_size(lista_auxiliar)>0){
+	if(list_size(lista_auxiliar)>0)
+	{
 		//De ser asi...
-		while(i<list_size(lista_auxiliar)){
+		while(i<list_size(lista_auxiliar))
+		{
 			//Voy ubicandolos del ultimo al primero en la cola de vuelta para mantener el orden previo
 			PCB* aux = list_get(lista_auxiliar, i);
 			queue_push(queue,aux);
@@ -359,9 +371,11 @@ void remove_from_queue(PCB* pcb){
 int buscar_consola_de_proceso(int processid){
 	pthread_mutex_lock(&mutex_fd_consolas);
 	int i = 0, dimension = list_size(lista_consolas), res = -1;
-	while(i < dimension){
+	while(i < dimension)
+	{
 		proceso_conexion* aux = list_get(lista_consolas,i);
-		if(aux->proceso == processid){
+		if(aux->proceso == processid)
+		{
 			res = aux->sock_fd;
 		}
 		i++;
@@ -387,8 +401,10 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	while(i<list_size(todos_los_procesos) && !encontrado)
 	{
 		PCB* PCB = list_get(todos_los_procesos,i);
-		if(PID == PCB->pid)	{
-			if(strcmp(PCB->estado,"Exit")!=0){
+		if(PID == PCB->pid)
+		{
+			if(strcmp(PCB->estado,"Exit")!=0)
+			{
 				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
@@ -396,7 +412,8 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 				printf("El proceso ha sido finalizado\n");
 				encontrado = 1;
 			}
-			else{
+			else
+			{
 				printf("El proceso elegido ya esta finalizado\n");
 			}
 		}
@@ -404,14 +421,16 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 	}
 	pthread_mutex_unlock(&mutex_process_list);
 	void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-	if(!encontrado){
+	if(!encontrado)
+	{
 	 		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 			//Lo mando 0 para que sepa que no se pudo borrar el proceso
 			uint32_t codigo_de_cancelado_no_ok = 0;
 			memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_no_ok,sizeof(uint32_t));
 			send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 	}
-	if(encontrado){
+	if(encontrado)
+	{
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
 		uint32_t codigo_para_borrar_paginas = 5;
@@ -450,14 +469,16 @@ void print_PCB_list(){
 	{
 		int i = 0;
 		pthread_mutex_lock(&mutex_process_list);
-		while(i < list_size(todos_los_procesos)){
+		while(i < list_size(todos_los_procesos))
+		{
 			PCB* aux = list_get(todos_los_procesos,i);
 			printf("PID: %d\n",aux->pid);
 			i++;
 		}
 		pthread_mutex_unlock(&mutex_process_list);
 		printf("\n");
-	} else printf("No hay procesos en planificacion\n\n");
+	}
+	else printf("No hay procesos en planificacion\n\n");
 }
 
 void print_commands()
@@ -520,7 +541,8 @@ void file_handler(int sockfs, int tipo){
 	void* buffer = malloc(sizeof(uint32_t)*2+dimension);
 
 	//Meto el codigo segun corresponda
-	switch(tipo){
+	switch(tipo)
+	{
 		case FILE_SIZE:
 			memcpy(buffer,&codigo_size,sizeof(uint32_t));
 			printf("Codigo: %d\n", codigo_size);
@@ -547,7 +569,8 @@ void file_handler(int sockfs, int tipo){
 	recv(sockfs,&respuesta,sizeof(uint32_t),0);
 
 	//Dependiendo del tipo de operacion respondo de manera distinta
-	switch(tipo){
+	switch(tipo)
+	{
 			case FILE_SIZE:
 				if(respuesta >= 1)
 					printf("El archivo %s tiene un tamaño de %d\n",archivo,respuesta);
@@ -564,7 +587,7 @@ void file_handler(int sockfs, int tipo){
 				break;
 			default:
 				break;
-		}
+	}
 	if(respuesta == -10) printf("Algo salio muy mal\n");
 	printf("\n");
 }
@@ -576,29 +599,37 @@ void menu(int* sockfs)
 	{
 		char* command = malloc(20);
 		scanf("%s", command);
-		if((strcmp(command, "list")) == 0){
+		if((strcmp(command, "list")) == 0)
+		{
 			print_PCB_list();
 		}
-		else if((strcmp(command, "state")) == 0){
+		else if((strcmp(command, "state")) == 0)
+		{
 			pcb_state();
 		}
-		else if((strcmp(command, "plan")) == 0){
-			if(plan_go){
+		else if((strcmp(command, "plan")) == 0)
+		{
+			if(plan_go)
+			{
 				plan_go=false;
 				printf("Se ha detenido la planificacion\n\n");
 			}
-			else{
+			else
+			{
 				plan_go=true;
 				printf("Se ha reanudado la planificacion\n\n");
 			}
 		}
-		else if((strcmp(command, "f_exist") == 0)){
+		else if((strcmp(command, "f_exist") == 0))
+		{
 			file_handler(*sockfs,FILE_EXISTS);
 		}
-		else if((strcmp(command, "f_size") == 0)){
+		else if((strcmp(command, "f_size") == 0))
+		{
 				file_handler(*sockfs,FILE_SIZE);
 		}
-		else{
+		else
+		{
 			printf("Comando incorrecto. Ingrese otro comando: \n");
 			continue;
 		}
@@ -619,24 +650,29 @@ int get_fd_server(char* ip, char* puerto){
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0) {
+	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0)
+	{
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
 		return 1;
 	}
 
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+	for(p = servinfo; p != NULL; p = p->ai_next)
+	{
+		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
 			perror("client: socket");
 			continue;
 		}
-		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+		{
 			close(sockfd);
 			perror("client: connect");
 			continue;
 		}
 		break;
 	}
-	if (p == NULL) {
+	if (p == NULL)
+	{
 		fprintf(stderr, "client: failed to connect\n");
 		return 2;
 	}
@@ -689,11 +725,14 @@ void print_config(){
 	printf("Quantum Sleep: %i\n", data_config.quantum_sleep);
 	printf("Algoritmo: %s\n", data_config.algoritmo);
 	printf("Grado Multiprog: %i\n", data_config.grado_multiprog);
-	while(data_config.sem_ids[i]!=NULL){
+
+	while(data_config.sem_ids[i]!=NULL)
+	{
 		printf("Semaforo %s = %i\n",data_config.sem_ids[i],data_config.sem_init[i]);
 		i++;
 	}
-	while(data_config.shared_vars[k]!=NULL){
+	while(data_config.shared_vars[k]!=NULL)
+	{
 		printf("Variable Global %i: %s\n",k,data_config.shared_vars[k]);
 		k++;
 	}
@@ -706,7 +745,8 @@ void settear_variables_Ansisop(){
 	int i = 0;
 	int j = 0;
 
-	while(data_config.shared_vars[i]!=NULL){
+	while(data_config.shared_vars[i]!=NULL)
+	{
 		variable_compartida *unaVar = malloc(sizeof(variable_compartida));
 		unaVar->ID = data_config.shared_vars[i]+1;
 		unaVar->valor = 0;
@@ -714,7 +754,8 @@ void settear_variables_Ansisop(){
 		i++;
 	}
 
-	while(data_config.sem_ids[j] != NULL){
+	while(data_config.sem_ids[j] != NULL)
+	{
 		semaforo *unSem = malloc(sizeof(semaforo));
 		unSem->ID = data_config.sem_ids[j];
 		unSem->valor = data_config.sem_init[j];
@@ -732,17 +773,20 @@ void print_vars(){
 	int max_sem = list_size(semaforos);
 	int i = 0, j=0;
 	printf("Variables Compartidas:\n");
-	while(i < max_var){
+	while(i < max_var)
+	{
 		variable_compartida *unaVar = list_get(variables_compartidas, i);
 		printf("Variable %s, valor = %d\n", unaVar->ID, unaVar->valor);
 		i++;
 	}
-	while(j < max_sem){
+	while(j < max_sem)
+	{
 		semaforo_cola *unSem = list_get(semaforos, j);
 		printf("Semaforo %s, valor = %d\n", unSem->sem->ID, unSem->sem->valor);
 		j++;
 	}
 }
+
 //Es homogenea tanto para semaforos como para variables_compartidas
 variable_compartida *remove_by_ID(t_list *lista, char* ID){
 	bool _remove_element(void* list_element)
@@ -791,7 +835,9 @@ void signal(char *id_semaforo){
 	pthread_mutex_lock(&mutex_semaforos_ansisop);
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
 	unSem->sem->valor = unSem->sem->valor + 1;
-	if(queue_size(unSem->cola_de_bloqueados)>0){
+
+	if(queue_size(unSem->cola_de_bloqueados)>0)
+	{
 		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
 		pthread_mutex_lock(&mutex_process_list);
 		PCB *PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
@@ -815,7 +861,8 @@ int esta_en_uso(int fd){
 	proceso_conexion *cpu;
 
 	pthread_mutex_lock(&mutex_in_exec);
-	for(i= 0; i< list_size(lista_en_ejecucion); i++){
+	for(i= 0; i< list_size(lista_en_ejecucion); i++)
+	{
 		cpu = list_get(lista_en_ejecucion,i);
 		if(cpu->sock_fd == fd)
 			en_uso =1;
@@ -861,7 +908,8 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	if(numbytes > 0)
 	{
 		//significa que hay espacio y guardo las cosas
-		if(page_counter > 0){
+		if(page_counter > 0)
+		{
 			printf("El proceso PID %d se ha guardado en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
 			pcb_to_use->primerPaginaStack=page_counter-data_config.stack_size; //pagina donde arranca el stack
@@ -873,7 +921,8 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			send(sms->fd_consola,&pcb_to_use->pid,sizeof(uint32_t),0);
 		}
 		//significa que no hay espacio
-		if(page_counter < 0){
+		if(page_counter < 0)
+		{
 			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->estado = "Exit";
 			pthread_mutex_lock(&mutex_exit_queue);
@@ -953,89 +1002,89 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 	int cantArgumentos, cantVariables;
 
-	if(cantRegistros>0){
-
-	while(registrosAgregados < cantRegistros)
+	if(cantRegistros>0)
 	{
-		recv(fd_socket, &cantArgumentos, sizeof(int),0);
 
-		printf("cant argums: %d\n", cantArgumentos);
-		registroStack* nuevoReg = malloc(sizeof(registroStack));
-
-		nuevoReg->args = list_create();
-
-		if(cantArgumentos>0) //Si tiene argumentos
+		while(registrosAgregados < cantRegistros)
 		{
-		//Recibo argumentos:
+			recv(fd_socket, &cantArgumentos, sizeof(int),0);
 
-		int argumentosAgregados = 0;
+			printf("cant argums: %d\n", cantArgumentos);
+			registroStack* nuevoReg = malloc(sizeof(registroStack));
 
-		while(argumentosAgregados < cantArgumentos)
-		{
-			variable *nuevoArg = malloc(sizeof(variable));
+			nuevoReg->args = list_create();
 
-			recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
+			if(cantArgumentos>0) //Si tiene argumentos
+			{
+				//Recibo argumentos:
 
-			recv(fd_socket, &(nuevoArg->offset), sizeof(int),0);
+				int argumentosAgregados = 0;
 
-			recv(fd_socket, &(nuevoArg->page), sizeof(int),0);
+				while(argumentosAgregados < cantArgumentos)
+				{
+					variable *nuevoArg = malloc(sizeof(variable));
 
-			recv(fd_socket, &(nuevoArg->size), sizeof(int),0);
+					recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
 
+					recv(fd_socket, &(nuevoArg->offset), sizeof(int),0);
 
-			list_add(nuevoReg->args, nuevoArg);
-			argumentosAgregados++;
-		}
-		} //Fin recepcion argumentos
+					recv(fd_socket, &(nuevoArg->page), sizeof(int),0);
 
-		recv(fd_socket, &cantVariables, sizeof(int),0);
-
-
-		nuevoReg->vars= list_create();
-		printf("cant vars: %d\n", cantVariables);
-		if(cantVariables>0) //Si tiene variables
-		{
-		//Recibo variables:
-
-		int variablesAgregadas = 0;
-
-		while(variablesAgregadas < cantVariables)
-		{
-			variable *nuevaVar = malloc(sizeof(variable));
-
-			recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
-
-			recv(fd_socket, &(nuevaVar->offset), sizeof(int),0);
-
-			recv(fd_socket, &(nuevaVar->page), sizeof(int),0);
-
-			recv(fd_socket, &(nuevaVar->size), sizeof(int),0);
+					recv(fd_socket, &(nuevoArg->size), sizeof(int),0);
 
 
-			list_add(nuevoReg->vars, nuevaVar);
+					list_add(nuevoReg->args, nuevoArg);
+					argumentosAgregados++;
+				}
+			} //Fin recepcion argumentos
 
-			variablesAgregadas++;
+			recv(fd_socket, &cantVariables, sizeof(int),0);
 
-		}
-		} //Fin recepcion variables
 
-		//Recibo retPos
+			nuevoReg->vars= list_create();
+			printf("cant vars: %d\n", cantVariables);
+			if(cantVariables>0) //Si tiene variables
+			{
+				//Recibo variables:
 
-		recv(fd_socket, &(nuevoReg->ret_pos), sizeof(int),0);
+				int variablesAgregadas = 0;
 
-		//Recibo retVar
+				while(variablesAgregadas < cantVariables)
+				{
+					variable *nuevaVar = malloc(sizeof(variable));
 
-		recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(int),0);
+					recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
 
-		recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(int),0);
+					recv(fd_socket, &(nuevaVar->offset), sizeof(int),0);
 
-		recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(int),0);
+					recv(fd_socket, &(nuevaVar->page), sizeof(int),0);
 
-		list_add(pcb->stack_index, nuevoReg);
+					recv(fd_socket, &(nuevaVar->size), sizeof(int),0);
 
-		registrosAgregados++;
+					list_add(nuevoReg->vars, nuevaVar);
 
-	}//Fin recepcion Stack
+					variablesAgregadas++;
+
+				}
+			} //Fin recepcion variables
+
+			//Recibo retPos
+
+			recv(fd_socket, &(nuevoReg->ret_pos), sizeof(int),0);
+
+			//Recibo retVar
+
+			recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(int),0);
+
+			list_add(pcb->stack_index, nuevoReg);
+
+			registrosAgregados++;
+
+		}//Fin recepcion Stack
 	}
 
 	pcb->pid = pid;
@@ -1054,9 +1103,11 @@ PCB* recibirPCB(uint32_t fd_socket)
 }
 
 void planificacion(int *grado_multiprog){
-	while(1){
+	while(1)
+	{
 		//Si esta funcionando la planificacion
-		if(plan_go){
+		if(plan_go)
+		{
 			int i;
 			//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
 			//Si es asi, pasa un proceso de New a Ready
@@ -1078,7 +1129,8 @@ void planificacion(int *grado_multiprog){
 				pthread_mutex_lock(&mutex_fd_cpus);
 				i = buscar_cpu_libre();
 
-				if(list_size(lista_cpus)>0 && i<list_size(lista_cpus)){
+				if(list_size(lista_cpus)>0 && i<list_size(lista_cpus))
+				{
 					proceso_conexion *cpu = list_get(lista_cpus,i);
 					pthread_mutex_lock(&mutex_in_exec);
 					list_add(lista_en_ejecucion, cpu);
@@ -1093,8 +1145,10 @@ void planificacion(int *grado_multiprog){
 					queue_push(exec_queue,pcb_to_use);
 					pthread_mutex_unlock(&mutex_exec_queue);
 				}
+
 				pthread_mutex_unlock(&mutex_fd_cpus);
 			}
+
 			pthread_mutex_unlock(&mutex_ready_queue);
 		}
 	}
@@ -1110,7 +1164,8 @@ void manejador_de_scripts(script_manager_setup* sms){
 
 	if(procesos_actuales <= sms->grado_multiprog)	
 		guardado_en_memoria(sms, pcb_to_use);
-	else{
+	else
+	{
 		//Lo dejo en New sin guardar en memoria
 		new_pcb* new = malloc(sizeof(new_pcb));
 		new->pcb = pcb_to_use;
@@ -1122,14 +1177,17 @@ void manejador_de_scripts(script_manager_setup* sms){
 		int error = -1;
 		send(sms->fd_consola, &error,sizeof(int),0);
 	}
+
 	free(sms);
 }
 
 void execute_write(int pid, int archivo, void* mensaje){
-	if(archivo == 1){
+	if(archivo == 1)
+	{
 		int i = 0;
 		bool encontrado = false;
-		while(i<list_size(lista_consolas) && !encontrado){
+		while(i<list_size(lista_consolas) && !encontrado)
+		{
 			proceso_conexion* aux = list_get(lista_consolas,i);
 			if(pid == aux->proceso)
 				//Le envio el mensaje a la consola :P
@@ -1146,10 +1204,7 @@ void execute_write(int pid, int archivo, void* mensaje){
 //TODO el main
 
 int main(int argc, char** argv) {
-	if(argc == 1){
-		printf("Debe ingresar ruta de .config y archivo\n");
-		exit(1);
-	}
+
 	//Variables para config
 	t_config *config_file;
 	int i=0;
@@ -1211,16 +1266,21 @@ int main(int argc, char** argv) {
 	int resp;
 	send(sockfd_memoria, &handshake, sizeof(u_int32_t), 0);
 	bytes_mem = recv(sockfd_memoria, &resp, sizeof(u_int32_t), 0);
-	if(bytes_mem > 0 && resp > 0){
+	if(bytes_mem > 0 && resp > 0)
+	{
 				printf("Conectado con Memoria\n");
 				tamanio_pagina = resp;
 				printf("Tamaño de pagina = %d\n", resp);
-	}else{
-		if(bytes_mem == -1){
+	}
+	else
+	{
+		if(bytes_mem == -1)
+		{
 			perror("recieve");
 			exit(3);
-			}
-		if(bytes_mem == 0){
+		}
+		if(bytes_mem == 0)
+		{
 			printf("Se desconecto el socket: %d\n", sockfd_memoria);
 			close(sockfd_memoria);
 		}
@@ -1229,15 +1289,19 @@ int main(int argc, char** argv) {
 	resp = 0;
 	send(sockfd_fs, &handshake, sizeof(u_int32_t), 0);
 	bytes_fs = recv(sockfd_fs, &resp, sizeof(u_int32_t), 0);
-	if(bytes_fs > 0 && resp == 1){
+	if(bytes_fs > 0 && resp == 1)
+	{
 		printf("Conectado con FS\n");
 	}
-	else{
-		if(bytes_mem == -1){
+	else
+	{
+		if(bytes_mem == -1)
+		{
 			perror("recieve");
 			exit(3);
 		}
-		if(bytes_mem == 0){
+		if(bytes_mem == 0)
+		{
 			printf("Se desconecto el socket: %d\n", sockfd_fs);
 			close(sockfd_fs);
 		}
@@ -1261,26 +1325,40 @@ int main(int argc, char** argv) {
 	pthread_t planif;
 	pthread_create(&planif,NULL,(void*)planificacion,&(data_config.grado_multiprog));
 
-	while(1) {
+	while(1)
+	{
 		read_fds = fd_procesos;
-		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
+		{
 			perror("select");
 			exit(4);
 		}
-		for(i = 0; i <= fdmax; i++) {
-			if (FD_ISSET(i, &read_fds)) {
-				if (i == listener) {
+
+		for(i = 0; i <= fdmax; i++)
+		{
+			if (FD_ISSET(i, &read_fds))
+			{
+				if (i == listener)
+				{
 					newfd = sock_accept_new_connection(listener, &fdmax, &fd_procesos);
-				} else {
+				}
+				else
+				{
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
-					if ((nbytes = recv(i, &codigo, sizeof(int), 0)) <= 0) {
-						if (nbytes == 0) {
+					if ((nbytes = recv(i, &codigo, sizeof(int), 0)) <= 0)
+					{
+						if (nbytes == 0)
+						{
 							printf("selectserver: socket %d hung up\n", i);
-						} else {
+						}
+						else
+						{
 							perror("recv");
 						}
+
 						//Dado que no sabemos a que proceso pertenece dicho socket,
 						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
+
 						pthread_mutex_lock(&mutex_fd_cpus);
 						remove_and_destroy_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
@@ -1294,12 +1372,17 @@ int main(int argc, char** argv) {
 
 						printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
 						printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
-					} else {
+					}
+					else
+					{
 						printf("Se recibio: %d\n", codigo);
+
 						//Si el codigo es 1 significa que el proceso del otro lado esta haciendo el handshake
 						if(codigo == HANDSHAKE){
 							recv(i, &processID,sizeof(int),0);
-							if(processID == ID_CPU){	//Si el processID es 1, sabemos que es una CPU
+
+							if(processID == ID_CPU)		//Si el processID es 1, sabemos que es una CPU
+							{
 								printf("Es una CPU\n");
 								nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
 								nueva_conexion_cpu->sock_fd = newfd;
@@ -1308,9 +1391,10 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_fd_cpus);
 
 								printf("Hay %d cpus conectadas\n\n", list_size(lista_cpus));
-
 							}
-							if(processID == ID_CONSOLA){	//Si en cambio el processID es 2, es una Consola
+
+							if(processID == ID_CONSOLA)		//Si en cambio el processID es 2, es una Consola
+							{
 								printf("Es una Consola\n");
 								nueva_conexion_consola = malloc(sizeof(proceso_conexion));
 								nueva_conexion_consola->sock_fd = newfd;
@@ -1320,8 +1404,11 @@ int main(int argc, char** argv) {
 
 								printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 							}
-						}//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
-						if(codigo == NUEVO_PROGRAMA){
+						}
+
+						//Si el codigo es 2, significa que del otro lado estan queriendo mandar un programa ansisop
+						if(codigo == NUEVO_PROGRAMA)
+						{
 							//Agarro el resto del mensaje
 							printf("Ding, dong, bing, bong! Me llego un script!\n");
 
@@ -1343,11 +1430,15 @@ int main(int argc, char** argv) {
 								sms->realbuf = aux;
 
 								manejador_de_scripts(sms);
-							} else {
-							printf("Lo sentimos, la planificacion no esta en funcionamiento\n\n");
-							int error = -1;
-							send(i, &error,sizeof(int),0); }
+							}
+							else
+							{
+								printf("Lo sentimos, la planificacion no esta en funcionamiento\n\n");
+								int error = -1;
+								send(i, &error,sizeof(int),0);
+							}
 						}
+
 						//Si el codigo es 3 significa que debo terminar el proceso
 						if (codigo == ELIMINAR_PROCESO)
 						{
@@ -1357,6 +1448,7 @@ int main(int argc, char** argv) {
 							//Y llamo a la funcion que lo borra
 							end_process(pid,sockfd_memoria,-7,i);
 						}
+
 						//Si el codigo es 4 significa que quieren hacer un write
 						if(codigo == WRITE)
 						{
@@ -1371,7 +1463,9 @@ int main(int argc, char** argv) {
 
 							execute_write(pid,archivo,message);
 						}
-						if(codigo == ASIGNAR_VALOR_COMPARTIDA){
+
+						if(codigo == ASIGNAR_VALOR_COMPARTIDA)
+						{
 							u_int32_t value, tamanio;
 							recv(i, &value, sizeof(u_int32_t),0);
 							recv(i, &tamanio, sizeof(u_int32_t),0);
@@ -1384,7 +1478,9 @@ int main(int argc, char** argv) {
 							asignar_valor_variable_compartida(id_var, value);
 							print_vars();
 						}
-						if(codigo == BUSCAR_VALOR_COMPARTIDA){
+
+						if(codigo == BUSCAR_VALOR_COMPARTIDA)
+						{
 							u_int32_t value, tamanio;
 							recv(i, &tamanio, sizeof(u_int32_t),0);
 
@@ -1399,6 +1495,7 @@ int main(int argc, char** argv) {
 
 							send(i, &value, sizeof(u_int32_t), 0);
 						}
+
 						if (codigo==WAIT)
 						{
 							uint32_t PID;
@@ -1413,7 +1510,8 @@ int main(int argc, char** argv) {
 
 							send(i, &valor, sizeof(int32_t), 0);
 
-							if(valor < 0){
+							if(valor < 0)
+							{
 								uint32_t primerMensaje;
 								recv(i, &primerMensaje, sizeof(uint32_t), 0);
 								PCB *unPCB = recibirPCB(i);
@@ -1448,7 +1546,9 @@ int main(int argc, char** argv) {
 
 							free(id_sem);
 						}
-						if(codigo==SIGNAL){
+
+						if(codigo==SIGNAL)
+						{
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 
 							char *id_sem = malloc(messageLength);
@@ -1462,15 +1562,19 @@ int main(int argc, char** argv) {
 
 							free(id_sem);
 						}
+
 						//Si recibo 9 significa que se desconecto la consola
-						if(codigo==DESCONEXION){
+						if(codigo==DESCONEXION)
+						{
 							//Cacheo el pid del proceso que tengo que borrar
 							int pid;
 							recv(i,&pid,sizeof(int),0);
 							//Y llamo a la funcion que lo borra
 							end_process(pid,sockfd_memoria,-6,i);
 						}
-						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE){
+
+						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE)
+						{
 							PCB *unPCB = recibirPCB(i);
 							print_PCB(unPCB);
 							pthread_mutex_lock(&mutex_in_exec);
@@ -1484,8 +1588,10 @@ int main(int argc, char** argv) {
 							end_process(PID,sockfd_memoria,0,fd_consola);
 
 						}
+
 						//Si un proceso termino su rafaga...
-						if(codigo == FIN_DE_RAFAGA){
+						if(codigo == FIN_DE_RAFAGA)
+						{
 							//Lo recibo...
 							/*PCB *pcb_modificado = recibirPCB(i);
 
@@ -1517,6 +1623,45 @@ int main(int argc, char** argv) {
 							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
 							//free(pcb_viejo);
 						}
+
+						if(codigo == ABRIR_ARCHIVO)
+						{
+							//tengo que recibir el path del archivo y los permisos... verifico con el fs
+							//si existe el archivo y de ser asi le asigno un fd a ese archivo, lo agrego a la tabla
+							//para ese proceso, y le devuelvo a la cpu el fd de ese archivo
+
+							//si cpu abre el fd 1 (consola), no hace falta agregarlo a las tablas
+						}
+
+						if(codigo == LEER_ARCHIVO)
+						{
+							//recibo de cpu el fd del archivo, veo en las tablas el path de ese fd, y le pido
+							//al fs el archivo con ese path, un offset y el tamaño (o esas 2 ultimas cosas me las da fs?)
+							//despues le devuelvo esas ultimas cosas a la cpu (le devuelvo esas 3 ultimas cosas?)
+
+							//tiene que poder leer del fd 1 (consola)?
+							//si no es asi, que error le tiro?
+						}
+
+						if(codigo == ESCRIBIR_ARCHIVO)
+						{
+							//recibo de cpu el fd del archivo y lo que quiere escribir; veo en las tablas el path de ese fd
+							//le pido al fs que escriba esa data en el archivo de ese path (dice que tengo que pedirlo con tamaño y offset..wat)
+							//y finalmente, si hubo exito en la escritura, le avisa a cpu.. sino finaliza el programa
+							//y pone el exit code correspondiente en el pcb de dicho proceso
+
+							//si escribe en el fd 1 -> imprime algo por consola
+						}
+
+						if(codigo == CERRAR_ARCHIVO)
+						{
+							//recibo de cpu el fd del archivo a cerrar, elimino la referencia a ese fd en la tabla de archivos
+							//para ese proceso, y disminuyo en 1 la cantidad de instancias para ese fd en la tabla global
+							//(si al disminuir esa cantidad de instancias, se hace cero, tengo que eliminar esa fila de la tabla global)
+
+							//si cpu cierra el fd 1 (consola), al no estar en las tablas, no tengo que hacer nada de lo de arriba
+						}
+
 						memset(buf,0,256);
 					}
 				}
