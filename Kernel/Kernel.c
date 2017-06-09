@@ -245,7 +245,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	consola->proceso = nuevo_PCB->pid;
 	list_add(lista_consolas, consola);
 	pthread_mutex_unlock(&mutex_fd_consolas);
-/*
+
 	tabla_de_archivos_de_proceso* pft = malloc(sizeof(tabla_de_archivos_de_proceso));
 	pft->pid = nuevo_PCB->pid;
 	list_create(pft->fd);
@@ -255,7 +255,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
 	list_add(archivos_por_proceso,pft);
 	pthread_mutex_unlock(&mutex_archivos_x_proceso);
-*/
+
 	return nuevo_PCB;
 }
 
@@ -1224,6 +1224,7 @@ int main(int argc, char** argv) {
 	lista_cpus = list_create();
 	lista_consolas = list_create();
 	lista_en_ejecucion = list_create();
+	archivos_por_proceso = list_create();
 	proceso_conexion *nueva_conexion_cpu;
 	proceso_conexion *nueva_conexion_consola;
 
