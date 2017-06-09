@@ -449,13 +449,13 @@ void end_process(int PID, int socket_memoria, int exit_code, int sock_consola){
 
 		int consola = buscar_consola_de_proceso(PID);
 		memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
-		send(consola,sendbuf_consola,sizeof(uint32_t)*2,0);
+		send(consola,sendbuf_consola,sizeof(uint32_t),0);
 
 		//Y al hilo que me mando el mensaje que fue lo que paso
 		//Le mando 1 para que sepa que se pudo borrar
 		uint32_t codigo_de_cancelado_ok = 1;
 		memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
-		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
+		send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t),0);
 
 		free(sendbuf_mem);
 		free(sendbuf_consola);

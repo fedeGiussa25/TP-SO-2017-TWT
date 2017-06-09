@@ -304,7 +304,7 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 }
 
 void *thread_consola(){
-	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensjes\n\n");
+	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensajes\n\n");
 	while(1){
 		char *command = malloc(20);
 		scanf("%s", command);

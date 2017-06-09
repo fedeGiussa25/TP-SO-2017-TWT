@@ -287,7 +287,7 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 				list_iterate(pcb->stack_index, (void*) sumar_tamanio_registro);
 			}
 
-			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + tamanio_stack);
+			sendbuf = malloc(sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas+ tamanio_indice_codigo + tamanio_stack + 2);
 			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
 			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
 			//memcpy(sendbuf+sizeof(uint32_t)+2*sizeof(uint32_t), pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
@@ -368,7 +368,7 @@ void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
-	uint32_t tamanio_total_buffer = sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack;
+	uint32_t tamanio_total_buffer = sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack+2;
 
 	//Creamos un buffer completo, que ademas del PCB llevara un codigo.
 	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(uint32_t));
