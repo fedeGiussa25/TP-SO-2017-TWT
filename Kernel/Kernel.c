@@ -245,7 +245,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	consola->proceso = nuevo_PCB->pid;
 	list_add(lista_consolas, consola);
 	pthread_mutex_unlock(&mutex_fd_consolas);
-
+/*
 	tabla_de_archivos_de_proceso* pft = malloc(sizeof(tabla_de_archivos_de_proceso));
 	pft->pid = nuevo_PCB->pid;
 	list_create(pft->fd);
@@ -255,7 +255,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
 	list_add(archivos_por_proceso,pft);
 	pthread_mutex_unlock(&mutex_archivos_x_proceso);
-
+*/
 	return nuevo_PCB;
 }
 
@@ -940,7 +940,7 @@ PCB* recibirPCB(uint32_t fd_socket)
 	u_int32_t pid;
 
 	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
-	stack_size, primerPagStack, stack_pointer, codigo;
+	stack_size, primerPagStack, stack_pointer;
 
 	PCB* pcb = malloc(sizeof(PCB));
 
@@ -1514,6 +1514,7 @@ int main(int argc, char** argv) {
 							{
 								uint32_t primerMensaje;
 								recv(i, &primerMensaje, sizeof(uint32_t), 0);
+
 								PCB *unPCB = recibirPCB(i);
 								print_PCB(unPCB);
 
@@ -1533,7 +1534,7 @@ int main(int argc, char** argv) {
 
 								pthread_mutex_lock(&mutex_process_list);
 								PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-								PCB_a_modif->estado = "Ready";
+								PCB_a_modif->estado = "Block";
 								list_add(todos_los_procesos, PCB_a_modif);
 								pthread_mutex_unlock(&mutex_process_list);
 
@@ -1541,7 +1542,7 @@ int main(int argc, char** argv) {
 								queue_push(unSem->cola_de_bloqueados, unPCB);
 								list_add(semaforos, unSem);
 								pthread_mutex_unlock(&mutex_semaforos_ansisop);
-								printf("termino too\n");
+								printf("termino todo el envio\n");
 							}
 
 							free(id_sem);

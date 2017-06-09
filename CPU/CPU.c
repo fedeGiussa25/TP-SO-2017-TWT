@@ -82,10 +82,10 @@ void liberar_registro_stack(registroStack *registro){
 /*
 	for(j=0; j< cant_args; j++){
 		variable *unArg = list_remove(registro->args, 0);
-		//nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
+		nuevaPCB->stackPointer = nuevaPCB->stackPointer - sizeof(int); //Decremento el stackPointer 4 bytes (una variable)
 		free(unArg);
-	}*/
-
+	}
+*/
 	free(registro);
 }
 
@@ -387,15 +387,11 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 	memcpy(buffer + sizeof(uint32_t)*2, &messageLength, sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t)*3, (char *) identificador_semaforo, messageLength);
 
-	if(send(fd_kernel,buffer,sizeof(int)*3+messageLength,0)==-1)
-			{
-				perror("send");
-				exit(3);
-			}
+	send(fd_kernel,buffer,sizeof(int)*3+messageLength,0);
+
 	free(buffer);
 
 	recv(fd_kernel, &valor, sizeof(int32_t), 0);
-
 
 	if(valor < 0){
 		procesoBloqueado = true;
@@ -416,11 +412,7 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 	memcpy(buffer + sizeof(uint32_t), &messageLength, sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t)*2, (char *) identificador_semaforo, messageLength);
 
-	if(send(fd_kernel,buffer,sizeof(int)*2+messageLength,0)==-1)
-			{
-				perror("send");
-				exit(3);
-			}
+	send(fd_kernel,buffer,sizeof(int)*2+messageLength,0);
 	free(buffer);
 
 	return;

@@ -12,7 +12,7 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include "socketEze.h"
 #include <errno.h>
-#include "tfs.h"
+#include "fs.h"
 #define SIZE_MSG 11
 #define EXIST_MSG 12
 
