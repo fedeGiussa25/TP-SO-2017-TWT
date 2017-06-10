@@ -1475,8 +1475,9 @@ int main(int argc, char** argv) {
 							recv(i, id_var, tamanio,0);
 
 							printf("Hay que modificar la variable %s con el valor %d\n", id_var, value);
-
+							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							asignar_valor_variable_compartida(id_var, value);
+							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
 							print_vars();
 						}
 
@@ -1489,9 +1490,9 @@ int main(int argc, char** argv) {
 							recv(i, id_var, tamanio,0);
 
 							printf("Hay que obtener el valor de la variable %s\n", id_var);
-
+							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							value = obtener_valor_variable_compartida(id_var);
-
+							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
 							printf("La variable %s tiene valor %d\n", id_var, value);
 
 							send(i, &value, sizeof(u_int32_t), 0);
