@@ -34,7 +34,7 @@ CPU: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) CPU
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) CPU
 	-@echo ' '
 
 .PHONY: all clean dependents

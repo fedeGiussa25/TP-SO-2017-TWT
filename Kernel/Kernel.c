@@ -72,7 +72,6 @@ enum{
 	NUEVO_PROGRAMA = 2,
 	FD_INICIAL_ARCHIVOS = 3,
 	ELIMINAR_PROCESO = 3,
-	WRITE = 4,
 	ASIGNAR_VALOR_COMPARTIDA = 5,
 	BUSCAR_VALOR_COMPARTIDA = 6,
 	WAIT = 7,
@@ -109,12 +108,19 @@ typedef struct{
 	t_queue* cola_de_bloqueados;
 } semaforo_cola;
 
+//Se podria hacer una estructura que representa a una fila de la tabla,
+//y despues otra estructura que representa a la tabla
+//(con un pid y una lista de la primer estructura), pero es mas facil
+//acceder a la tabla con esta estructura (y es mas facil manejar 1 lista que 2)
+//(es mas facil acceder a esta tabla para el programa, pero mas lio de programacion)
 typedef struct{
-	int pid;									//Se podria hacer una estructura que representa a una fila de la tabla,
-	t_list* fd;									//y despues otra estructura que representa a la tabla
-	t_list* flag;								//(con un pid y una lista de la primer estructura), pero es mas facil
-	t_list* referencia_a_tabla_principal;		//acceder a la tabla con esta estructura (y es mas facil manejar 1 lista que 2)
-} tabla_de_archivos_de_proceso;					//(es mas facil acceder a esta tabla para el programa, pero mas lio de programacion)
+	int pid;
+	t_list* fd;
+	t_list* flag;	// Va a ser un int el flag: 1 = read, 2 = write, 3 = read/write
+	t_list* referencia_a_tabla_principal;
+	t_list* offset;
+	int current_fd;
+} tabla_de_archivos_de_proceso;
 
 typedef struct{
 	t_list* ruta_del_archivo;
@@ -251,6 +257,8 @@ PCB* create_PCB(char* script, int fd_consola){
 	list_create(pft->fd);
 	list_create(pft->flag);
 	list_create(pft->referencia_a_tabla_principal);
+	list_create(pft->offset);
+	pft->current_fd = 3;
 
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
 	list_add(archivos_por_proceso,pft);
@@ -919,6 +927,15 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			queue_push(ready_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_ready_queue);
 			send(sms->fd_consola,&pcb_to_use->pid,sizeof(uint32_t),0);
+			int i = 0;
+			pthread_mutex_lock(&mutex_fd_consolas);
+			while(i > list_size(lista_consolas)){
+				proceso_conexion* aux = list_get(lista_consolas,i);
+				if(sms->fd_consola == aux->sock_fd)
+					aux->proceso = pcb_to_use->pid;
+				i++;
+			}
+			pthread_mutex_unlock(&mutex_fd_consolas);
 		}
 		//significa que no hay espacio
 		if(page_counter < 0)
@@ -1181,24 +1198,87 @@ void manejador_de_scripts(script_manager_setup* sms){
 	free(sms);
 }
 
-void execute_write(int pid, int archivo, void* mensaje){
-	if(archivo == 1)
-	{
-		int i = 0;
-		bool encontrado = false;
-		while(i<list_size(lista_consolas) && !encontrado)
-		{
-			proceso_conexion* aux = list_get(lista_consolas,i);
-			if(pid == aux->proceso)
-				//Le envio el mensaje a la consola :P
-				encontrado = true;
-			else
-				i++;
+void execute_write(int pid, int archivo, void* message, int messageLength, int sock_mem, tabla_global_de_archivos* global){
+	int i = 0;
+	int sock_consola;
+	bool encontrado = false;
+	//Busco la consola asignada a ese proceso
+	pthread_mutex_lock(&mutex_fd_consolas);
+	while(i<list_size(lista_consolas) && !encontrado){
+		proceso_conexion* aux = list_get(lista_consolas,i);
+		if(pid == aux->proceso){
+			sock_consola = aux->sock_fd;
+			encontrado = true;
 		}
-		if(!encontrado)
-			printf("Error, no exista la consola en la que se quiere imprimir");
+		i++;
 	}
-	else printf("Not yet implemented");
+	pthread_mutex_unlock(&mutex_fd_consolas);
+
+	if(archivo == 1){
+		//Impresion por pantalla
+		uint32_t codigo_de_impresion = 5;
+		enviar(sock_consola,&codigo_de_impresion,sizeof(uint32_t));
+		enviar(sock_consola,&messageLength,sizeof(uint32_t));
+		enviar(sock_consola,&message,sizeof(uint32_t));
+	}
+
+	if(archivo == 0 || archivo == 2){
+		//Estos fd NUNCA se van a usar, si me los piden hubo un error
+		end_process(pid,sock_mem,-2,sock_consola);
+		printf("Error: el archivo no existe\n");
+	}
+
+	if(archivo > 3){
+		//A partir de 3, empiezan los fd validos
+		tabla_de_archivos_de_proceso* tabla_archivos;
+		int j = 0;
+		//Saco la tabla de archivos asociada a mi proceso
+		while(j<list_size(archivos_por_proceso)){
+			tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, j);
+			if(pid == aux->pid){
+				tabla_archivos = aux;
+			}
+			j++;
+		}
+		//Busco el fd dentro de la tabla
+		int k = 3;
+		bool encontrado = false;
+		while(k<tabla_archivos->current_fd && !encontrado){
+			int* aux = list_get(tabla_archivos->fd, k);
+			//Si lo encuentro
+			if(archivo == *aux){
+				//Agarro el flag para ese archivo
+				int* bandera = list_get(tabla_archivos->flag, k);
+				//Si es write o read/write...
+				if(*bandera > 1){
+					//Saco la posicion en la tabla global
+					int* pos_en_tabla_general = list_get(tabla_archivos->referencia_a_tabla_principal,k);
+					char** path = list_get(global->ruta_del_archivo,*pos_en_tabla_general);
+
+					//Aca enviar a FS los datos para que haga el write
+					//Y luego recibiria si pudo hacer el write o no
+
+					int* offset = list_get(tabla_archivos->offset,k);
+					//Aumento el puntero del archivo
+					*offset += messageLength;
+				}
+				//Si es read...
+				if(*bandera == 1){
+					//Termino el proceso con exit code -4
+					end_process(pid,sock_mem,-4,sock_consola);
+					printf("Error: El proceso no tiene permiso para escribir el archivo seleccionado\n");
+				}
+				encontrado = true;
+			}
+			k++;
+		}
+		//Si no lo encontre signfica que el proceso nunca abrio ese archivo
+		if(!encontrado){
+			end_process(pid,sock_mem,-4,sock_consola);
+			printf("El archivo pedido nunca fue abierto por el proceso");
+		}
+
+	}
 }
 
 //TODO el main
@@ -1236,6 +1316,11 @@ int main(int argc, char** argv) {
 
 	//Lista con todos los procesos
 	todos_los_procesos = list_create();
+
+	//Tabla global de archivos
+	tabla_global_de_archivos* tabla_global = malloc(sizeof(tabla_global_de_archivos));
+	list_create(tabla_global->ruta_del_archivo);
+	list_create(tabla_global->instancias_abiertas_del_archivo);
 
 	//Variables_compartidas y semaforos
 	variables_compartidas = list_create();
@@ -1449,22 +1534,6 @@ int main(int argc, char** argv) {
 							//Y llamo a la funcion que lo borra
 							end_process(pid,sockfd_memoria,-7,i);
 						}
-
-						//Si el codigo es 4 significa que quieren hacer un write
-						if(codigo == WRITE)
-						{
-							int archivo, pid, messageLength;
-							recv(i,&archivo,sizeof(int),0);
-							recv(i,&pid,sizeof(int),0);
-							recv(i,&messageLength,sizeof(int),0);
-							void* message = malloc(messageLength+2);
-							memset(message,0,messageLength+2);
-							recv(i, message, messageLength, 0);
-							memset(message+messageLength+1,'\0',1);
-
-							execute_write(pid,archivo,message);
-						}
-
 						if(codigo == ASIGNAR_VALOR_COMPARTIDA)
 						{
 							u_int32_t value, tamanio;
@@ -1654,6 +1723,16 @@ int main(int argc, char** argv) {
 							//y pone el exit code correspondiente en el pcb de dicho proceso
 
 							//si escribe en el fd 1 -> imprime algo por consola
+							int archivo, pid, messageLength;
+							recv(i,&archivo,sizeof(int),0);
+							recv(i,&pid,sizeof(int),0);
+							recv(i,&messageLength,sizeof(int),0);
+							void* message = malloc(messageLength+2);
+							memset(message,0,messageLength+2);
+							recv(i, message, messageLength, 0);
+							memset(message+messageLength+1,'\0',1);
+
+							execute_write(pid,archivo,message,messageLength,sockfd_memoria,tabla_global);
 						}
 
 						if(codigo == CERRAR_ARCHIVO)
