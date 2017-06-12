@@ -196,6 +196,23 @@ void serializarVariables(variable* var);
 void serializarElestac(registroStack* registro);
 void sumar_tamanio_registro(registroStack* unRegistro);
 */
+void free_variable(variable *unaVar){
+	free(unaVar);
+}
+
+void free_Stack(registroStack* registro){
+	list_destroy_and_destroy_elements(registro->args, (void *) free_variable);
+	list_destroy_and_destroy_elements(registro->vars, (void *) free_variable);
+	free(registro);
+}
+
+void free_PCB(PCB *unPCB){
+	free(unPCB->indice_de_codigo);
+	free(unPCB->lista_de_etiquetas);
+	list_destroy_and_destroy_elements(unPCB->stack_index, (void *) free_Stack);
+	free(unPCB);
+}
+
 void serializarVariables(variable* var)
 {
 	memcpy(sendbuf+corrimiento, &(var->id), sizeof(char));

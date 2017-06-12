@@ -279,6 +279,35 @@ void remove_PCB_from_list(t_list* lista, int pid){
 	}
 }
 
+int queue_exists(uint32_t processid, t_queue *queue){
+	int i = 0, len, encontrado = 0;
+	t_list* lista_auxiliar = list_create();
+	len = queue_size(queue);
+	PCB *toReturn;
+	while(i<len){
+		//Saco un PCB y me fijo si es el que busco
+		PCB* aux = queue_pop(queue);
+		if(aux->pid == processid)
+		{
+			encontrado = 1;
+		}
+		list_add(lista_auxiliar,aux);
+		i++;
+	}
+	//Cuando finalice me fijo si coloque algun PCB en la lista auxiliar
+	i = 0;
+	if(list_size(lista_auxiliar)>0){
+		//De ser asi...
+		while(i<list_size(lista_auxiliar)){
+			//Voy ubicandolos del ultimo al primero en la cola de vuelta para mantener el orden previo
+			PCB* aux = list_get(lista_auxiliar, i);
+			queue_push(queue,aux);
+			i++;
+		}
+	}
+	return encontrado;
+}
+
 PCB *remove_and_get_PCB(int processid,t_queue* queue){
 	int i = 0, len;
 	t_list* lista_auxiliar = list_create();
@@ -354,6 +383,19 @@ void delete_PCB(PCB* pcb){
 	pthread_mutex_unlock(&mutex_exit_queue);
 }
 
+void remove_from_semaphore(uint32_t PID){
+	int i, encontrado = 0;
+	int cant_semaforos = list_size(semaforos);
+	semaforo_cola *unSem;
+	for(i=0; i<cant_semaforos; i++){
+		unSem = list_get(semaforos, i);
+		encontrado = queue_exists(PID, unSem->cola_de_bloqueados);
+		if(encontrado == 1){
+			remove_PCB_from_specific_queue(PID, unSem->cola_de_bloqueados);
+		}
+	}
+}
+
 void remove_from_queue(PCB* pcb){
 	if(strcmp(pcb->estado,"New")==0)
 	{
@@ -372,6 +414,12 @@ void remove_from_queue(PCB* pcb){
 		pthread_mutex_lock(&mutex_exec_queue);
 		remove_PCB_from_specific_queue(pcb->pid,exec_queue);
 		pthread_mutex_unlock(&mutex_exec_queue);
+	}
+	else if(strcmp(pcb->estado, "Block")==0)
+	{
+		pthread_mutex_lock(&mutex_semaforos_ansisop);
+		remove_from_semaphore(pcb->pid);
+		pthread_mutex_unlock(&mutex_semaforos_ansisop);
 	}
 	else printf("PCB invalido, no se encuentra en ninguna cola");
 }
@@ -1599,8 +1647,7 @@ int main(int argc, char** argv) {
 
 								printf("check 2\n");
 								pthread_mutex_lock(&mutex_exec_queue);
-								PCB *viejoPCB = remove_and_get_PCB(PID, exec_queue);
-								//todo liberar este pcb
+								remove_PCB_from_specific_queue(PID, exec_queue);
 								pthread_mutex_unlock(&mutex_exec_queue);
 
 								pthread_mutex_lock(&mutex_process_list);
