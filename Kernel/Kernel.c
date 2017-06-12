@@ -1167,7 +1167,7 @@ PCB* recibirPCB(uint32_t fd_socket)
 	return pcb;
 }
 
-void planificacion(int *grado_multiprog){
+void planificacion(){
 	while(1)
 	{
 		//Si esta funcionando la planificacion
@@ -1180,7 +1180,7 @@ void planificacion(int *grado_multiprog){
 
 			if(queue_size(new_queue) > 0)
 			{
-				if(procesos_actuales < *grado_multiprog)
+				if(procesos_actuales < data_config.grado_multiprog)
 				{
 					new_pcb* new = queue_pop(new_queue);
 					guardado_en_memoria(new->sms,new->pcb);
@@ -1203,6 +1203,15 @@ void planificacion(int *grado_multiprog){
 					PCB *pcb_to_use = queue_pop(ready_queue);
 
 					uint32_t codigo = 10;
+					int32_t el_quantum;
+					if(strcmp(data_config.algoritmo, "FIFO") == 0){
+						el_quantum = -1;
+					}
+					if(strcmp(data_config.algoritmo, "RR") == 0){
+						el_quantum = data_config.quantum;
+					}
+					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
+					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
 					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
 
 					pcb_to_use->estado = "Exec";
@@ -1457,7 +1466,7 @@ int main(int argc, char** argv) {
 
 	//Hilo planficacion
 	pthread_t planif;
-	pthread_create(&planif,NULL,(void*)planificacion,&(data_config.grado_multiprog));
+	pthread_create(&planif,NULL,(void*)planificacion,NULL);
 
 	while(1)
 	{
@@ -1712,7 +1721,8 @@ int main(int argc, char** argv) {
 						if(codigo == FIN_DE_RAFAGA)
 						{
 							//Lo recibo...
-							/*PCB *pcb_modificado = recibirPCB(i);
+							PCB *unPCB = recibirPCB(i);
+							print_PCB(unPCB);
 
 							//Saco la CPU de la lista de ejecucion
 							pthread_mutex_lock(&mutex_in_exec);
@@ -1721,24 +1731,20 @@ int main(int argc, char** argv) {
 
 							//Busco la version anterior del PCB y la saco de Exec
 							pthread_mutex_lock(&mutex_exec_queue);
-							PCB *pcb_viejo = remove_and_get_PCB(pcb_modificado->pid,exec_queue);
+							remove_PCB_from_specific_queue(unPCB->pid,exec_queue);
 							pthread_mutex_unlock(&mutex_exec_queue);
 
-							//Tambien la saco de la lista de procesos
 							pthread_mutex_lock(&mutex_process_list);
-							remove_PCB_from_list(todos_los_procesos,pcb_viejo->pid);
-							pthread_mutex_unlock(&mutex_process_list);
-
-							//Meto el PCB modificado en la lista de procesos
-							pthread_mutex_lock(&mutex_process_list);
-							list_add(todos_los_procesos,pcb_modificado);
+							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+							PCB_vieja->estado = "Ready";
+							list_add(todos_los_procesos,PCB_vieja);
 							pthread_mutex_unlock(&mutex_process_list);
 
 							//Meto el modificado en Ready
 							pthread_mutex_lock(&mutex_ready_queue);
-							queue_push(ready_queue,pcb_modificado);
+							queue_push(ready_queue,unPCB);
 							pthread_mutex_unlock(&mutex_ready_queue);
-*/
+
 							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
 							//free(pcb_viejo);
 						}

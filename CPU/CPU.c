@@ -882,26 +882,50 @@ int main(int argc, char **argv) {
 	//O hasta que cierres el programa
 	//Lo que pase primero
 
-	uint32_t codigo;
+	uint32_t codigo, quantum_sleep;
+	int32_t  quantum;
 
 	while(1)
 	{
+		recv(fd_kernel, &quantum, sizeof(int32_t), 0);
+		recv(fd_kernel, &quantum_sleep, sizeof(uint32_t), 0);
 		nuevaPCB = recibirPCB();
 		printf("RECIBI PCB\n");
 		print_PCB(nuevaPCB);
 		stackOverflow = false;
 		programaTerminado = false;
 		procesoBloqueado = false;
-
-		while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
-		{
-			char *instruccion = obtener_instruccion(nuevaPCB);
-			printf("Instruccion: %s\n", instruccion);
-			analizadorLinea(instruccion, &funciones, &fcs_kernel);
-			free(instruccion);
+		if(quantum < 0){
+			printf("Estoy ejecutando en FIFO\n");
+			while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
+			{
+				char *instruccion = obtener_instruccion(nuevaPCB);
+				printf("Instruccion: %s\n", instruccion);
+				analizadorLinea(instruccion, &funciones, &fcs_kernel);
+				free(instruccion);
+			}
+			codigo = 10;
+			send_PCB(fd_kernel, nuevaPCB, codigo);
 		}
-		codigo = 10;
-		send_PCB(fd_kernel, nuevaPCB, codigo);
+		else{
+			printf("Estoy ejecutando en Round Robin\n");
+			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
+			{
+				char *instruccion = obtener_instruccion(nuevaPCB);
+				printf("Instruccion: %s\n", instruccion);
+				analizadorLinea(instruccion, &funciones, &fcs_kernel);
+				free(instruccion);
+				quantum --;
+			}
+			if((programaTerminado == true) || (stackOverflow==true) || (procesoBloqueado == true)){
+				codigo = 10;
+				send_PCB(fd_kernel, nuevaPCB, codigo);
+			}
+			if((quantum == 0) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false)){
+				codigo = 13;
+				send_PCB(fd_kernel, nuevaPCB, codigo);
+			}
+		}
 
 		//TODO send(nuevaPCB);
 	}
