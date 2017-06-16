@@ -93,7 +93,10 @@ enum{
 	READ_WRITE = 4,
 	READ_CREATE = 5,
 	WRITE_CREATE = 6,
-	READ_WRITE_CREATE = 7
+	READ_WRITE_CREATE = 7,
+//Acciones sobre el Heap
+	RESERVAR_MEMORIA = 18,
+	LIBERAR_MEMORIA = 19
 };
 
 typedef struct{
@@ -1406,7 +1409,7 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 	int fd = (tabla_archivos->current_fd) + 1;
 
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
-	*(tabla_archivos->current_fd) = fd;
+	tabla_archivos->current_fd = fd;
 	list_add(tabla_archivos->fd, fd);
 	list_add(tabla_archivos->flag, permisos);
 	list_add(tabla_archivos->offset, offset);
@@ -1595,7 +1598,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 int execute_close(int pid, int fd, tabla_global_de_archivos* global)
 {
 	int i = 0;
-	int* file, referencia_tabla_global;
+	int* file;
+	int referencia_tabla_global;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 	bool encontrado = false;
 
@@ -1651,18 +1655,18 @@ int execute_close(int pid, int fd, tabla_global_de_archivos* global)
 	encontrado = false;
 
 	//Disminuyo la cantidad de instancias abiertas del archivo perteneciente al fd dado
-	int* instancias_abiertas = list_get(global->instancias_abiertas_del_archivo, *referencia_tabla_global);
+	int instancias_abiertas = list_get(global->instancias_abiertas_del_archivo, referencia_tabla_global);
 
-	if((*instancias_abiertas) == 1)
+	if((instancias_abiertas) == 1)
 	{
 		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
 		//en 0, por lo que tengo que eliminar esa fila de la tabla global
-		list_remove(global->instancias_abiertas_del_archivo, *referencia_tabla_global);
-		list_remove(global->ruta_del_archivo, *referencia_tabla_global);
+		list_remove(global->instancias_abiertas_del_archivo, referencia_tabla_global);
+		list_remove(global->ruta_del_archivo, referencia_tabla_global);
 	}
 	else
 		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
-		(*instancias_abiertas)--;
+		(instancias_abiertas)--;
 
 	return 1;
 }
@@ -2085,8 +2089,8 @@ int main(int argc, char** argv) {
 							uint32_t pid, permisos, path_length;
 
 							//Recibo el pid y el largo de la ruta del archivo
-							recibir(i, &pid, sizeof(uint32_t), 0);
-							recibir(i, &path_length, sizeof(uint32_t), 0);
+							recibir(i, &pid, sizeof(uint32_t));
+							recibir(i, &path_length, sizeof(uint32_t));
 
 							char* file_path = malloc(path_length + 2);
 							memset(file_path, 0, path_length + 2);
@@ -2207,7 +2211,14 @@ int main(int argc, char** argv) {
 
 							enviar(i, &resultado, sizeof(int));
 						}
+						if(codigo == RESERVAR_MEMORIA)
+						{
 
+						}
+						if(codigo == LIBERAR_MEMORIA)
+						{
+
+						}
 						memset(buf,0,256);
 					}
 				}

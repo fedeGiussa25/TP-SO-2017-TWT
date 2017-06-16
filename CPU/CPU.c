@@ -37,7 +37,9 @@ enum{
 	ASIGNAR_VALOR_COMPARTIDA = 5,
 	BUSCAR_VALOR = 6,
 	WAIT = 7,
-	SIGNAL = 8
+	SIGNAL = 8,
+	RESERVAR_MEMORIA = 18,
+	LIBERAR_MEMORIA = 19
 };
 
 PCB* nuevaPCB;
@@ -420,11 +422,26 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 t_puntero twt_reservar (t_valor_variable espacio)
 {
 	printf("Soy reservar memoria\n");
-	return 0;
+	uint32_t codigo = RESERVAR_MEMORIA;
+	u_int32_t puntero;
+	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(int));
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(int));
+	enviar(fd_kernel, buffer, sizeof(int)+ sizeof(uint32_t)*2);
+	recibir(fd_kernel, &puntero, sizeof(u_int32_t));
+	return puntero;
 }
 void twt_liberar(t_puntero puntero)
 {
 	printf("Soy liberar memoria\n");
+	uint32_t resp, codigo = LIBERAR_MEMORIA;
+	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(u_int32_t));
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, &puntero, sizeof(u_int32_t));
+	enviar(fd_kernel, buffer, sizeof(u_int32_t)+ sizeof(uint32_t)*2);
+	recibir(fd_kernel, &resp, sizeof(uint32_t));
 	return;
 }
 t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
