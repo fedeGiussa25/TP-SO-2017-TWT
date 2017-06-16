@@ -120,6 +120,16 @@ typedef struct{
 	t_queue* cola_de_bloqueados;
 } semaforo_cola;
 
+typedef struct{
+	uint32_t size;
+	bool isFree;
+} heapMetadata;
+
+typedef struct{
+	uint32_t pid;
+	t_list* heap;
+} heap_de_proceso;
+
 //Se podria hacer una estructura que representa a una fila de la tabla,
 //y despues otra estructura que representa a la tabla
 //(con un pid y una lista de la primer estructura), pero es mas facil
@@ -176,6 +186,9 @@ t_list* lista_en_ejecucion;
 //Lista de Variables y Semaforos Ansisop
 t_list* variables_compartidas;
 t_list* semaforos;
+
+//Lista de Heaps de Procesos
+t_list* heap;
 
 //Colas de planificacion
 t_queue* ready_queue;
@@ -938,6 +951,28 @@ void signal(char *id_semaforo){
 
 	list_add(semaforos, unSem);
 	pthread_mutex_unlock(&mutex_semaforos_ansisop);
+}
+
+bool tiene_heap(uint32_t pid){
+	int tamanio_lista = list_size(heap),i;
+	bool encontrado = false;
+	for(i=0; i<tamanio_lista; i++){
+		heap_de_proceso *unHeap = list_get(heap, i);
+		if(unHeap->pid == pid){
+			encontrado = true;
+		}
+	}
+	return encontrado;
+}
+
+heap_de_proceso *buscar_heap(uint32_t pid){
+	bool _remove_element(void* list_element)
+	    {
+		heap_de_proceso *unHeap = (heap_de_proceso *) list_element;
+		return unHeap->pid == pid;
+	    }
+	heap_de_proceso *heap_buscado = list_remove_by_condition(heap,*_remove_element);
+	return heap_buscado;
 }
 
 //Fin de funciones de capa memoria
@@ -1740,6 +1775,9 @@ int main(int argc, char** argv) {
 	variables_compartidas = list_create();
 	semaforos = list_create();
 
+	//Heap :P
+	heap = list_create();
+
 	FD_ZERO(&fd_procesos);
 	FD_ZERO(&read_fds);
 
@@ -2242,11 +2280,34 @@ int main(int argc, char** argv) {
 						}
 						if(codigo == RESERVAR_MEMORIA)
 						{
+							uint32_t pid;
+							int espacio;
+							recibir(i, &pid, sizeof(uint32_t));
+							recibir(i, &espacio, sizeof(int));
 
+							printf("El proceso %d necesita alocar %d bytes\n", pid, espacio);
+
+							heapMetadata *puntero = malloc(sizeof(heapMetadata));
+							puntero->isFree = false;
+							puntero->size = espacio;
+
+							if(!tiene_heap(pid)){
+								heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
+								nuevoHeap->heap = list_create();
+								nuevoHeap->pid = pid;
+								list_add(nuevoHeap->heap, puntero);
+							}else{
+								heap_de_proceso *heap_buscado = buscar_heap(pid);
+								list_add(heap_buscado->heap, puntero);
+							}
+							//Nota para mati: el enviar que hago ahora esta mal, tendria que mandar el identificador del puntero a los datos del heap
+							//Pero como todavia no toque la parte de memoria propiamente dicha, ese dato no lo tengo. Por eso mando cualquier cosa
+							//Lo hice para poder probar las estructuras que hice
+							enviar(i, &espacio, sizeof(int));
 						}
 						if(codigo == LIBERAR_MEMORIA)
 						{
-
+							//todo liberar memoria
 						}
 						memset(buf,0,256);
 					}
