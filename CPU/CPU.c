@@ -39,7 +39,20 @@ enum{
 	WAIT = 7,
 	SIGNAL = 8,
 	RESERVAR_MEMORIA = 18,
-	LIBERAR_MEMORIA = 19
+	LIBERAR_MEMORIA = 19,
+	//Acciones sobre archivos
+	ABRIR_ARCHIVO = 14,
+	LEER_ARCHIVO = 15,
+	ESCRIBIR_ARCHIVO = 16,
+	CERRAR_ARCHIVO = 17,
+	//Permisos de archivos
+	READ = 1,
+	WRITE = 2,
+	CREATE = 3,
+	READ_WRITE = 4,
+	READ_CREATE = 5,
+	WRITE_CREATE = 6,
+	READ_WRITE_CREATE = 7
 };
 
 PCB* nuevaPCB;
@@ -446,8 +459,22 @@ void twt_liberar(t_puntero puntero)
 }
 t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 {
-	printf("Soy abrir archivo\n");
-	return 0;
+	printf("Soy abrir archivo con el path: %s\n", direccion);
+	uint32_t codigo = ABRIR_ARCHIVO;
+	uint32_t path_length = strlen(direccion);
+	void* buffer = malloc(sizeof(uint32_t)*3+path_length+sizeof(bool)*3);
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, &path_length, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*3, direccion, path_length);
+
+	//Envio los permisos
+	memcpy(buffer + sizeof(uint32_t)*3+path_length, &(flags.creacion), sizeof(bool));
+	memcpy(buffer + sizeof(uint32_t)*3+path_length+sizeof(bool), &(flags.lectura), sizeof(bool));
+	memcpy(buffer + sizeof(uint32_t)*3+path_length+sizeof(bool)*2, &(flags.escritura), sizeof(bool));
+	t_descriptor_archivo fd_archivo;
+	recibir(fd_kernel, &fd_archivo, sizeof(uint32_t));
+	return fd_archivo;
 }
 void twt_borrar (t_descriptor_archivo direccion)
 {

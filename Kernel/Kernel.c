@@ -125,12 +125,27 @@ typedef struct{
 //(con un pid y una lista de la primer estructura), pero es mas facil
 //acceder a la tabla con esta estructura (y es mas facil manejar 1 lista que 2)
 //(es mas facil acceder a esta tabla para el programa, pero mas lio de programacion)
-typedef struct{
+
+/*typedef struct{
 	uint32_t pid;
 	t_list* fd;
 	t_list* flag;	// Va a ser un int el flag: 1 = read, 2 = write, 3 = read/write
 	t_list* referencia_a_tabla_global;
 	t_list* offset;
+	uint32_t current_fd;
+} tabla_de_archivos_de_proceso;*/
+
+typedef struct{
+	uint32_t fd;
+	t_banderas* flags;
+	uint32_t referencia_a_tabla_global;
+	uint32_t offset;
+}archivo_de_proceso;
+
+//tabla_de_archivos_de_proceso es la tabla que tiene UN proceso de sus archivos
+typedef struct{
+	uint32_t pid;
+	t_list* lista_de_archivos;//Cada elemento es un "archivo_de_proceso" (Uno por cada archivo abierto por el proceso)
 	uint32_t current_fd;
 } tabla_de_archivos_de_proceso;
 
@@ -172,7 +187,7 @@ t_queue* new_queue;
 t_list* todos_los_procesos;
 
 //Listado de tablas de archivos
-t_list* archivos_por_proceso;
+t_list* tabla_de_archivos_por_proceso; //Cada elemento es una "tabla_de_archivos_de_proceso" (Uno por cada proceso)
 
 //FUNCIONES
 
@@ -264,16 +279,20 @@ PCB* create_PCB(char* script, int fd_consola){
 	list_add(lista_consolas, consola);
 	pthread_mutex_unlock(&mutex_fd_consolas);
 
-	tabla_de_archivos_de_proceso* pft = malloc(sizeof(tabla_de_archivos_de_proceso));
+	/*tabla_de_archivos_de_proceso* pft = malloc(sizeof(tabla_de_archivos_de_proceso));
 	pft->pid = nuevo_PCB->pid;
 	list_create(pft->fd);
 	list_create(pft->flag);
 	list_create(pft->referencia_a_tabla_global);
 	list_create(pft->offset);
-	pft->current_fd = 3;
+	pft->current_fd = 3;*/
+
+	tabla_de_archivos_de_proceso* tablaDelProc = malloc(sizeof(tabla_de_archivos_de_proceso));
+	tablaDelProc->pid = nuevo_PCB->pid;
+	tablaDelProc->lista_de_archivos=list_create();
 
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
-	list_add(archivos_por_proceso,pft);
+	list_add(tabla_de_archivos_por_proceso,tablaDelProc);
 	pthread_mutex_unlock(&mutex_archivos_x_proceso);
 
 	return nuevo_PCB;
@@ -1295,9 +1314,9 @@ tabla_de_archivos_de_proceso* obtener_tabla_archivos_proceso(int pid)
 	tabla_de_archivos_de_proceso* tabla;
 
 	//Saco la tabla de archivos asociada a mi proceso
-	while(j < list_size(archivos_por_proceso) && !proceso_encontrado)
+	while(j < list_size(tabla_de_archivos_por_proceso) && !proceso_encontrado)
 	{
-		tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, j);
+		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, j);
 		if(pid == aux->pid)
 		{
 			tabla = aux;
@@ -1327,7 +1346,7 @@ bool puede_crear_archivos(int flag)
 	return false;
 }
 
-int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_length, uint32_t sock_fs, tabla_global_de_archivos* global)
+int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length, uint32_t sock_fs, tabla_global_de_archivos* global)
 {
 	uint32_t i = 0, j = 0, k, codigo = 1, referencia_tabla_global, offset;
 	bool encontrado = false, pudo_crear_archivo = false, proceso_encontrado = false;
@@ -1349,7 +1368,8 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 		recibir(sock_fs, &offset, sizeof(uint32_t));
 
 
-	if(!encontrado && puede_crear_archivos(permisos))
+	//if(!encontrado && puede_crear_archivos(permisos))
+	if((!encontrado) && (permisos->creacion))
 	{
 		//Le dice al fs que cree el archivo
 		codigo = 4;
@@ -1366,7 +1386,8 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 			return -2; //Afuera de la funcion mata el proceso y le avisa a CPU
 		}
 	}
-	else if(!encontrado && !puede_crear_archivos(permisos))
+	//else if(!encontrado && !puede_crear_archivos(permisos))
+	else if((!encontrado) && (!permisos->creacion))
 	{
 		printf("Error al abrir un archivo para el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
 		return -1;		// Afuera de esta funcion se termina el proceso y le avisa a cpu
@@ -1404,17 +1425,18 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 
 
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
+	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivoAbierto));
 
 	//El fd (luego de agregar el archivo a la tabla del proceso) es el fd anterior aumentado en 1
 	int fd = (tabla_archivos->current_fd) + 1;
 
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd = fd;
-	list_add(tabla_archivos->fd, fd);
-	list_add(tabla_archivos->flag, permisos);
-	list_add(tabla_archivos->offset, offset);
-	list_add(tabla_archivos->referencia_a_tabla_global, referencia_tabla_global);
-
+	archivoAbierto->fd = fd;
+	archivoAbierto->flags=permisos;
+	archivoAbierto->offset=offset;
+	archivoAbierto->referencia_a_tabla_global=referencia_tabla_global;
+	list_add(tabla_archivos->lista_de_archivos, archivoAbierto);
 	return fd;
 }
 
@@ -1434,18 +1456,18 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength, tabla_global
 
 	//Busco el fd dentro de la tabla
 	int k = 0;
-	int* referencia_tabla_global, offset;
+	uint32_t referencia_tabla_global, offset;
 	bool encontrado = false;
 
-	while(k < list_size(tabla_archivos->fd) && !encontrado)
+	while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
 	{
-		int* aux = list_get(tabla_archivos->fd, k);
+		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
 		//Si lo encuentro
-		if(*aux == fd)
+		if(arch_aux->fd == fd)
 		{
 			encontrado = true;
-			referencia_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, k);
-			offset = list_get(tabla_archivos->offset, k);
+			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
+			offset = arch_aux->offset;
 		}
 		k++;
 	}
@@ -1457,7 +1479,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength, tabla_global
 	}
 
 	//Obtengo el path para el fd dado
-	char** path = list_get(global->ruta_del_archivo, *referencia_tabla_global);
+	char** path = list_get(global->ruta_del_archivo, referencia_tabla_global);
 
 
 	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
@@ -1522,25 +1544,24 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		int k = FD_INICIAL_ARCHIVOS;
 		bool encontrado = false;
 
-		while(k < tabla_archivos->current_fd && !encontrado)
+		while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
 		{
-			int* aux = list_get(tabla_archivos->fd, k);
+			archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
 			//Si lo encuentro
-			if(archivo == *aux)
+			if(arch_aux->fd == archivo)
 			{
 				//Agarro el flag para ese archivo
-				int* bandera = list_get(tabla_archivos->flag, k);
+				t_banderas* banderas = arch_aux->flags;
 
-				if(puede_escribir_archivos(*bandera))
+				if(banderas->escritura)
 				{
 					//Saco la posicion en la tabla global
-					int* pos_en_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, k);
+					int pos_en_tabla_global = arch_aux->referencia_a_tabla_global;
 
 					//El list_get devuelve un puntero, y un string es ya un puntero, por eso tengo char**
-					char** path = list_get(global->ruta_del_archivo, *pos_en_tabla_global);
+					char** path = list_get(global->ruta_del_archivo, pos_en_tabla_global);
 
-					int* offset = list_get(tabla_archivos->offset, k);
-
+					int offset = arch_aux->offset;
 
 					//Envio a fs el codigo para que reconozca que quiero escribir algo, el path del archivo, el offset,
 					//el tamanio del mensaje a escribir y lo que quiero escribir en el;
@@ -1551,7 +1572,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 					memcpy(buffer, &codigo, sizeof(int));
 					memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
-					memcpy(buffer + (sizeof(int)*2), offset, sizeof(int));
+					memcpy(buffer + (sizeof(int)*2), &offset, sizeof(int));
 					memcpy(buffer + (sizeof(int)*3), *path, strlen(*path));
 					memcpy(buffer + (sizeof(int)*3) + strlen(*path), message, messageLength);
 
@@ -1569,10 +1590,10 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					}
 
 					//Aumento el puntero del archivo
-					*offset += messageLength;
+					offset += messageLength;
 				}
 
-				if(!puede_escribir_archivos(*bandera))
+				if(!(banderas->escritura))
 				{
 					//Termino el proceso con exit code -4
 					end_process(pid, sock_mem, -4, sock_consola);
@@ -1604,9 +1625,9 @@ int execute_close(int pid, int fd, tabla_global_de_archivos* global)
 	bool encontrado = false;
 
 	//Saco la tabla de archivos asociada a mi proceso
-	while(i < list_size(archivos_por_proceso) && !encontrado)
+	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
 	{
-		tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, i);
+		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, i);
 		if(pid == aux->pid)
 		{
 			tabla_archivos = aux;
@@ -1626,20 +1647,22 @@ int execute_close(int pid, int fd, tabla_global_de_archivos* global)
 	encontrado = false;
 
 	//Busco el fd dentro de la tabla del proceso y elimino las entradas correspondientes a dicho fd
-	while(i < list_size(tabla_archivos->fd) && !encontrado)
+	while(i < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
 	{
-		file = list_get(tabla_archivos->fd, i);
+		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
+		int file = arch_aux->fd;
 
-		if(*file == fd)
+		if(file == fd)
 		{
 			encontrado = true;
-			referencia_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, i);
-
+			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
 			//Saco todas las entradas que refieren a dicho fd en la tabla del proceso (todas tienen en mismo index)
-			list_remove(tabla_archivos->fd, i);
+			/*list_remove(tabla_archivos->fd, i);
 			list_remove(tabla_archivos->flag, i);
 			list_remove(tabla_archivos->offset, i);
-			list_remove(tabla_archivos->referencia_a_tabla_global, i);
+			list_remove(tabla_archivos->referencia_a_tabla_global, i);*/
+
+			list_remove(tabla_archivos->lista_de_archivos,i);
 		}
 
 		i++;
@@ -1695,7 +1718,7 @@ int main(int argc, char** argv) {
 	lista_cpus = list_create();
 	lista_consolas = list_create();
 	lista_en_ejecucion = list_create();
-	archivos_por_proceso = list_create();
+	tabla_de_archivos_por_proceso = list_create();
 	proceso_conexion *nueva_conexion_cpu;
 	proceso_conexion *nueva_conexion_consola;
 
@@ -2086,7 +2109,9 @@ int main(int argc, char** argv) {
 
 						if(codigo == ABRIR_ARCHIVO)
 						{
-							uint32_t pid, permisos, path_length;
+							uint32_t pid, path_length;
+							//uint32_t permisos;
+							t_banderas* permisos = malloc(sizeof(t_banderas));
 
 							//Recibo el pid y el largo de la ruta del archivo
 							recibir(i, &pid, sizeof(uint32_t));
@@ -2096,11 +2121,15 @@ int main(int argc, char** argv) {
 							memset(file_path, 0, path_length + 2);
 
 							//Recibo el path del archivo a abrir
-							recibir(i, file_path, 0);
+							recibir(i, file_path, path_length);
 							memset(file_path + path_length + 1, '\0', 1);
 
 							//Recibo los permisos con los que se abre el archivo
-							recibir(i, &permisos, 0);
+							//recibir(i, &permisos, 0);
+
+							recibir(i, &(permisos->creacion), sizeof(bool));
+							recibir(i, &(permisos->lectura), sizeof(bool));
+							recibir(i, &(permisos->escritura), sizeof(bool));
 
 							int resultado;	//Tiene el fd del archivo abierto, o un codigo de error
 							resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs, tabla_global); // falta terminar; linea 1277
