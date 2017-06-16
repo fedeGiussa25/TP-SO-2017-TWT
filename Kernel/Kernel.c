@@ -143,7 +143,6 @@ int listener_cpu;
 int fdmax_cpu;
 int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
 bool plan_go = true;
-int fd_archivos_actual;
 
 fd_set fd_procesos;
 
@@ -1265,19 +1264,46 @@ void manejador_de_scripts(script_manager_setup* sms){
 	free(sms);
 }
 
-tabla_de_archivos_de_proceso* crear_tabla_archivos_proceso(uint32_t pid, uint32_t fd)
+int obtener_consola_asignada_al_proceso(int pid)
 {
-	tabla_de_archivos_de_proceso tabla_proceso;
+	int i = 0, sock_consola = 0;
+	bool encontrado = false;
 
-	tabla_proceso->pid = pid;
-	tabla_proceso->current_fd = fd;
-	tabla_proceso->fd = list_create();
-	tabla_proceso->offset = list_create();
-	tabla_proceso->flag = list_create();
+	pthread_mutex_lock(&mutex_fd_consolas);
+	while(i < list_size(lista_consolas) && !encontrado)
+	{
+		proceso_conexion* aux = list_get(lista_consolas, i);
+		if(pid == aux->proceso)
+		{
+			sock_consola = aux->sock_fd;
+			encontrado = true;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&mutex_fd_consolas);
 
-	list_add(archivos_por_proceso, &tabla_proceso);
+	return sock_consola;
+}
 
-	return &tabla_proceso;
+tabla_de_archivos_de_proceso* obtener_tabla_archivos_proceso(int pid)
+{
+	int j = 0;
+	bool proceso_encontrado = false;
+	tabla_de_archivos_de_proceso* tabla;
+
+	//Saco la tabla de archivos asociada a mi proceso
+	while(j < list_size(archivos_por_proceso) && !proceso_encontrado)
+	{
+		tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, j);
+		if(pid == aux->pid)
+		{
+			tabla = aux;
+			proceso_encontrado = true;
+		}
+		j++;
+	}
+	//Siempre va a encontrar la tabla de archivos de un proceso, ya que esta se crea con el PCB de dicho proceso
+	return tabla;
 }
 
 bool puede_escribir_archivos(int flag)
@@ -1300,44 +1326,51 @@ bool puede_crear_archivos(int flag)
 
 int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_length, uint32_t sock_fs, tabla_global_de_archivos* global)
 {
-	fd_archivos_actual++;
-	int fd = fd_archivos_actual;
 	uint32_t i = 0, j = 0, k, codigo = 1, referencia_tabla_global, offset;
 	bool encontrado = false, pudo_crear_archivo = false, proceso_encontrado = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
-	//le pregunto a fs si ese archivo existe
-	enviar(sock_fs, &codigo, sizeof(uint32_t));
-	enviar(sock_fs, path, path_length);
+	//Le pregunto a fs si ese archivo existe
+	//Primero serializo data
+	void* serializedData = malloc(sizeof(int) + path_length + 1);
+	memcpy(serializedData, &codigo, sizeof(int));
+	memcpy(serializedData + sizeof(int), path, path_length);
+
+	enviar(sock_fs, &serializedData, sizeof(uint32_t) + path_length + 2);
 	recibir(sock_fs, &encontrado, sizeof(bool));
 
-	//si lo encontró, recibe el offset
+	free(serializedData);
+
+	//Si lo encontró, recibe el offset
 	if(encontrado)
 		recibir(sock_fs, &offset, sizeof(uint32_t));
 
 
 	if(!encontrado && puede_crear_archivos(permisos))
 	{
-		//le dice al fs que cree el archivo
+		//Le dice al fs que cree el archivo
 		codigo = 4;
 		enviar(sock_fs, &codigo, sizeof(uint32_t));
 		enviar(sock_fs, path, path_length);
 		recibir(sock_fs, &pudo_crear_archivo, sizeof(bool));
 
 		if(pudo_crear_archivo)
-			//si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
+			//Si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
 			offset = 0;
 		else
-			return -2; 	//afuera de la funcion mata el proceso y le avisa a cpu
-
+		{
+			printf("Error al abrir un archivo para el proceso %d: El FS no pudo crear el archivo\n", pid);
+			return -2; //Afuera de la funcion mata el proceso y le avisa a CPU
+		}
 	}
 	else if(!encontrado && !puede_crear_archivos(permisos))
 	{
-		return -1;		// afuera de esta funcion se termina el proceso y le avisa a cpu
+		printf("Error al abrir un archivo para el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
+		return -1;		// Afuera de esta funcion se termina el proceso y le avisa a cpu
 	}
 
-	//si se encontro el archivo o se pudo crear...
-	//busco el archivo por su ruta en la tabla global y aumento la cantidad de instancias
+	//Si se encontro el archivo o se pudo crear...
+	//Busco el archivo por su ruta en la tabla global y aumento la cantidad de instancias
 	encontrado = false;
 	char* aux;
 	int* instancias;
@@ -1345,7 +1378,7 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 	{
 		aux = list_get(global->ruta_del_archivo, i);
 
-		if(strcmp(aux, path))
+		if(strcmp(aux, path) == 0)
 		{
 			encontrado = true;
 			instancias = list_get(global->instancias_abiertas_del_archivo, i);
@@ -1354,7 +1387,7 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 		}
 		i++;
 	}
-	//si no esta en la tabla global, creo otra entrada en dicha tabla
+	//Si no esta en la tabla global, creo otra entrada en dicha tabla
 	*instancias = 1;
 	if(!encontrado)
 	{
@@ -1362,29 +1395,18 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 		list_add(global->instancias_abiertas_del_archivo, instancias);
 	}
 
-	//si no encuentra el path en la tabla global -> i = list_size (tamanio de la tabla global de archivos)
+	//Si no encuentra el path en la tabla global -> i = list_size (tamanio de la tabla global de archivos)
 	//eso referencia a la posicion de la nueva entrada agregada a la tabla
 	referencia_tabla_global = i;
 
 
-	//Saco la tabla de archivos asociada a mi proceso
-	while(j < list_size(archivos_por_proceso) && !proceso_encontrado)
-	{
-		tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, j);
-		if(pid == aux->pid)
-		{
-			tabla_archivos = aux;
-			proceso_encontrado = true;
-		}
+	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
-		j++;
-	}
-	//Si no encuentro la tabla para el proceso, hay que crearla
-	if(!proceso_encontrado)
-		tabla_archivos = crear_tabla_archivos_proceso(pid, fd); //devuelve puntero a la tabla recien creada
+	//El fd (luego de agregar el archivo a la tabla del proceso) es el fd anterior aumentado en 1
+	int fd = (tabla_archivos->current_fd) + 1;
 
-	//agrego la data de este archivo a la tabla del proceso que abre el archivo
-	tabla_archivos->current_fd = fd;
+	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
+	*(tabla_archivos->current_fd) = fd;
 	list_add(tabla_archivos->fd, fd);
 	list_add(tabla_archivos->flag, permisos);
 	list_add(tabla_archivos->offset, offset);
@@ -1393,62 +1415,105 @@ int execute_open(uint32_t pid, uint32_t permisos, char* path, uint32_t path_leng
 	return fd;
 }
 
+char* execute_read(int pid, int fd, int sock_fs, int messageLength, tabla_global_de_archivos* global)
+{
+	char* readText = malloc(messageLength + 1);
+	memset(readText, 0, messageLength + 1);
+
+	if(fd == 1)
+	{
+		//Quiere leer de consola. Eso no debe pasar --> Error
+		printf("Error de lectura en el proceso %d: Se ha intentado leer la consola\n", pid);
+		return readText;
+	}
+
+	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
+
+	//Busco el fd dentro de la tabla
+	int k = 0;
+	int* referencia_tabla_global, offset;
+	bool encontrado = false;
+
+	while(k < list_size(tabla_archivos->fd) && !encontrado)
+	{
+		int* aux = list_get(tabla_archivos->fd, k);
+		//Si lo encuentro
+		if(*aux == fd)
+		{
+			encontrado = true;
+			referencia_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, k);
+			offset = list_get(tabla_archivos->offset, k);
+		}
+		k++;
+	}
+	//Si no lo encontre signfica que el proceso nunca abrio ese archivo
+	if(!encontrado)
+	{
+		printf("Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
+		return readText;
+	}
+
+	//Obtengo el path para el fd dado
+	char** path = list_get(global->ruta_del_archivo, *referencia_tabla_global);
+
+
+	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
+	int codigo = 2;
+	void* buffer = malloc((sizeof(int)*3) + strlen(*path) + 1);
+
+	memcpy(buffer, &codigo, sizeof(int));
+	memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
+	memcpy(buffer + (sizeof(int)*2), &offset, sizeof(int));
+	memcpy(buffer + (sizeof(int)*3), *path, strlen(*path));
+
+	enviar(sock_fs, buffer, (sizeof(int)*3) + strlen(*path));
+	if(recibir(sock_fs, readText, messageLength) == 1)
+	{
+		//Si recibio 1Byte -> Recibio cadena vacia
+		printf("Error al leer el archivo %d para el proceso %d: El FS no pudo realizar la lectura");
+	}
+	free(buffer);
+
+	return readText;
+}
+
 int execute_write(int pid, int archivo, char* message, int messageLength, int sock_mem, int sock_fs, tabla_global_de_archivos* global)
 {
-	int i = 0;
-	int sock_consola;
-	bool encontrado = false;
-	int codigo = 3;
-	bool escritura_correcta = false;
+	int i = 0, sock_consola, codigo = 3;
+	bool encontrado = false, escritura_correcta = false, proceso_encontrado = false;
 
-	//Busco la consola asignada a ese proceso
-	pthread_mutex_lock(&mutex_fd_consolas);
 
-	while(i < list_size(lista_consolas) && !encontrado)
-	{
-		proceso_conexion* aux = list_get(lista_consolas, i);
-		if(pid == aux->proceso)
-		{
-			sock_consola = aux->sock_fd;
-			encontrado = true;
-		}
-		i++;
-	}
-	pthread_mutex_unlock(&mutex_fd_consolas);
+	sock_consola = obtener_consola_asignada_al_proceso(pid);
 
 	if(archivo == 1)
 	{
-		//Impresion por pantalla
-		uint32_t codigo_de_impresion = 5;
-		enviar(sock_consola,&codigo_de_impresion,sizeof(int));
-		enviar(sock_consola,&messageLength,sizeof(int));
-		enviar(sock_consola,&message,sizeof(int));
+		//Impresion por consola
+		int codigo_de_impresion = 5;
+
+		//Serializo
+		void* buffer = malloc((sizeof(int)*2) + messageLength + 1);
+
+		memcpy(buffer, &codigo_de_impresion, sizeof(int));
+		memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
+		memcpy(buffer + (sizeof(int)*2), &message, messageLength);
+
+		enviar(sock_consola, buffer, (sizeof(int)*2) + messageLength);
+
+		free(buffer);
 	}
 
 	if(archivo == 0 || archivo == 2)
 	{
 		//Estos fd NUNCA se van a usar, si me los piden hubo un error
 		end_process(pid, sock_mem, -2, sock_consola);
-		printf("Error en el proceso %d: El archivo que se intenta abrir no existe\n", pid);
+		printf("Error al escribir el archivo %d para el proceso %d: El archivo que se intenta escribir no existe\n", archivo, pid);
 		return -1;
 	}
 
 	if(archivo > FD_INICIAL_ARCHIVOS)
 	{
-		tabla_de_archivos_de_proceso* tabla_archivos;
-		int j = 0;
+		tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
-		//Saco la tabla de archivos asociada a mi proceso
-		while(j < list_size(archivos_por_proceso))
-		{
-			tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, j);
-			if(pid == aux->pid)
-			{
-				tabla_archivos = aux;
-			}
-
-			j++;
-		}
 
 		//Busco el fd dentro de la tabla
 		int k = FD_INICIAL_ARCHIVOS;
@@ -1467,27 +1532,36 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 				{
 					//Saco la posicion en la tabla global
 					int* pos_en_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, k);
+
+					//El list_get devuelve un puntero, y un string es ya un puntero, por eso tengo char**
 					char** path = list_get(global->ruta_del_archivo, *pos_en_tabla_global);
 
 					int* offset = list_get(tabla_archivos->offset, k);
 
 
-					//envio a fs el codigo para que reconozca que quiero escribir algo, el path del archivo, el offset,
+					//Envio a fs el codigo para que reconozca que quiero escribir algo, el path del archivo, el offset,
 					//el tamanio del mensaje a escribir y lo que quiero escribir en el;
 					//luego recibo de fs el resultado de la operacion
 
-					enviar(sock_fs, &codigo, sizeof(int));
-					enviar(sock_fs, path, sizeof(path));
-					enviar(sock_fs, offset, sizeof(int));
-					enviar(sock_fs, &messageLength, sizeof(int));
-					enviar(sock_fs, message, strlen(message));
-					recibir(sock_fs, &escritura_correcta, sizeof(bool)); //es booleano el resultado -> pudo o no
+					//Primero serializo
+					void* buffer = malloc((sizeof(int)*3) + strlen(*path) + messageLength);
+
+					memcpy(buffer, &codigo, sizeof(int));
+					memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
+					memcpy(buffer + (sizeof(int)*2), offset, sizeof(int));
+					memcpy(buffer + (sizeof(int)*3), *path, strlen(*path));
+					memcpy(buffer + (sizeof(int)*3) + strlen(*path), message, messageLength);
+
+					enviar(sock_fs, buffer, (sizeof(int)*3) + strlen(*path) + messageLength);
+					recibir(sock_fs, &escritura_correcta, sizeof(bool));
+
+					free(buffer);
 
 					if(!escritura_correcta)
 					{
 						//Termino el proceso con exit code -11 -> El fs no pudo escribir el archivo
 						end_process(pid, sock_mem, -11, sock_consola);
-						printf("Error en el proceso %d: El fs no pudo modificar el archivo seleccionado\n", pid);
+						printf("Error al escribir el archivo % para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
 						return -1;
 					}
 
@@ -1495,12 +1569,11 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					*offset += messageLength;
 				}
 
-				//Si es read...
 				if(!puede_escribir_archivos(*bandera))
 				{
 					//Termino el proceso con exit code -4
 					end_process(pid, sock_mem, -4, sock_consola);
-					printf("Error en el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", pid);
+					printf("Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
 					return -1;
 				}
 				encontrado = true;
@@ -1512,13 +1585,88 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		if(!encontrado)
 		{
 			end_process(pid,sock_mem,-4,sock_consola);
-			printf("Error en el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", pid);
+			printf("Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
 			return -1;
 		}
-
 	}
 	return 1;
 }
+
+int execute_close(int pid, int fd, tabla_global_de_archivos* global)
+{
+	int i = 0;
+	int* file, referencia_tabla_global;
+	tabla_de_archivos_de_proceso* tabla_archivos;
+	bool encontrado = false;
+
+	//Saco la tabla de archivos asociada a mi proceso
+	while(i < list_size(archivos_por_proceso) && !encontrado)
+	{
+		tabla_de_archivos_de_proceso* aux = list_get(archivos_por_proceso, i);
+		if(pid == aux->pid)
+		{
+			tabla_archivos = aux;
+			encontrado = true;
+		}
+
+		i++;
+	}
+	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
+	if(!encontrado)
+	{
+		printf("Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
+		return -1;
+	}
+
+	i = 0;
+	encontrado = false;
+
+	//Busco el fd dentro de la tabla del proceso y elimino las entradas correspondientes a dicho fd
+	while(i < list_size(tabla_archivos->fd) && !encontrado)
+	{
+		file = list_get(tabla_archivos->fd, i);
+
+		if(*file == fd)
+		{
+			encontrado = true;
+			referencia_tabla_global = list_get(tabla_archivos->referencia_a_tabla_global, i);
+
+			//Saco todas las entradas que refieren a dicho fd en la tabla del proceso (todas tienen en mismo index)
+			list_remove(tabla_archivos->fd, i);
+			list_remove(tabla_archivos->flag, i);
+			list_remove(tabla_archivos->offset, i);
+			list_remove(tabla_archivos->referencia_a_tabla_global, i);
+		}
+
+		i++;
+	}
+	//Si no encuentro el fd, hay tabla :P
+	if(!encontrado)
+	{
+		printf("Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
+		return -1;
+	}
+
+	i = 0;
+	encontrado = false;
+
+	//Disminuyo la cantidad de instancias abiertas del archivo perteneciente al fd dado
+	int* instancias_abiertas = list_get(global->instancias_abiertas_del_archivo, *referencia_tabla_global);
+
+	if((*instancias_abiertas) == 1)
+	{
+		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
+		//en 0, por lo que tengo que eliminar esa fila de la tabla global
+		list_remove(global->instancias_abiertas_del_archivo, *referencia_tabla_global);
+		list_remove(global->ruta_del_archivo, *referencia_tabla_global);
+	}
+	else
+		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
+		(*instancias_abiertas)--;
+
+	return 1;
+}
+
 
 //TODO el main
 
@@ -1560,8 +1708,6 @@ int main(int argc, char** argv) {
 	tabla_global_de_archivos* tabla_global = malloc(sizeof(tabla_global_de_archivos));
 	tabla_global->instancias_abiertas_del_archivo = list_create();
 	tabla_global->ruta_del_archivo = list_create();
-
-	int fd_archivos_actual = FD_INICIAL_ARCHIVOS;
 
 	//Variables_compartidas y semaforos
 	variables_compartidas = list_create();
@@ -1932,65 +2078,50 @@ int main(int argc, char** argv) {
 							//free(pcb_viejo);
 						}
 
+						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
+
 						if(codigo == ABRIR_ARCHIVO)
 						{
 							uint32_t pid, permisos, path_length;
 
-							//recibo el pid y el largo de la ruta del archivo
+							//Recibo el pid y el largo de la ruta del archivo
 							recibir(i, &pid, sizeof(uint32_t), 0);
 							recibir(i, &path_length, sizeof(uint32_t), 0);
 
 							char* file_path = malloc(path_length + 2);
 							memset(file_path, 0, path_length + 2);
 
-							//recibo el path del archivo a abrir
+							//Recibo el path del archivo a abrir
 							recibir(i, file_path, 0);
 							memset(file_path + path_length + 1, '\0', 1);
 
-							//recibo los permisos con los que se abre el archivo
+							//Recibo los permisos con los que se abre el archivo
 							recibir(i, &permisos, 0);
 
-							int resultado;	//tiene el fd del archivo abierto, o un codigo de error
-							resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs, tabla_global);
+							int resultado;	//Tiene el fd del archivo abierto, o un codigo de error
+							resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs, tabla_global); // falta terminar; linea 1277
+
 
 							bool encontrado = false;
-							int sock_consola;
-
-							//Busco la consola asignada a ese proceso
-							pthread_mutex_lock(&mutex_fd_consolas);
-							while(i < list_size(lista_consolas) && !encontrado)
-							{
-								proceso_conexion* aux = list_get(lista_consolas, i);
-								if(pid == aux->proceso)
-								{
-									sock_consola = aux->sock_fd;
-									encontrado = true;
-								}
-								i++;
-							}
-							pthread_mutex_unlock(&mutex_fd_consolas);
+							int sock_consola = obtener_consola_asignada_al_proceso(pid);
 
 							if(resultado == -1)
 							{
 								//Codigo de error -10:
 								//No se pudo abrir el archivo por que no existe y no se puede crear por falta de permisos
-
 								end_process(pid, sockfd_memoria, -10, sock_consola);
-								printf("Error en el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
 								enviar(i, &resultado, sizeof(bool));
 							}
 							else if(resultado == -2)
 							{
 								//Codigo de error -11:
 								//El fs no pudo crear el archivo, se produjo error
-
 								end_process(pid, sockfd_memoria, -11, sock_consola);
-								printf("Error en el proceso %d: No se pudo abrir el archivo. Error al crearlo\n", pid);
 								enviar(i, &resultado, sizeof(bool));
 							}
 							else
 							{
-								//pudo abrir el archivo, le mando el fd a cpu
+								//Pudo abrir el archivo, le mando el fd a cpu
 								printf("Un archivo ha sido abierto exitosamente para el proceso %d\n", pid);
 								enviar(i, &resultado, sizeof(int));
 							}
@@ -2000,49 +2131,81 @@ int main(int argc, char** argv) {
 
 						if(codigo == LEER_ARCHIVO)
 						{
-							//recibo de cpu el fd del archivo, veo en las tablas el path de ese fd, y le pido
-							//al fs el archivo con ese path, un offset y el tamaño (o esas 2 ultimas cosas me las da fs?)
-							//despues le devuelvo esas ultimas cosas a la cpu (le devuelvo esas 3 ultimas cosas?)
+							int fd, pid, messageLength, offset, codigo;
 
-							//tiene que poder leer del fd 1 (consola)?
-							//si no es asi, que error le tiro?
+							//Recibo pid, fd, offset y largo del texto a leer
+							recibir(i, &pid, sizeof(int));
+							recibir(i, &fd, sizeof(int));
+							recibir(i, &messageLength, sizeof(int));
+
+							char* readText = execute_read(pid, fd, sockfd_fs, messageLength, tabla_global);
+
+							if(strcmp(readText, "") == 0)
+							{
+								//Si viene una cadena vacia, hubo error. Le mando un codigo -1 a CPU para evitarle laburo
+								//de revisar la cadena
+								codigo = -1;
+								enviar(i, &codigo, sizeof(int));
+							}
+							else
+							{
+								codigo = 1;
+								printf("Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
+								enviar(i, &codigo, sizeof(int));
+								enviar(i, readText, messageLength);
+							}
 						}
 
 						if(codigo == ESCRIBIR_ARCHIVO)
 						{
 							int archivo, pid, messageLength;
 
-							//recibo el fd del archivo, el pid y el largo del mensaje a escribir
+							//Recibo el fd del archivo, el pid y el largo del mensaje a escribir
 							recibir(i, &archivo, sizeof(int));
 							recibir(i, &pid, sizeof(int));
 							recibir(i, &messageLength, sizeof(int));
 
 							void* message = malloc(messageLength + 2);
-							memset(message,0,messageLength + 2);
+							memset(message, 0, messageLength + 2);
 
-							//recibo el mensaje a escribir
+							//Recibo el mensaje a escribir
 							recibir(i, message, messageLength);
 							memset(message + messageLength + 1, '\0', 1);
 
 							int resultado;
 							resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria, sockfd_fs, tabla_global);
 
-							//independientemente del resultado, le aviso a cpu
+							//Independientemente del resultado, le aviso a CPU
 							//resultado = -1 --> error; resultado = 1 --> ok
-							enviar(i, &resultado, sizeof(bool));
+							enviar(i, &resultado, sizeof(int));
 
 							free(message);
 						}
 
 						if(codigo == CERRAR_ARCHIVO)
 						{
-							//recibo de cpu el fd del archivo a cerrar, elimino la referencia a ese fd en la tabla de archivos
-							//para ese proceso, y disminuyo en 1 la cantidad de instancias para ese fd en la tabla global
-							//si al disminuir esa cantidad de instancias, se hace cero, tengo que eliminar esa fila de la tabla global
-							//para hacer mas facil lo de arriba, si la cantidad de instancias es 1, elimino esa fila en la tabla global
+							int fd, pid, resultado = 1, sock_consola = 0;
 
-							//si cpu cierra el fd 1 (consola), al no estar en las tablas (ni siquiera abre el fd 1), no tengo que hacer
-							//nada de lo de arriba
+							//Recibo pid y fd
+							recibir(i, &pid, sizeof(int));
+							recibir(i, &fd, sizeof(int));
+
+							if(fd != 1)
+								resultado = execute_close(pid, fd, tabla_global);
+
+							if(resultado == -1)
+							{
+								//Codigo de error -12
+								//Error al cerrar el archivo - No existe el proceso en la tabla de archivos
+								//o no esta el fd en la tabla de archivos del proceso
+
+								sock_consola = obtener_consola_asignada_al_proceso(pid);
+								end_process(pid, sockfd_memoria, -12, sock_consola);
+							}
+							else
+								printf("Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
+
+							enviar(i, &resultado, sizeof(int));
 						}
 
 						memset(buf,0,256);
