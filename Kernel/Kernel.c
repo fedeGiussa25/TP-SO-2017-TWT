@@ -76,6 +76,8 @@ enum{
 	LEER_ARCHIVO = 15,
 	ESCRIBIR_ARCHIVO = 16,
 	CERRAR_ARCHIVO = 17,
+	BORRAR_ARCHIVO = 20,
+	MOVER_CURSOR = 21,
 //Permisos de archivos
 	READ = 1,
 	WRITE = 2,
@@ -1518,11 +1520,12 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		int codigo_de_impresion = 5;
 
 		//Serializo
-		void* buffer = malloc((sizeof(int)*2) + messageLength + 1);
+
+		void* buffer = malloc((sizeof(int)*2) + messageLength);
 
 		memcpy(buffer, &codigo_de_impresion, sizeof(int));
 		memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
-		memcpy(buffer + (sizeof(int)*2), &message, messageLength);
+		memcpy(buffer + (sizeof(int)*2), message, messageLength);
 
 		enviar(sock_consola, buffer, (sizeof(int)*2) + messageLength);
 
@@ -2202,19 +2205,20 @@ int main(int argc, char** argv) {
 							recibir(i, &pid, sizeof(int));
 							recibir(i, &messageLength, sizeof(int));
 
-							void* message = malloc(messageLength + 2);
-							memset(message, 0, messageLength + 2);
+
+							void* message = malloc(messageLength);
+							memset(message, 0, messageLength);
 
 							//Recibo el mensaje a escribir
 							recibir(i, message, messageLength);
-							memset(message + messageLength + 1, '\0', 1);
+
 
 							int resultado;
 							resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria, sockfd_fs);
 
 							//Independientemente del resultado, le aviso a CPU
 							//resultado = -1 --> error; resultado = 1 --> ok
-							enviar(i, &resultado, sizeof(int));
+							//enviar(i, &resultado, sizeof(int));
 
 							free(message);
 						}

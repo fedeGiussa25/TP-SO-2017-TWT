@@ -1,0 +1,8 @@
+#!/usr/bin/ansisop
+begin
+	variables a
+	a=58
+	prints n a
+	prints l alojaaa
+	prints n 7
+end
