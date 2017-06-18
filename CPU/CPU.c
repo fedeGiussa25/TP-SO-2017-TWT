@@ -623,17 +623,6 @@ int get_fd_server(char* ip, char* puerto){
 	return sockfd;
 }
 
-void verificar_conexion_socket(int fd, int estado){
-	if(estado == -1){
-		perror("recieve");
-		exit(3);
-		}
-	if(estado == 0){
-		printf("Se desconecto el socket: %d\n", fd);
-		close(fd);
-	}
-}
-
 //Funciones para que el main quede lindo
 void message_handler_for_fd(int fd){
 	int messageLength;
@@ -729,192 +718,6 @@ void handshake(int idProceso, int fd){
 
 }
 
-PCB* recibirPCB()
-{
-	int bytes_recv;
-
-	u_int32_t pid;
-
-	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
-	stack_size, primerPagStack, stack_pointer, codigo;
-
-	PCB* pcb = malloc(sizeof(PCB));
-
-	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
-	uint32_t cantRegistros =0;
-
-	bytes_recv = recv(fd_kernel, &codigo, sizeof(u_int32_t),0);
-
-	verificar_conexion_socket(fd_kernel,bytes_recv);
-
-	printf("Se recibio codigo operacion %d, se recibe un PCB\n", codigo);
-
-	recv(fd_kernel, &pid, sizeof(u_int32_t),0);
-
-	recv(fd_kernel, &page_counter, sizeof(uint32_t),0);
-
-	recv(fd_kernel, &direccion_inicio_codigo, sizeof(uint32_t),0);
-
-	recv(fd_kernel, &program_counter, sizeof(uint32_t),0);
-
-	recv(fd_kernel, &cantidad_de_instrucciones, sizeof(uint32_t),0);
-
-	recv(fd_kernel, &tamanio_indice_codigo, sizeof(uint32_t),0);
-
-
-	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
-
-
-	recv(fd_kernel, indice_de_codigo, tamanio_indice_codigo,0);
-
-
-	recv(fd_kernel, &stack_size,sizeof(uint32_t),0);
-
-	recv(fd_kernel, &primerPagStack,sizeof(uint32_t),0);
-
-	recv(fd_kernel, &stack_pointer,sizeof(uint32_t),0);
-
-
-	recv(fd_kernel, &cantRegistros, sizeof(uint32_t),0);
-
-
-	/*t_list* indice_de_stack = malloc(tamanio_indice_stack);
-
-	bytes_recv = recv(fd_kernel, indice_de_stack, tamanio_indice_stack,0);
-	verificar_conexion_socket(fd_kernel,bytes_recv);*/
-
-	//recibo indice etiquetas:
-
-	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
-
-	recv(fd_kernel, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
-
-
-	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
-
-	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
-
-	if(tamanio_indice_etiquetas>0)
-	{
-	recv(fd_kernel, indice_de_etiquetas, tamanio_indice_etiquetas,0);
-
-
-	printf("RECIBI indice ETIQUETAS\n\n");
-
-	}
-
-
-	//-----Recibo indice de Stack-----
-
-	pcb->stack_index = list_create();
-
-	int registrosAgregados = 0;
-
-	int cantArgumentos=0, cantVariables=0;
-
-	if(cantRegistros>0){
-
-
-	while(registrosAgregados < cantRegistros)
-	{
-		recv(fd_kernel, &cantArgumentos, sizeof(int),0);
-
-		printf("cant argums: %d\n", cantArgumentos);
-		registroStack* nuevoReg = malloc(sizeof(registroStack));
-
-		nuevoReg->args = list_create();
-
-		if(cantArgumentos>0) //Si tiene argumentos
-		{
-		//Recibo argumentos:
-
-		int argumentosAgregados = 0;
-
-		while(argumentosAgregados < cantArgumentos)
-		{
-			variable *nuevoArg = malloc(sizeof(variable));
-
-			recv(fd_kernel, &(nuevoArg->id), sizeof(char),0);
-
-			recv(fd_kernel, &(nuevoArg->offset), sizeof(int),0);
-
-			recv(fd_kernel, &(nuevoArg->page), sizeof(int),0);
-
-			recv(fd_kernel, &(nuevoArg->size), sizeof(int),0);
-
-
-			list_add(nuevoReg->args, nuevoArg);
-			argumentosAgregados++;
-		}
-		} //Fin recepcion argumentos
-
-		recv(fd_kernel, &cantVariables, sizeof(int),0);
-
-
-		nuevoReg->vars= list_create();
-		printf("cant vars: %d\n", cantVariables);
-		if(cantVariables>0) //Si tiene variables
-		{
-		//Recibo variables:
-
-		int variablesAgregadas = 0;
-
-		while(variablesAgregadas < cantVariables)
-		{
-			variable *nuevaVar = malloc(sizeof(variable));
-
-			recv(fd_kernel, &(nuevaVar->id), sizeof(char),0);
-
-			recv(fd_kernel, &(nuevaVar->offset), sizeof(int),0);
-
-			recv(fd_kernel, &(nuevaVar->page), sizeof(int),0);
-
-			recv(fd_kernel, &(nuevaVar->size), sizeof(int),0);
-
-
-			list_add(nuevoReg->vars, nuevaVar);
-
-			variablesAgregadas++;
-
-		}
-		} //Fin recepcion variables
-
-		//Recibo retPos
-
-		recv(fd_kernel, &(nuevoReg->ret_pos), sizeof(int),0);
-
-
-		//Recibo retVar
-
-		recv(fd_kernel, &(nuevoReg->ret_var.offset), sizeof(int),0);
-
-		recv(fd_kernel, &(nuevoReg->ret_var.page), sizeof(int),0);
-
-		recv(fd_kernel, &(nuevoReg->ret_var.size), sizeof(int),0);
-
-		list_add(pcb->stack_index, nuevoReg);
-
-		registrosAgregados++;
-
-
-	}//Fin recepcion Stack
-	}
-
-	pcb->pid = pid;
-	pcb->page_counter = page_counter;
-	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
-	pcb->lista_de_etiquetas=indice_de_etiquetas;
-	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
-	pcb->program_counter = program_counter;
-	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
-	pcb->indice_de_codigo = indice_de_codigo;
-	pcb->tamanioStack = stack_size;
-	pcb->primerPaginaStack=primerPagStack;
-	pcb->stackPointer=stack_pointer;
-
-	return pcb;
-}
-
 void print_PCB(PCB* pcb){
 	int i;
 	printf("\nPID: %d\n", pcb->pid);
@@ -986,7 +789,9 @@ int main(int argc, char **argv) {
 	{
 		recv(fd_kernel, &quantum, sizeof(int32_t), 0);
 		recv(fd_kernel, &quantum_sleep, sizeof(uint32_t), 0);
-		nuevaPCB = recibirPCB();
+		recv(fd_kernel, &codigo, sizeof(uint32_t),0);
+		printf("Se recibio codigo: %d\n", codigo); //Cuando CPU reciba codigos diferentes a un PCB, recibimos dependiendo el codigo
+		nuevaPCB = recibirPCB(fd_kernel);
 		printf("RECIBI PCB\n");
 		print_PCB(nuevaPCB);
 		stackOverflow = false;

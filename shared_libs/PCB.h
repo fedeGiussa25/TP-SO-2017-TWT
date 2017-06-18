@@ -187,6 +187,17 @@ int get_fd_listener(char* puerto){
 	return listener;
 }
 
+void verificar_conexion_socket(int fd, int estado){
+	if(estado == -1){
+		perror("recieve");
+		exit(3);
+		}
+	if(estado == 0){
+		printf("Se desconecto el socket: %d\n", fd);
+		close(fd);
+	}
+}
+
 int corrimiento;
 void *sendbuf;
 u_int32_t tamanio_stack;
@@ -397,4 +408,176 @@ void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 	printf("Mande un PCB :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
 	free(ultimateBuffer); //Vos tambien.
+}
+
+PCB* recibirPCB(uint32_t fd_socket)
+{
+	u_int32_t pid;
+
+	uint32_t page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones,
+	stack_size, primerPagStack, stack_pointer;
+
+	PCB* pcb = malloc(sizeof(PCB));
+
+	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
+	uint32_t cantRegistros =0;
+
+	recv(fd_socket, &pid, sizeof(u_int32_t),0);
+
+	recv(fd_socket, &page_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &direccion_inicio_codigo, sizeof(uint32_t),0);
+
+	recv(fd_socket, &program_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &cantidad_de_instrucciones, sizeof(uint32_t),0);
+
+	recv(fd_socket, &tamanio_indice_codigo, sizeof(uint32_t),0);
+
+
+	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
+
+
+	recv(fd_socket, indice_de_codigo, tamanio_indice_codigo,0);
+
+
+	recv(fd_socket, &stack_size,sizeof(uint32_t),0);
+
+	recv(fd_socket, &primerPagStack,sizeof(uint32_t),0);
+
+	recv(fd_socket, &stack_pointer,sizeof(uint32_t),0);
+
+
+	recv(fd_socket, &cantRegistros, sizeof(uint32_t),0);
+
+	//recibo indice etiquetas:
+
+	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
+
+	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
+
+
+	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
+
+	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
+
+	if(tamanio_indice_etiquetas>0)
+	{
+	recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
+
+
+	printf("RECIBI indice ETIQUETAS\n\n");
+
+	}
+
+
+	//-----Recibo indice de Stack-----
+
+	pcb->stack_index = list_create();
+
+	int registrosAgregados = 0;
+
+	int cantArgumentos=0, cantVariables=0;
+
+	if(cantRegistros>0){
+
+
+	while(registrosAgregados < cantRegistros)
+	{
+		recv(fd_socket, &cantArgumentos, sizeof(int),0);
+
+		printf("cant argums: %d\n", cantArgumentos);
+		registroStack* nuevoReg = malloc(sizeof(registroStack));
+
+		nuevoReg->args = list_create();
+
+		if(cantArgumentos>0) //Si tiene argumentos
+		{
+		//Recibo argumentos:
+
+		int argumentosAgregados = 0;
+
+		while(argumentosAgregados < cantArgumentos)
+		{
+			variable *nuevoArg = malloc(sizeof(variable));
+
+			recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
+
+			recv(fd_socket, &(nuevoArg->offset), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoArg->page), sizeof(int),0);
+
+			recv(fd_socket, &(nuevoArg->size), sizeof(int),0);
+
+
+			list_add(nuevoReg->args, nuevoArg);
+			argumentosAgregados++;
+		}
+		} //Fin recepcion argumentos
+
+		recv(fd_socket, &cantVariables, sizeof(int),0);
+
+
+		nuevoReg->vars= list_create();
+		printf("cant vars: %d\n", cantVariables);
+		if(cantVariables>0) //Si tiene variables
+		{
+		//Recibo variables:
+
+		int variablesAgregadas = 0;
+
+		while(variablesAgregadas < cantVariables)
+		{
+			variable *nuevaVar = malloc(sizeof(variable));
+
+			recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
+
+			recv(fd_socket, &(nuevaVar->offset), sizeof(int),0);
+
+			recv(fd_socket, &(nuevaVar->page), sizeof(int),0);
+
+			recv(fd_socket, &(nuevaVar->size), sizeof(int),0);
+
+
+			list_add(nuevoReg->vars, nuevaVar);
+
+			variablesAgregadas++;
+
+		}
+		} //Fin recepcion variables
+
+		//Recibo retPos
+
+		recv(fd_socket, &(nuevoReg->ret_pos), sizeof(int),0);
+
+
+		//Recibo retVar
+
+		recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(int),0);
+
+		recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(int),0);
+
+		recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(int),0);
+
+		list_add(pcb->stack_index, nuevoReg);
+
+		registrosAgregados++;
+
+
+	}//Fin recepcion Stack
+	}
+
+	pcb->pid = pid;
+	pcb->page_counter = page_counter;
+	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
+	pcb->lista_de_etiquetas=indice_de_etiquetas;
+	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
+	pcb->program_counter = program_counter;
+	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
+	pcb->indice_de_codigo = indice_de_codigo;
+	pcb->tamanioStack = stack_size;
+	pcb->primerPaginaStack=primerPagStack;
+	pcb->stackPointer=stack_pointer;
+
+	return pcb;
 }
