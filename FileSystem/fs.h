@@ -1,3 +1,9 @@
+typedef struct{
+	uint32_t tamanio;
+	char** bloques;
+}Archivo_t;
+
+
 uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
 	char *fullPath = malloc(strlen(nombreArchivo) + strlen(rutaBase));

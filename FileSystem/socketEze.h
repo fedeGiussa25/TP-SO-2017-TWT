@@ -104,7 +104,7 @@ void selecteando(uint32_t fdmax, fd_set *read_fds){
 	}
 }
 
-uint32_t servidor(uint32_t puerto,uint32_t cantidadConexiones){
+int32_t servidor(uint32_t puerto,uint32_t cantidadConexiones){
 	uint32_t socketServer = initSocket();
 	uint32_t yes=1;
 	setsocket(socketServer,&yes);
@@ -121,9 +121,9 @@ void cliente(char *ip,uint32_t puerto,uint32_t handshake){
 	makeConnection(sockCliente,&direccion,handshake);
 }
 
-uint32_t verificarPaquete(uint32_t sockCliente,uint32_t handshake){
-	uint32_t recibido;
-	uint32_t bytes = recibir(sockCliente,&recibido,sizeof(recibido));
+int32_t verificarPaquete(uint32_t sockCliente,uint32_t handshake){
+	int32_t recibido;
+	int32_t bytes = recibir(sockCliente,&recibido,sizeof(recibido));
 	if( bytes >0 && recibido==handshake){
 		return 0;
 	}else{
@@ -131,7 +131,7 @@ uint32_t verificarPaquete(uint32_t sockCliente,uint32_t handshake){
 		return -1;
 	}
 }
-uint32_t aceptarCliente(uint32_t sockfd, uint32_t handshake){
+int32_t aceptarCliente(uint32_t sockfd, int32_t handshake){
 	struct sockaddr_in remoteaddr;
 	uint32_t newfd;
 	uint32_t addrlen = sizeof(remoteaddr);
