@@ -104,7 +104,7 @@ void selecteando(uint32_t fdmax, fd_set *read_fds){
 	}
 }
 
-uint32_t server(uint32_t puerto,uint32_t cantidadConexiones){
+uint32_t servidor(uint32_t puerto,uint32_t cantidadConexiones){
 	uint32_t socketServer = initSocket();
 	uint32_t yes=1;
 	setsocket(socketServer,&yes);

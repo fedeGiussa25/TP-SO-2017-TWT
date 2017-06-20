@@ -15,10 +15,16 @@
 #include "fs.h"
 #define SIZE_MSG 11
 #define EXIST_MSG 12
-
+#include <sys/stat.h>
+#define PATH_ARCH "Archivos/"
+#define PATH_META "Metadata/"
+#define PATH_BLQ "Bloques/"
+char *pathArchivos;
+char *pathMetadata;
+char *pathBloques;
 fs_config data_config;
-
-
+uint32_t tamanioBloques;
+uint32_t cantidadBloques;
 int main(int argc, char** argv)
 {
 	t_config *config;
@@ -34,12 +40,30 @@ int main(int argc, char** argv)
 	printf("Montaje = %s\n", data_config.montaje);
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 	//todo el server declaradito aca
-	DIR *mount = opendir(montaje);
-	if(!mount)
-		exit(3);
 	
+	find_or_create(montaje,PATH_ARCH);
+	find_or_create(montaje,PATH_BLQ);
+	find_or_create(montaje,PATH_META);
+
+	pathMetadata = unir_str(montaje,PATH_META);
+	pathBloques= unir_str(montaje,PATH_BLQ);
+	pathArchivos= unir_str(montaje,PATH_ARCH);
+
+
+	char *miMetadata = unir_str(pathMetadata,"Metadata.bin");
+	config = config_create(miMetadata);
+	tamanioBloques = config_get_int_value(config,"TAMANIO_BLOQUES");
+	cantidadBloques = config_get_int_value(config,"CANTIDAD_BLOQUES");
+	char *magicNumber = config_get_string_value(config,"MAGIC_NUMBER");
+	printf("%d\n",strlen(magicNumber));
+/*	if(!strcmp(magicNumber,magicNumber))
+		exit(4);*/
+	config_destroy(config);
+
+	free(miMetadata);
+	printf("Cada bloque sera de %d\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
-	uint32_t miSocket = server(puerto,1);
+	uint32_t miSocket = servidor(puerto,1);
 	//end
 
 	//ASI FUNCIONA EL MUNDO FILESYSTEM
@@ -73,6 +97,8 @@ int main(int argc, char** argv)
 		}
 
 	}
-
+	free(pathMetadata);
+	free(pathBloques);
+	free(pathArchivos);
 	return 0;
 }
