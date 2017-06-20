@@ -88,7 +88,8 @@ enum{
 	READ_WRITE_CREATE = 7,
 //Acciones sobre el Heap
 	RESERVAR_MEMORIA = 18,
-	LIBERAR_MEMORIA = 19
+	LIBERAR_MEMORIA = 19,
+	SOLICITAR_HEAP = 7
 };
 
 typedef struct{
@@ -2094,10 +2095,20 @@ int main(int argc, char** argv) {
 							puntero->size = espacio;
 
 							if(!tiene_heap(pid)){
-								heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
-								nuevoHeap->heap = list_create();
-								nuevoHeap->pid = pid;
-								list_add(nuevoHeap->heap, puntero);
+								uint32_t cod = SOLICITAR_HEAP;
+								void *buffer = malloc(2*sizeof(uint32_t));
+								memcpy(buffer, &cod, sizeof(uint32_t));
+								memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
+								enviar(sockfd_memoria, buffer, sizeof(uint32_t)*2);
+
+								int paginas_totales;
+								recibir(sockfd_memoria, &paginas_totales, sizeof(int));
+								if(paginas_totales > 0){
+									heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
+									nuevoHeap->heap = list_create();
+									nuevoHeap->pid = pid;
+									list_add(nuevoHeap->heap, puntero);
+								}
 							}else{
 								heap_de_proceso *heap_buscado = buscar_heap(pid);
 								list_add(heap_buscado->heap, puntero);

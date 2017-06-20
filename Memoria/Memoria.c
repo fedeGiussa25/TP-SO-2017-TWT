@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
+#include "../shared_libs/PCB.h"
 
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
@@ -21,7 +22,8 @@ enum{
 	BUSCAR_INSTRUCCION = 3,
 	GUARDAR_VALOR = 4,
 	ELIMINAR_PROCESO = 5,
-	OBTENER_VALOR = 6
+	OBTENER_VALOR = 6,
+	SOLICITAR_HEAP = 7
 };
 
 typedef struct{
@@ -35,11 +37,16 @@ typedef struct {
 	int32_t pagina;
 } entrada_tabla;
 
+typedef struct{
+	uint32_t size;
+	bool isFree;
+} heapMetadata;
+
 /*Funciones*/
 
 //Backlog es la cantidad maxima que quiero de conexiones pendientes
 
-int verificar_conexion_socket(int fd, int estado){
+int verificar_conexiones_socket(int fd, int estado){
 	if(estado <= 0){
 		if(estado == -1){
 			perror("recieve");
@@ -201,6 +208,20 @@ int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
 	return paginas;
 }
 
+uint32_t paginas_de_proceso(uint32_t pid){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i, cant_marcos = data_config.marcos;
+	uint32_t cant_paginas = 0;
+
+	for(i=0; i<cant_marcos; i++){
+		if(tabla[i].PID == pid){
+			cant_paginas ++;
+		}
+	}
+
+	return cant_paginas;
+}
+
 espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int stack){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
@@ -249,6 +270,45 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 	memcpy(memoria + marcos_size*i, script, size);
 
 	espacio->page_counter = paginas_usadas+stack;
+	espacio->direccion = marcos_size*i;
+
+	return espacio;
+}
+
+espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
+	int encontrado = 0, i = 0;
+	int marcos_size = data_config.marco_size;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		encontrado = espacio_encontrado(1, i, tabla);
+		if(encontrado == 0){
+			i++;
+		}
+	}
+
+	uint32_t numero_de_pagina = paginas_de_proceso(pid);
+
+	if(encontrado == 0){
+		printf("No hay espacio suficiente para el pedido\n");
+		espacio->direccion = -1;
+		espacio->page_counter = -1;
+		return espacio;
+	}else{
+		tabla[i].PID = pid;
+		tabla[i].pagina = numero_de_pagina;
+	}
+
+	heapMetadata *unEspacio = malloc(sizeof(heapMetadata));
+	unEspacio->isFree = true;
+	unEspacio->size = data_config.marco_size - sizeof(heapMetadata);
+
+	memcpy(memoria + marcos_size*i, unEspacio, sizeof(heapMetadata));
+
+	printf("Se ha reservado memoria para el Heap\n");
+
+	espacio->page_counter = paginas_de_proceso(pid);
 	espacio->direccion = marcos_size*i;
 
 	return espacio;
@@ -331,7 +391,7 @@ void *thread_proceso(int fd){
 
 	while(flag == 1){
 		bytes = recv(fd,&codigo,sizeof(int),0);
-		flag = verificar_conexion_socket(fd, bytes);
+		flag = verificar_conexiones_socket(fd, bytes);
 		if(flag == 1){
 			pthread_mutex_lock(&mutex_memoria);
 			if(codigo == HANDSHAKE){
@@ -408,6 +468,13 @@ void *thread_proceso(int fd){
 				value = *valor;
 				send(fd, &value, sizeof(int), 0);
 				free(valor);
+			}
+			if(codigo == SOLICITAR_HEAP){
+				recibir(fd, &PID, sizeof(uint32_t));
+				espacio_reservado *espacio;
+				espacio = buscar_espacio_para_heap(PID);
+
+				enviar(fd, &(espacio->page_counter), sizeof(int));
 			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);
