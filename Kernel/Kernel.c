@@ -89,7 +89,12 @@ enum{
 //Acciones sobre el Heap
 	RESERVAR_MEMORIA = 18,
 	LIBERAR_MEMORIA = 19,
-	SOLICITAR_HEAP = 7
+	SOLICITAR_HEAP = 7,
+//Codigos comunicacion FS
+	BUSCAR_ARCHIVO_FS = 11,
+	CREAR_ARCHIVO_FS = 12,
+	LEER_ARCHIVO_FS = 13,
+	ESCRIBIR_ARCHIVO_FS = 14
 };
 
 typedef struct{
@@ -1185,12 +1190,13 @@ bool puede_crear_archivos(int flag)
 
 int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length, uint32_t sock_fs)
 {
-	uint32_t i = 0, codigo = 1, referencia_tabla_global, offset;
+	uint32_t i = 0, codigo, referencia_tabla_global, offset;
 	bool encontrado = false, pudo_crear_archivo = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
 	//Le pregunto a fs si ese archivo existe
 	//Primero serializo data
+	codigo = BUSCAR_ARCHIVO_FS;
 	void* serializedData = malloc(sizeof(uint32_t)*2 + path_length);
 	memcpy(serializedData, &codigo, sizeof(uint32_t));
 	memcpy(serializedData + sizeof(uint32_t), &path_length, sizeof(uint32_t));
@@ -1208,7 +1214,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	if((!encontrado) && (permisos->creacion))
 	{
 		//Le dice al fs que cree el archivo
-		codigo = 4;
+		codigo = CREAR_ARCHIVO_FS;
 		void* archivo_a_crear = malloc(sizeof(uint32_t) + path_length);
 		memcpy(serializedData, &codigo, sizeof(uint32_t));
 		memcpy(serializedData + sizeof(uint32_t), &path_length, sizeof(uint32_t));
@@ -1284,7 +1290,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 	if(fd < 3)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
-		printf("Error de lectura en el proceso\n");
+		printf("Error de lectura en el proceso %d\n", pid);
 		return readText;
 	}
 
@@ -1321,7 +1327,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 
 
 	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
-	int codigo = 2;
+	int codigo = LEER_ARCHIVO_FS;
 	void* buffer = malloc((sizeof(int)*3) + strlen(arch->ruta_del_archivo) + 1);
 
 	memcpy(buffer, &codigo, sizeof(int));
@@ -1333,7 +1339,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 	if(recibir(sock_fs, readText, messageLength) == 1)
 	{
 		//Si recibio 1Byte -> Recibio cadena vacia
-		printf("El FS no pudo realizar la lectura");
+		printf("Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
 	}
 	free(buffer);
 
@@ -1342,7 +1348,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 
 int execute_write(int pid, int archivo, char* message, int messageLength, int sock_mem, int sock_fs)
 {
-	int sock_consola, codigo = 3;
+	int sock_consola, codigo;
 	bool escritura_correcta = false;
 
 	sock_consola = obtener_consola_asignada_al_proceso(pid);
@@ -1407,6 +1413,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					//luego recibo de fs el resultado de la operacion
 
 					//Primero serializo
+					codigo = ESCRIBIR_ARCHIVO_FS;
 					void* buffer = malloc((sizeof(int)*3) + strlen(arch->ruta_del_archivo) + messageLength);
 
 					memcpy(buffer, &codigo, sizeof(int));
