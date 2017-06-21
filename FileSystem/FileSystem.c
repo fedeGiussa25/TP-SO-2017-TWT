@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
 
 	int32_t aux = find_or_create(montaje,PATH_BLQ);
-	if(aux == 0){
+	if(aux == 0 || !exist("1.bin",PATH_BLQ)){
 		printf("%d\n",cantidadBloques);
 
 		for(i=0;i<cantidadBloques;i++){
