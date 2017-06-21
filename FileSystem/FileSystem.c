@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <dirent.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -13,12 +12,18 @@
 #include "socketEze.h"
 #include <errno.h>
 #include "fs.h"
+#include <dirent.h>
+#include <sys/stat.h>
+#include <commons/bitarray.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
 #define SIZE_MSG 11
 #define EXIST_MSG 12
-#include <sys/stat.h>
 #define PATH_ARCH "Archivos/"
 #define PATH_META "Metadata/"
 #define PATH_BLQ "Bloques/"
+
 char *pathArchivos;
 char *pathMetadata;
 char *pathBloques;
@@ -40,37 +45,52 @@ int main(int argc, char** argv)
 	printf("Montaje = %s\n", data_config.montaje);
 	config_destroy(config);		//Eliminamos fs_config, liberamos la memoria que utiliza
 	//todo el server declaradito aca
-	
-	find_or_create(montaje,PATH_ARCH);
-	find_or_create(montaje,PATH_BLQ);
-	find_or_create(montaje,PATH_META);
-
 	pathMetadata = unir_str(montaje,PATH_META);
 	pathBloques= unir_str(montaje,PATH_BLQ);
 	pathArchivos= unir_str(montaje,PATH_ARCH);
+	int32_t i;
+	find_or_create("./",montaje);
+	find_or_create(montaje,PATH_ARCH);
+	
+	find_or_create(montaje,PATH_META);
 
-
-	char *miMetadata = unir_str(pathMetadata,"Metadata.bin");
+	char* miMetadata = unir_str(pathMetadata,"Metadata.bin");
+	if(!exist("Metadata.bin",pathMetadata))
+		createDefaultMetadata(pathMetadata);
 	config = config_create(miMetadata);
 	tamanioBloques = config_get_int_value(config,"TAMANIO_BLOQUES");
 	cantidadBloques = config_get_int_value(config,"CANTIDAD_BLOQUES");
-	char *magicNumber = config_get_string_value(config,"MAGIC_NUMBER");
-	printf("%d\n",strlen(magicNumber));
+	//char *magicNumber = config_get_string_value(config,"MAGIC_NUMBER");
 /*	if(!strcmp(magicNumber,magicNumber))
 		exit(4);*/
 	config_destroy(config);
 
 	free(miMetadata);
+	if(!exist("Bitmap.bin",pathMetadata))
+		create_binFile(pathMetadata,"Bitmap",cantidadBloques/8);
+
+
+	int32_t aux = find_or_create(montaje,PATH_BLQ);
+	if(aux == 0){
+		printf("%d\n",cantidadBloques);
+
+		for(i=0;i<cantidadBloques;i++){
+			char *nro = int_to_str(i+1);
+			create_block(pathBloques,nro,tamanioBloques);
+			free(nro);
+		}
+	}
+
 	printf("Cada bloque sera de %d\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
-	uint32_t miSocket = servidor(puerto,1);
+	int32_t miSocket = servidor(puerto,1);
 	//end
 
 	//ASI FUNCIONA EL MUNDO FILESYSTEM
 //					///								///
 //		MENSAJE		///	dimension TEXT	//	TEXT	///
 //	exist	size	///								///
-	uint32_t kernel;
+	int32_t kernel;
 	if((kernel = aceptarCliente(miSocket,1)) == -1)
 		exit(5);
 
@@ -79,7 +99,7 @@ int main(int argc, char** argv)
 	char *nameArchRequest;
 	uint32_t msg;
 	while(1){
-		recibir(kernel,(void *)&msg,sizeof(uint32_t));
+		recibir(kernel,(void *)&msg,sizeof(int32_t));
 		switch(msg){
 			case EXIST_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
