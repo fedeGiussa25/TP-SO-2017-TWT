@@ -23,7 +23,9 @@ enum{
 	GUARDAR_VALOR = 4,
 	ELIMINAR_PROCESO = 5,
 	OBTENER_VALOR = 6,
-	SOLICITAR_HEAP = 7
+	SOLICITAR_HEAP = 7,
+	ALOCAR = 8,
+	LIBERAR = 9
 };
 
 typedef struct{
@@ -39,7 +41,7 @@ typedef struct {
 
 typedef struct{
 	uint32_t size;
-	bool isFree;
+	_Bool isFree;
 } heapMetadata;
 
 /*Funciones*/
@@ -476,9 +478,13 @@ void *thread_proceso(int fd){
 
 				enviar(fd, &(espacio->page_counter), sizeof(int));
 			}
+			if(codigo == ALOCAR){
+
+			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);
 	}
+	pthread_exit(NULL);
 }
 
 int main(int argc, char** argv){

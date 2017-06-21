@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
@@ -120,7 +121,7 @@ typedef struct{
 
 typedef struct{
 	uint32_t size;
-	bool isFree;
+	_Bool isFree;
 } heapMetadata;
 
 typedef struct{
@@ -948,6 +949,28 @@ heap_de_proceso *buscar_heap(uint32_t pid){
 	    }
 	heap_de_proceso *heap_buscado = list_remove_by_condition(heap,*_remove_element);
 	return heap_buscado;
+}
+
+void print_heap(t_list* heap_proceso){
+	int tamanio = list_size(heap_proceso), i;
+	for(i=0; i< tamanio; i++){
+		heapMetadata *unPuntero = list_get(heap_proceso, i);
+		printf("Puntero %d, espacio: %d\n", i, unPuntero->size);
+		if(unPuntero->isFree){
+			printf("Estado: Libre\n");
+		}else{
+			printf("Estado: Ocupado\n");
+		}
+	}
+}
+
+int espacio_ocupado(t_list *heap_proceso){
+	int size = 0, i, tamanio = list_size(heap_proceso);
+	for(i=0; i< tamanio; i++){
+		heapMetadata *unPuntero = list_get(heap_proceso, i);
+		size = size + unPuntero->size;
+	}
+	return size;
 }
 
 //Fin de funciones de capa memoria
@@ -2115,14 +2138,25 @@ int main(int argc, char** argv) {
 									nuevoHeap->heap = list_create();
 									nuevoHeap->pid = pid;
 									list_add(nuevoHeap->heap, puntero);
+									list_add(heap, nuevoHeap);
 								}
 							}else{
 								heap_de_proceso *heap_buscado = buscar_heap(pid);
 								list_add(heap_buscado->heap, puntero);
 							}
-							//Nota para mati: el enviar que hago ahora esta mal, tendria que mandar el identificador del puntero a los datos del heap
-							//Pero como todavia no toque la parte de memoria propiamente dicha, ese dato no lo tengo. Por eso mando cualquier cosa
-							//Lo hice para poder probar las estructuras que hice
+							heap_de_proceso *heap_buscado = buscar_heap(pid);
+							heapMetadata *resto_puntero = malloc(sizeof(heapMetadata));
+
+							printf("Cada puntero pesa %d\n", sizeof(heapMetadata));
+							printf("Actualmente hay %d punteros\n", list_size(heap_buscado->heap));
+							printf("Y el espacio ocupado es %d\n", espacio_ocupado(heap_buscado->heap));
+
+							resto_puntero->isFree = true;
+							resto_puntero->size = tamanio_pagina - sizeof(heapMetadata) - (sizeof(heapMetadata)*list_size(heap_buscado->heap)) - (espacio_ocupado(heap_buscado->heap));
+							list_add(heap_buscado->heap, resto_puntero);
+							print_heap(heap_buscado->heap);
+
+
 							enviar(i, &espacio, sizeof(int));
 						}
 						if(codigo == LIBERAR_MEMORIA)

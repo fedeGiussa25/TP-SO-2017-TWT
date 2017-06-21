@@ -1,0 +1,7 @@
+#!/usr/bin/ansisop
+begin
+	variables a, b
+	wait SEM1
+	alocar a 50
+	wait SEM1
+end
