@@ -316,6 +316,38 @@ espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 	return espacio;
 }
 
+int32_t buscar_espacio_libre(uint32_t espacio, uint32_t direccion_fisica){
+	int encontrado = 0;
+	uint32_t aux;
+	int corrimiento = 0;
+	int32_t direccion_definitiva;
+	while(encontrado == 0 && corrimiento < data_config.marco_size){
+		heapMetadata *actual = (heapMetadata *) (memoria+direccion_fisica+corrimiento);
+		if(actual->isFree == true && actual->size >= (espacio+sizeof(heapMetadata))){
+			aux = actual->size - (espacio+sizeof(heapMetadata));
+			actual->isFree = false;
+			actual->size = espacio;
+
+			//Creamos otro heapMetadata para el espacio libre
+			heapMetadata *nuevo = malloc(sizeof(heapMetadata));
+			nuevo->isFree = true;
+			nuevo->size = aux;
+
+			direccion_definitiva = direccion_fisica + corrimiento + sizeof(heapMetadata);
+
+			memcpy(memoria + direccion_fisica + corrimiento + sizeof(heapMetadata) + espacio, nuevo, sizeof(heapMetadata));
+			encontrado = 1;
+		}else{
+			corrimiento = corrimiento + sizeof(heapMetadata) + actual->size;
+		}
+	}
+	if(encontrado == 1){
+		return direccion_definitiva;
+	}else{
+		return -1;
+	}
+}
+
 void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0;
@@ -363,6 +395,31 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 
 	memcpy(memoria+direccion_fisica+offset, value, tamanio);
 
+}
+
+int32_t alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+			frame = tabla[i].frame;
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+
+	int direccion_fisica = frame*tamanio_pagina;
+
+	int32_t puntero = 0;
+	//_Bool no_hay_espacio = false;
+
+//	while(puntero <= 0 && no_hay_espacio == false){
+	puntero = buscar_espacio_libre(espacio, direccion_fisica);
+
+//	}
+	return puntero;
 }
 
 void *thread_consola(){
@@ -479,7 +536,13 @@ void *thread_proceso(int fd){
 				enviar(fd, &(espacio->page_counter), sizeof(int));
 			}
 			if(codigo == ALOCAR){
+				uint32_t espacio, pagina, puntero;
+				recibir(fd, &PID, sizeof(uint32_t));
+				recibir(fd, &espacio, sizeof(uint32_t));
+				recibir(fd, &pagina, sizeof(uint32_t));
 
+				puntero = alocar(PID, pagina, espacio);
+				enviar(fd, &puntero, sizeof(int32_t));
 			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);

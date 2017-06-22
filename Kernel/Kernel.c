@@ -91,6 +91,8 @@ enum{
 	RESERVAR_MEMORIA = 18,
 	LIBERAR_MEMORIA = 19,
 	SOLICITAR_HEAP = 7,
+	ALOCAR = 8,
+	LIBERAR = 9,
 //Codigos comunicacion FS
 	BUSCAR_ARCHIVO_FS = 11,
 	CREAR_ARCHIVO_FS = 12,
@@ -2173,6 +2175,7 @@ int main(int argc, char** argv) {
 							int espacio;
 							recibir(i, &pid, sizeof(uint32_t));
 							recibir(i, &espacio, sizeof(int));
+							int paginas_totales;
 
 							printf("El proceso %d necesita alocar %d bytes\n", pid, espacio);
 
@@ -2187,7 +2190,6 @@ int main(int argc, char** argv) {
 								memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
 								enviar(sockfd_memoria, buffer, sizeof(uint32_t)*2);
 
-								int paginas_totales;
 								recibir(sockfd_memoria, &paginas_totales, sizeof(int));
 								if(paginas_totales > 0){
 									heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
@@ -2203,17 +2205,32 @@ int main(int argc, char** argv) {
 							heap_de_proceso *heap_buscado = buscar_heap(pid);
 							heapMetadata *resto_puntero = malloc(sizeof(heapMetadata));
 
-							printf("Cada puntero pesa %d\n", sizeof(heapMetadata));
-							printf("Actualmente hay %d punteros\n", list_size(heap_buscado->heap));
-							printf("Y el espacio ocupado es %d\n", espacio_ocupado(heap_buscado->heap));
-
 							resto_puntero->isFree = true;
 							resto_puntero->size = tamanio_pagina - sizeof(heapMetadata) - (sizeof(heapMetadata)*list_size(heap_buscado->heap)) - (espacio_ocupado(heap_buscado->heap));
 							list_add(heap_buscado->heap, resto_puntero);
 							print_heap(heap_buscado->heap);
 
+							PCB *unPCB = get_PCB_by_ID(todos_los_procesos, pid);
+							uint32_t pagina_de_heap = unPCB->page_counter;
+							list_add(todos_los_procesos, unPCB);
 
-							enviar(i, &espacio, sizeof(int));
+							printf("Debemos alocar en la pagina %d\n", pagina_de_heap);
+
+							void *buffer = malloc(sizeof(uint32_t)*4);
+							uint32_t cod = ALOCAR;
+							memcpy(buffer, &cod, sizeof(uint32_t));
+							memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
+							memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(uint32_t));
+							memcpy(buffer + sizeof(uint32_t)*3, &pagina_de_heap, sizeof(uint32_t));
+
+							//Alocamos
+							int32_t el_puntero;
+							enviar(sockfd_memoria, buffer, sizeof(uint32_t)*4);
+							recibir(sockfd_memoria, &el_puntero, sizeof(int32_t));
+
+							printf("El puntero apunta a la direccion %d\n", el_puntero);
+
+							enviar(i, &el_puntero, sizeof(int));
 						}
 						if(codigo == LIBERAR_MEMORIA)
 						{
