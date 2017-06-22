@@ -557,14 +557,62 @@ void print_PCB_list(){
 	else printf("No hay procesos en planificacion\n\n");
 }
 
+void print_all_files(){
+	pthread_mutex_lock(&mutex_archivos_globales);
+	if(list_size(tabla_global_de_archivos) > 0){
+		int i = 0;
+		while(i < list_size(tabla_global_de_archivos)){
+			archivo_global* aux = list_get(tabla_global_de_archivos,i);
+			printf("Ruta del archivo: %s ; Instancias abiertas: %d\n",aux->ruta_del_archivo,aux->instancias_abiertas);
+			i++;
+		}
+	} else printf("No se ha abierto ningun archivo\n");
+	pthread_mutex_unlock(&mutex_archivos_globales);
+	printf("\n");
+}
+
+void print_files_from_process(){
+	int i = 0, j = 0, encontrado = 0;
+	int* PID = malloc(sizeof(int));
+	printf("Ingrese el PID del proceso cuyos archivos desea ver: ");
+	scanf("%d",PID);
+
+	pthread_mutex_lock(&mutex_archivos_x_proceso);
+	while(i < list_size(tabla_de_archivos_por_proceso) && encontrado == 0)
+	{
+		tabla_de_archivos_de_proceso* aux_table = list_get(tabla_de_archivos_por_proceso,i);
+		if(aux_table->pid == *PID)
+		{
+			if(list_size(aux_table->lista_de_archivos) > 0){
+				while(j < list_size(aux_table->lista_de_archivos))
+				{
+					archivo_de_proceso* aux_file = list_get(aux_table->lista_de_archivos,j);
+					pthread_mutex_lock(&mutex_archivos_globales);
+					archivo_global* aux_global = list_get(tabla_global_de_archivos,aux_file->referencia_a_tabla_global);
+					pthread_mutex_unlock(&mutex_archivos_globales);
+					printf("Ruta del archivo: %s ; File descriptor: %d\n",aux_global->ruta_del_archivo,aux_file->fd);
+					j++;
+				}
+			} else printf("Este proceso no ha abierto ningun archivo\n");
+			encontrado = 1;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&mutex_archivos_x_proceso);
+	printf("\n");
+
+}
+
 void print_commands()
 {
 	printf("\nComandos\n");
-	printf("\t list    - Lista de Procesos\n");
-	printf("\t state   - Estado de un Proceso\n");
-	printf("\t plan    - Detener/Reanudar Planificacion\n");
-	printf("\t f_exist - Existencia de un archivo\n");
-	printf("\t f_size  - Dimension de un archivo\n\n");
+	printf("\t list    		- Lista de Procesos\n");
+	printf("\t state   		- Estado de un Proceso\n");
+	printf("\t plan    		- Detener/Reanudar Planificacion\n");
+	printf("\t f_exist 		- Existencia de un archivo\n");
+	printf("\t f_size  		- Dimension de un archivo\n");
+	printf("\t files_all    - Lista de todos los archivos\n");
+	printf("\t files	    - Lista de los archivos de un proceso\n\n");
 }
 
 void pcb_state()
@@ -702,7 +750,15 @@ void menu(int* sockfs)
 		}
 		else if((strcmp(command, "f_size") == 0))
 		{
-				file_handler(*sockfs,FILE_SIZE);
+			file_handler(*sockfs,FILE_SIZE);
+		}
+		else if((strcmp(command, "files_all") == 0))
+		{
+			print_all_files();
+		}
+		else if((strcmp(command, "files") == 0))
+		{
+			print_files_from_process();
 		}
 		else
 		{
