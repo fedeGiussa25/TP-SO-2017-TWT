@@ -544,6 +544,9 @@ void *thread_proceso(int fd){
 				puntero = alocar(PID, pagina, espacio);
 				enviar(fd, &puntero, sizeof(int32_t));
 			}
+			if(codigo == LIBERAR){
+
+			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);
 	}

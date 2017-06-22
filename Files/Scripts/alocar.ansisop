@@ -1,7 +1,6 @@
 #!/usr/bin/ansisop
 begin
-	variables a, b
-	wait SEM1
+	variables a, b, c
 	alocar a 50
 	alocar b 20
 	wait SEM1

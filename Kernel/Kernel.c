@@ -123,8 +123,8 @@ typedef struct{
 
 typedef struct{
 	uint32_t size;
-	_Bool isFree;
-} heapMetadata;
+	uint32_t direccion;
+} puntero;
 
 typedef struct{
 	uint32_t pid;
@@ -1012,16 +1012,11 @@ heap_de_proceso *buscar_heap(uint32_t pid){
 void print_heap(t_list* heap_proceso){
 	int tamanio = list_size(heap_proceso), i;
 	for(i=0; i< tamanio; i++){
-		heapMetadata *unPuntero = list_get(heap_proceso, i);
-		printf("Puntero %d, espacio: %d\n", i, unPuntero->size);
-		if(unPuntero->isFree){
-			printf("Estado: Libre\n");
-		}else{
-			printf("Estado: Ocupado\n");
-		}
+		puntero *unPuntero = list_get(heap_proceso, i);
+		printf("Puntero %d, direccion: %d, espacio: %d\n", i, unPuntero->direccion, unPuntero->size);
 	}
 }
-
+/*
 int espacio_ocupado(t_list *heap_proceso){
 	int size = 0, i, tamanio = list_size(heap_proceso);
 	for(i=0; i< tamanio; i++){
@@ -1030,7 +1025,7 @@ int espacio_ocupado(t_list *heap_proceso){
 	}
 	return size;
 }
-
+*/
 //Fin de funciones de capa memoria
 
 int esta_en_uso(int fd){
@@ -2175,15 +2170,14 @@ int main(int argc, char** argv) {
 							int espacio;
 							recibir(i, &pid, sizeof(uint32_t));
 							recibir(i, &espacio, sizeof(int));
-							int paginas_totales;
+							int32_t paginas_totales;
+
+							//tamanio maximo alocalbe es igual al tamanio de pagina menos el tamanio de un heapMetadata
+							uint32_t tam_max_alocable = tamanio_pagina - sizeof(uint32_t)*2;
 
 							printf("El proceso %d necesita alocar %d bytes\n", pid, espacio);
 
-							heapMetadata *puntero = malloc(sizeof(heapMetadata));
-							puntero->isFree = false;
-							puntero->size = espacio;
-
-							if(!tiene_heap(pid)){
+							if(tiene_heap(pid) == false && espacio <= tam_max_alocable){
 								uint32_t cod = SOLICITAR_HEAP;
 								void *buffer = malloc(2*sizeof(uint32_t));
 								memcpy(buffer, &cod, sizeof(uint32_t));
@@ -2195,42 +2189,54 @@ int main(int argc, char** argv) {
 									heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
 									nuevoHeap->heap = list_create();
 									nuevoHeap->pid = pid;
-									list_add(nuevoHeap->heap, puntero);
 									list_add(heap, nuevoHeap);
+								}else{
+									enviar(i, &paginas_totales, sizeof(int32_t));
 								}
-							}else{
-								heap_de_proceso *heap_buscado = buscar_heap(pid);
-								list_add(heap_buscado->heap, puntero);
 							}
-							heap_de_proceso *heap_buscado = buscar_heap(pid);
-							heapMetadata *resto_puntero = malloc(sizeof(heapMetadata));
+							if(tiene_heap(pid) == true && espacio <= tam_max_alocable){
+								heap_de_proceso *heap_buscado = buscar_heap(pid);
 
-							resto_puntero->isFree = true;
-							resto_puntero->size = tamanio_pagina - sizeof(heapMetadata) - (sizeof(heapMetadata)*list_size(heap_buscado->heap)) - (espacio_ocupado(heap_buscado->heap));
-							list_add(heap_buscado->heap, resto_puntero);
-							print_heap(heap_buscado->heap);
+								print_heap(heap_buscado->heap);
 
-							PCB *unPCB = get_PCB_by_ID(todos_los_procesos, pid);
-							uint32_t pagina_de_heap = unPCB->page_counter;
-							list_add(todos_los_procesos, unPCB);
+								pthread_mutex_lock(&mutex_process_list);
+								PCB *unPCB = get_PCB_by_ID(todos_los_procesos, pid);
+								uint32_t pagina_de_heap = unPCB->page_counter;
+								list_add(todos_los_procesos, unPCB);
+								pthread_mutex_unlock(&mutex_process_list);
 
-							printf("Debemos alocar en la pagina %d\n", pagina_de_heap);
+								printf("Debemos alocar en la pagina %d\n", pagina_de_heap);
 
-							void *buffer = malloc(sizeof(uint32_t)*4);
-							uint32_t cod = ALOCAR;
-							memcpy(buffer, &cod, sizeof(uint32_t));
-							memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
-							memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(uint32_t));
-							memcpy(buffer + sizeof(uint32_t)*3, &pagina_de_heap, sizeof(uint32_t));
+								void *buffer = malloc(sizeof(uint32_t)*4);
+								uint32_t cod = ALOCAR;
+								memcpy(buffer, &cod, sizeof(uint32_t));
+								memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
+								memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(uint32_t));
+								memcpy(buffer + sizeof(uint32_t)*3, &pagina_de_heap, sizeof(uint32_t));
 
-							//Alocamos
-							int32_t el_puntero;
-							enviar(sockfd_memoria, buffer, sizeof(uint32_t)*4);
-							recibir(sockfd_memoria, &el_puntero, sizeof(int32_t));
+								//Alocamos
+								int32_t el_puntero;
+								enviar(sockfd_memoria, buffer, sizeof(uint32_t)*4);
+								recibir(sockfd_memoria, &el_puntero, sizeof(int32_t));
 
-							printf("El puntero apunta a la direccion %d\n", el_puntero);
+								if(el_puntero > 0){
+									printf("El puntero apunta a la direccion %d\n", el_puntero);
+									puntero *unPuntero = malloc(sizeof(puntero));
+									unPuntero->direccion = el_puntero;
+									unPuntero->size = espacio;
+									list_add(heap_buscado->heap, unPuntero);
+									list_add(heap, heap_buscado);
+								}else{
+									printf("No hay espacio suficiente para el pedido\n");
+								}
 
-							enviar(i, &el_puntero, sizeof(int));
+								enviar(i, &el_puntero, sizeof(int32_t));
+							}else{
+								//Si llegamos aca, significa que el flaco se quiso hacer el lunga y reservar mas que una pagina
+								printf("Error: No es posible reservar un espacio mayor que una pagina\n");
+								int32_t error = -1;
+								enviar(i, &error, sizeof(int32_t));
+							}
 						}
 						if(codigo == LIBERAR_MEMORIA)
 						{

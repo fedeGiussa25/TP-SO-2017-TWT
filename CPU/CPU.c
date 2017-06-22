@@ -65,6 +65,7 @@ int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cu
 bool stackOverflow;
 bool programaTerminado;
 bool procesoBloqueado;
+bool procesoAbortado;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -445,6 +446,11 @@ t_puntero twt_reservar (t_valor_variable espacio)
 	memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(int));
 	enviar(fd_kernel, buffer, sizeof(int)+ sizeof(uint32_t)*2);
 	recibir(fd_kernel, &puntero, sizeof(u_int32_t));
+
+	if(puntero < 0){
+
+	}
+
 	return puntero;
 }
 void twt_liberar(t_puntero puntero)
@@ -797,21 +803,29 @@ int main(int argc, char **argv) {
 		stackOverflow = false;
 		programaTerminado = false;
 		procesoBloqueado = false;
+		procesoAbortado = false;
+
 		if(quantum < 0){
 			printf("Estoy ejecutando en FIFO\n");
-			while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
+			while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false) && (procesoAbortado == false))
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
 				analizadorLinea(instruccion, &funciones, &fcs_kernel);
 				free(instruccion);
 			}
-			codigo = 10;
-			send_PCB(fd_kernel, nuevaPCB, codigo);
+			if(programaTerminado == true){
+				codigo = 10;
+				send_PCB(fd_kernel, nuevaPCB, codigo);
+			}
+			else{
+				codigo = 100;
+				send_PCB(fd_kernel, nuevaPCB, codigo);
+			}
 		}
 		else{
 			printf("Estoy ejecutando en Round Robin\n");
-			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false))
+			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false) && (procesoAbortado == false))
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
