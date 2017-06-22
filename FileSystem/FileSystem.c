@@ -30,6 +30,29 @@ char *pathBloques;
 fs_config data_config;
 uint32_t tamanioBloques;
 uint32_t cantidadBloques;
+
+
+
+t_bitarray *ready_to_work(char *pathBitmap){
+	int32_t fd = open(pathBitmap,O_RDWR);
+	struct stat sbuf;
+	fstat(fd,&sbuf);
+	if(fd <0)
+		exit(8);
+	void *data = mmap((caddr_t)0,sbuf.st_size,PROT_READ|PROT_WRITE, MAP_SHARED, fd,0);
+	if(data == -1)
+		exit(3);
+	if(msync(data,sbuf.st_size,MS_ASYNC)==-1)
+		exit(4);
+	t_bitarray *dataB = bitarray_create_with_mode(data,sbuf.st_size,MSB_FIRST);
+	if(dataB == -1)
+		exit(10);
+	return dataB;
+
+}	
+
+
+
 int main(int argc, char** argv)
 {
 	t_config *config;
@@ -68,8 +91,9 @@ int main(int argc, char** argv)
 	free(miMetadata);
 	if(!exist("Bitmap.bin",pathMetadata))
 		create_binFile(pathMetadata,"Bitmap",cantidadBloques/8);
-
-
+	char *miBitmap = unir_str(pathMetadata,"Bitmap.bin");
+	t_bitarray *bitmap = ready_to_work(miBitmap);
+	free(miBitmap);
 	int32_t aux = find_or_create(montaje,PATH_BLQ);
 	if(aux == 0 || !exist("1.bin",PATH_BLQ)){
 		printf("%d\n",cantidadBloques);
@@ -81,7 +105,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	printf("Cada bloque sera de %d\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
+	printf("Cada bloque sera de %d bytes\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
 	int32_t miSocket = servidor(puerto,1);
 	//end
@@ -93,8 +117,6 @@ int main(int argc, char** argv)
 	int32_t kernel;
 	if((kernel = aceptarCliente(miSocket,1)) == -1)
 		exit(5);
-
-	//NO ESTOY SEGURO COMO ANDA EL MOUNT PERO SI LE TIRAS ESTO FUNCA, POR FAVOR MIRALO EZE
 	
 	char *nameArchRequest;
 	uint32_t msg;
@@ -103,12 +125,13 @@ int main(int argc, char** argv)
 		switch(msg){
 			case EXIST_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = exist(nameArchRequest,montaje);
+				msg = exist(nameArchRequest,pathArchivos);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+				
 				break;
 			case SIZE_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = sizeFile(nameArchRequest,montaje);
+				msg = sizeFile(nameArchRequest,pathArchivos);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			default:
