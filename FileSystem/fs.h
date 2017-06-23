@@ -284,3 +284,16 @@ void kill_archivo(Archivo_t *aux){
 
 }
 
+
+void delete_file(char* path,char* montaje,t_bitarray *data){
+	char* fullPath = unir_str(montaje,path);
+	Archivo_t *aux = get_data_Archivo(fullPath);
+	int i;
+	printf("limpiare %d bloques\n",aux->cantidadElementos );
+	for(i=0;i<aux->cantidadElementos;i++){
+		int posicion = atoi(aux->array[i])-1;
+		bitarray_clean_bit(data,posicion);
+	}
+	remove(fullPath);
+	free(fullPath);
+}
