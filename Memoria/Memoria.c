@@ -277,6 +277,11 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 	return espacio;
 }
 
+_Bool process_last_page(uint32_t pid, uint32_t pagina){
+	int ultima_pagina_de_proceso = paginas_de_proceso(pid) - 1;
+	return pagina == ultima_pagina_de_proceso;
+}
+
 espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
@@ -333,7 +338,7 @@ int32_t buscar_espacio_libre(uint32_t espacio, uint32_t direccion_fisica){
 			nuevo->isFree = true;
 			nuevo->size = aux;
 
-			direccion_definitiva = direccion_fisica + corrimiento + sizeof(heapMetadata);
+			direccion_definitiva = corrimiento + sizeof(heapMetadata);
 
 			memcpy(memoria + direccion_fisica + corrimiento + sizeof(heapMetadata) + espacio, nuevo, sizeof(heapMetadata));
 			encontrado = 1;
@@ -397,9 +402,10 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 
 }
 
-int32_t alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
+espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+	espacio_reservado *unEspacio = malloc(sizeof(espacio_reservado));
 
 	while(encontrado == 0 && i < data_config.marcos){
 		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
@@ -413,13 +419,54 @@ int32_t alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	int direccion_fisica = frame*tamanio_pagina;
 
 	int32_t puntero = 0;
-	//_Bool no_hay_espacio = false;
+	_Bool no_hay_espacio = false;
 
-//	while(puntero <= 0 && no_hay_espacio == false){
 	puntero = buscar_espacio_libre(espacio, direccion_fisica);
 
-//	}
-	return puntero;
+	while(puntero < 0 && no_hay_espacio == false){
+		if(puntero < 0 && process_last_page(PID, pagina) == true){
+			printf("Creamos un nuevo Espacio\n");
+			espacio_reservado *unEspacio = buscar_espacio_para_heap(PID);
+			if(unEspacio->direccion < 0){
+				no_hay_espacio = true;
+			}else{
+				pagina ++;
+				i = 0;
+				encontrado = 0;
+				while(encontrado == 0 && i < data_config.marcos){
+					if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+						frame = tabla[i].frame;
+						encontrado = 1;
+					}else{
+						i++;
+					}
+				}
+
+				int direccion_fisica = frame*tamanio_pagina;
+				puntero = buscar_espacio_libre(espacio, direccion_fisica);
+			}
+		}else if(puntero < 0 && process_last_page(PID, pagina) == false){
+			printf("Buscamos la siguiente pagina\n");
+			pagina ++;
+			i = 0;
+			encontrado = 0;
+			while(encontrado == 0 && i < data_config.marcos){
+				if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+					frame = tabla[i].frame;
+					encontrado = 1;
+				}else{
+					i++;
+				}
+			}
+
+			int direccion_fisica = frame*tamanio_pagina;
+			puntero = buscar_espacio_libre(espacio, direccion_fisica);
+		}
+	}
+
+	unEspacio->direccion = puntero;
+	unEspacio->page_counter = pagina;
+	return unEspacio;
 }
 
 void *thread_consola(){
@@ -533,16 +580,19 @@ void *thread_proceso(int fd){
 				espacio_reservado *espacio;
 				espacio = buscar_espacio_para_heap(PID);
 
-				enviar(fd, &(espacio->page_counter), sizeof(int));
+				enviar(fd, &(espacio->page_counter), sizeof(int32_t));
 			}
 			if(codigo == ALOCAR){
-				uint32_t espacio, pagina, puntero;
+				uint32_t espacio, pagina;
+				espacio_reservado *puntero;
 				recibir(fd, &PID, sizeof(uint32_t));
 				recibir(fd, &espacio, sizeof(uint32_t));
 				recibir(fd, &pagina, sizeof(uint32_t));
 
 				puntero = alocar(PID, pagina, espacio);
-				enviar(fd, &puntero, sizeof(int32_t));
+
+				enviar(fd, &(puntero->direccion), sizeof(int32_t));
+				enviar(fd, &(puntero->page_counter), sizeof(int32_t));
 			}
 			if(codigo == LIBERAR){
 
