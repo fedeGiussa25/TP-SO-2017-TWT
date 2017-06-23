@@ -145,7 +145,7 @@ int potencia(int nro,int potencia){
 	return aux;
 }	
 
-Archivo_t *get_data_Archivo(char *path){
+Archivo_t *get_data_archivo(char *path){
 	t_config *config;
 	
 	config = config_create(path);
@@ -239,7 +239,7 @@ char* array_to_write(Archivo_t *aux){
 	strcat(charArray,"]");
 	return charArray;
 }
-int32_t create_file(char* path,char* montaje,t_bitarray *data){
+int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	if(exist(path,montaje)==true)
 		return 1;
 
@@ -285,9 +285,9 @@ void kill_archivo(Archivo_t *aux){
 }
 
 
-void delete_file(char* path,char* montaje,t_bitarray *data){
+void delete_archivo(char* path,char* montaje,t_bitarray *data){
 	char* fullPath = unir_str(montaje,path);
-	Archivo_t *aux = get_data_Archivo(fullPath);
+	Archivo_t *aux = get_data_archivo(fullPath);
 	int i;
 	printf("limpiare %d bloques\n",aux->cantidadElementos );
 	for(i=0;i<aux->cantidadElementos;i++){
@@ -296,4 +296,21 @@ void delete_file(char* path,char* montaje,t_bitarray *data){
 	}
 	remove(fullPath);
 	free(fullPath);
+}
+
+
+int32_t validar_archivo(char* path,char* montaje){
+	char *fullPath = unir_str(montaje,path);
+	int32_t valida=false;;
+	
+	t_config *config = config_create(fullPath);
+	if(config == NULL){
+		free(fullPath);
+		return valida;
+	}
+	if(config_has_property(config,"BLOQUES") && config_has_property(config,"TAMANIO"))
+		valida = true;
+	config_destroy(config);
+	free(fullPath);
+	return valida;
 }
