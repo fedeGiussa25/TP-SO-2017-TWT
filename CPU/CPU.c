@@ -439,16 +439,16 @@ t_puntero twt_reservar (t_valor_variable espacio)
 {
 	printf("Soy reservar memoria\n");
 	uint32_t codigo = RESERVAR_MEMORIA;
-	u_int32_t puntero;
+	int32_t puntero;
 	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(int));
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t)*2, &espacio, sizeof(int));
 	enviar(fd_kernel, buffer, sizeof(int)+ sizeof(uint32_t)*2);
-	recibir(fd_kernel, &puntero, sizeof(u_int32_t));
+	recibir(fd_kernel, &puntero, sizeof(int32_t));
 
 	if(puntero < 0){
-
+		//Mattiiii
 	}
 
 	return puntero;
@@ -463,6 +463,11 @@ void twt_liberar(t_puntero puntero)
 	memcpy(buffer + sizeof(uint32_t)*2, &puntero, sizeof(u_int32_t));
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)+ sizeof(uint32_t)*2);
 	recibir(fd_kernel, &resp, sizeof(uint32_t));
+
+	if(resp < 0){
+		//Mattiiii
+	}
+
 	return;
 }
 t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)

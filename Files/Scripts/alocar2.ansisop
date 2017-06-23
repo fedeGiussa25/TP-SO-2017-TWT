@@ -1,11 +1,9 @@
 #!/usr/bin/ansisop
 begin
-	variables a, b, c, d
+	variables a, b
 	alocar a 50
-	*a = 5
+	liberar a
 	alocar b 20
-	c = *a
-	alocar d 410
-	*d = c
+	*b = 5
 	wait SEM1
 end

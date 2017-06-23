@@ -469,6 +469,29 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	return unEspacio;
 }
 
+void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+
+	while(encontrado == 0 && i < data_config.marcos){
+		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+			frame = tabla[i].frame;
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+
+	int direccion_fisica = (frame*tamanio_pagina + direccion) - sizeof(heapMetadata);
+
+	//Marcamos espacio como libre
+	heapMetadata *unPuntero = (heapMetadata *) memoria + direccion_fisica;
+
+	printf("El puntero localizado tiene %d bytes de tamanio y flag en %d\n", unPuntero->size, unPuntero->isFree);
+
+	unPuntero->isFree = true;
+}
+
 void *thread_consola(){
 	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensajes\n\n");
 	while(1){
@@ -593,9 +616,16 @@ void *thread_proceso(int fd){
 
 				enviar(fd, &(puntero->direccion), sizeof(int32_t));
 				enviar(fd, &(puntero->page_counter), sizeof(int32_t));
+
+				free(puntero);
 			}
 			if(codigo == LIBERAR){
+				uint32_t direccion, pagina;
+				recibir(fd, &PID, sizeof(uint32_t));
+				recibir(fd, &pagina, sizeof(uint32_t));
+				recibir(fd, &direccion, sizeof(uint32_t));
 
+				liberar(PID, pagina, direccion);
 			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);
