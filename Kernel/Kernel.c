@@ -1373,7 +1373,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
 
-	printf("Setteanding the new archive baby!");
+	printf("Setteanding the new archive baby!\n");
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
@@ -1605,7 +1605,7 @@ int execute_close(int pid, int fd)
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
 			list_remove(tabla_archivos->lista_de_archivos,i);
 			free(arch_aux);
-			printf("Borre el archivo %d de la tabla de archivos y lo libere", fd);
+			printf("Borre el archivo %d de la tabla de archivos y lo libere\n", fd);
 		}
 		i++;
 	}
@@ -1624,19 +1624,19 @@ int execute_close(int pid, int fd)
 	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
 	pthread_mutex_unlock(&mutex_archivos_globales);
 
-/*	if(arch->instancias_abiertas == 1)
+	if(arch->instancias_abiertas == 1)
 	{
 		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
 		//en 0, por lo que tengo que eliminar esa fila de la tabla global
-		printf("Ningun otro proceso tiene abierto el archivo borrado")
+		printf("Ningun otro proceso tiene abierto el archivo borrado so I borrar it of the global table\n");
 		pthread_mutex_lock(&mutex_archivos_globales);
 		list_remove(tabla_global_de_archivos, referencia_tabla_global);
 		pthread_mutex_unlock(&mutex_archivos_globales);
 	}
-	else*/
+	else
 		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
 		arch->instancias_abiertas--;
-		printf("Disminui en 1 las instancias abiertas del archivo");
+		printf("Disminui en 1 las instancias abiertas del archivo\n");
 
 	return 1;
 }
