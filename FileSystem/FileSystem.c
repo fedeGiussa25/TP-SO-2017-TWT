@@ -47,6 +47,7 @@ t_bitarray *ready_to_work(char *pathBitmap){
 	t_bitarray *dataB = bitarray_create_with_mode(data,sbuf.st_size,MSB_FIRST);
 	if(dataB == -1)
 		exit(10);
+	close(fd);
 	return dataB;
 
 }	

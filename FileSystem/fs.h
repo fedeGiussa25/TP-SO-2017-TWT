@@ -212,3 +212,75 @@ void createDefaultMetadata(char* rutaBase){
 	fclose(archivo);
 	free(path);
 }
+
+void agregarBloque(Archivo_t *aux,uint32_t bloque){
+	char* str_bloque = int_to_str(bloque);
+	if(aux->array == NULL)
+		aux->array = malloc((aux->cantidadElementos + 1) * sizeof(char*));
+	else
+		aux->array = realloc(aux->array,(aux->cantidadElementos + 1) * sizeof(char*));
+	aux->array[aux->cantidadElementos] =(char*)malloc(strlen(str_bloque));
+	strcpy(aux->array[aux->cantidadElementos],str_bloque);
+	aux->cantidadElementos+=1; 
+	free(str_bloque);
+}
+
+char* array_to_write(Archivo_t *aux){
+	int32_t tamanioReal=0,i;
+	for (i = 0;i<aux->cantidadElementos; i++)
+		tamanioReal+=strlen(aux->array[i]);
+	char* charArray= (char*)malloc(tamanioReal*2+2);
+	strcpy(charArray,"[");
+	for (i = 0;i<aux->cantidadElementos; i++){
+		strcat(charArray,aux->array[i]);
+		if(i+1!=aux->cantidadElementos)
+			strcat(charArray,",");
+	}
+	strcat(charArray,"]");
+	return charArray;
+}
+int32_t create_file(char* path,char* montaje,t_bitarray *data){
+	if(exist(path,montaje)==true)
+		return 1;
+
+	char* fullPath = unir_str(montaje,path);
+	FILE *archivo = fopen(fullPath,"w");
+	fclose(archivo);
+	Archivo_t *aux = malloc(sizeof(Archivo_t));
+	aux->tamanio = 0;
+	aux->cantidadElementos = 0;
+	aux->array = NULL;
+	int bloque = primer_bloque_libre(data);
+	printf("El primer bloque libre fue el %d\n",bloque);
+	agregarBloque(aux,bloque);
+	bitarray_set_bit(data,bloque-1);
+	t_config *config = config_create(fullPath);
+	config_set_value(config,"TAMANIO", "0");
+	char *array = array_to_write(aux);
+	config_set_value(config,"BLOQUES",array);
+
+	config_save(config);
+	free(array);
+	config_destroy(config);
+
+	free(fullPath);
+	return 0;
+}
+
+
+void print_data_archivo(Archivo_t *aux){
+	int i = 0;
+	for(i=0;i<aux->cantidadElementos;i++)
+		printf("elemnto \t%d\t%s\n",i,aux->array[i] );
+}
+
+void kill_archivo(Archivo_t *aux){
+	char **array = aux->array;
+	int i=0;
+	for(i = 0;i<aux->cantidadElementos;i++)
+		free(aux->array[i]);
+	free(aux->array);
+	free(aux);
+
+}
+
