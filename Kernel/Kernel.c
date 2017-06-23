@@ -1290,7 +1290,7 @@ bool puede_crear_archivos(int flag)
 int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length, uint32_t sock_fs)
 {
 	uint32_t i = 0, codigo, referencia_tabla_global, offset;
-	bool encontrado = false, pudo_crear_archivo = false;
+	uint32_t encontrado = false, pudo_crear_archivo = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
 	//Le pregunto a fs si ese archivo existe
@@ -1306,12 +1306,9 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 	free(serializedData);
 
-	//Si lo encontró, recibe el offset
-	if(encontrado)
-		recibir(sock_fs, &offset, sizeof(uint32_t));
-
 	if((!encontrado) && (permisos->creacion))
 	{
+		printf("El archivo no existe pero puedo crearlo!\n");
 		//Le dice al fs que cree el archivo
 		codigo = CREAR_ARCHIVO_FS;
 		void* archivo_a_crear = malloc(sizeof(uint32_t) + path_length);
@@ -1320,11 +1317,14 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 		memcpy(serializedData + sizeof(uint32_t)*2, path, path_length);
 
 		enviar(sock_fs, &archivo_a_crear, sizeof(uint32_t)*2 + path_length);
-		recibir(sock_fs, &pudo_crear_archivo, sizeof(bool));
+		recibir(sock_fs, &pudo_crear_archivo, sizeof(uint32_t));
 
 		if(pudo_crear_archivo)
+		{
+			printf("Se creo re bien\n");
 			//Si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
 			offset = 0;
+		}
 		else
 		{
 			printf("Error al abrir un archivo para el proceso %d: El FS no pudo crear el archivo\n", pid);
@@ -1339,23 +1339,25 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 	//Si se encontro el archivo o se pudo crear...
 	//Busco el archivo por su ruta en la tabla global y aumento la cantidad de instancias
-	encontrado = false;
+	bool existe = false;
 	pthread_mutex_lock(&mutex_archivos_globales);
-	while(i < list_size(tabla_global_de_archivos) && !encontrado)
+	while(i < list_size(tabla_global_de_archivos) && !existe)
 	{
 		archivo_global* aux = list_get(tabla_global_de_archivos, i);
 
 		if(strcmp(aux->ruta_del_archivo, path) == 0)
 		{
-			encontrado = true;
+			existe = true;
 			aux->instancias_abiertas++;
+			printf("Encontre el archivo en la tabla global\n");
 		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_archivos_globales);
 	//Si no esta en la tabla global, creo otra entrada en dicha tabla
-	if(!encontrado)
+	if(!existe)
 	{
+		printf("No encontre el archivo en la tabla global asi que lo agrego\n");
 		archivo_global* nuevo = malloc(sizeof(archivo_global));
 		nuevo->instancias_abiertas = 1;
 		nuevo->ruta_del_archivo = path;
@@ -1369,8 +1371,9 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	referencia_tabla_global = i;
 
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
-	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivoAbierto));
+	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
 
+	printf("Setteanding the new archive baby!");
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
@@ -1587,6 +1590,7 @@ int execute_close(int pid, int fd)
 		return -1;
 	}
 
+	printf("El proceso %d existe\n", pid);
 	i = 0;
 	encontrado = false;
 
@@ -1594,21 +1598,15 @@ int execute_close(int pid, int fd)
 	while(i < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
 	{
 		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
-		int file = arch_aux->fd;
-
-		if(file == fd)
+		if(arch_aux->fd == fd)
 		{
+			printf("Encontre el archivo %d para el proceso %d", fd, pid);
 			encontrado = true;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
-			//Saco todas las entradas que refieren a dicho fd en la tabla del proceso (todas tienen en mismo index)
-			/*list_remove(tabla_archivos->fd, i);
-			list_remove(tabla_archivos->flag, i);
-			list_remove(tabla_archivos->offset, i);
-			list_remove(tabla_archivos->referencia_a_tabla_global, i);*/
-
 			list_remove(tabla_archivos->lista_de_archivos,i);
+			free(arch_aux);
+			printf("Borre el archivo %d de la tabla de archivos y lo libere", fd);
 		}
-
 		i++;
 	}
 	//Si no encuentro el fd, hay tabla :P
@@ -1626,17 +1624,19 @@ int execute_close(int pid, int fd)
 	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
 	pthread_mutex_unlock(&mutex_archivos_globales);
 
-	if(arch->instancias_abiertas == 1)
+/*	if(arch->instancias_abiertas == 1)
 	{
 		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
 		//en 0, por lo que tengo que eliminar esa fila de la tabla global
+		printf("Ningun otro proceso tiene abierto el archivo borrado")
 		pthread_mutex_lock(&mutex_archivos_globales);
 		list_remove(tabla_global_de_archivos, referencia_tabla_global);
 		pthread_mutex_unlock(&mutex_archivos_globales);
 	}
-	else
+	else*/
 		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
 		arch->instancias_abiertas--;
+		printf("Disminui en 1 las instancias abiertas del archivo");
 
 	return 1;
 }
@@ -2073,14 +2073,17 @@ int main(int argc, char** argv) {
 							memset(file_path + path_length + 1, '\0', 1);
 
 							//Recibo los permisos con los que se abre el archivo
-							//recibir(i, &permisos, 0);
 
 							recibir(i, &(permisos->creacion), sizeof(bool));
 							recibir(i, &(permisos->lectura), sizeof(bool));
 							recibir(i, &(permisos->escritura), sizeof(bool));
 
-							int resultado;	//Tiene el fd del archivo abierto, o un codigo de error
-							resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs); // falta terminar; linea 1277
+							printf("Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
+							printf("  PID: %d\n",pid);
+							printf("  Path: %s\n",file_path);
+							printf("  Permisos: C(%d), R(%d), W(%d)", permisos->creacion, permisos->lectura, permisos->escritura);
+
+							int resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs);
 
 							int sock_consola = obtener_consola_asignada_al_proceso(pid);
 
@@ -2164,11 +2167,15 @@ int main(int argc, char** argv) {
 
 						if(codigo == CERRAR_ARCHIVO)
 						{
-							int fd, pid, resultado = 1, sock_consola = 0;
+							uint32_t fd, pid, resultado = 1, sock_consola = 0;
 
 							//Recibo pid y fd
-							recibir(i, &pid, sizeof(int));
-							recibir(i, &fd, sizeof(int));
+							recibir(i, &pid, sizeof(uint32_t));
+							recibir(i, &fd, sizeof(uint32_t));
+
+							printf("Me pidieron cerrar un archivo con las siguientes caracteristicas:\n");
+							printf("  PID: %d\n",pid);
+							printf("  FD: %d\n",fd);
 
 							if(fd != 1)
 								resultado = execute_close(pid, fd);
@@ -2185,7 +2192,7 @@ int main(int argc, char** argv) {
 							else
 								printf("Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
 
-							enviar(i, &resultado, sizeof(int));
+							enviar(i, &resultado, sizeof(uint32_t));
 						}
 						if(codigo == RESERVAR_MEMORIA)
 						{
