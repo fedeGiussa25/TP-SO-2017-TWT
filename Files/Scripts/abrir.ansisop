@@ -1,0 +1,11 @@
+#!/usr/bin/ansisop
+begin
+	variables f
+
+	#Guarda en f el File Descriptor obtenido
+	# la L es el permiso
+	
+	abrir f L /home/utnso/miarchivo.txt
+
+	cerrar f
+end
