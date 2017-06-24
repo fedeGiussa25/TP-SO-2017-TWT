@@ -241,10 +241,12 @@ char* array_to_write(Archivo_t *aux){
 
 int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	if(exist(path,montaje)==true)
-		return 1;
-
+		return false;
+	printf("Tratando de Crear un Archivo en %s\n",path );
 	char* fullPath = unir_str(montaje,path);
 	FILE *archivo = fopen(fullPath,"w");
+	if(archivo == NULL)
+		return false;
 	fclose(archivo);
 	Archivo_t *aux = malloc(sizeof(Archivo_t));
 	aux->tamanio = 0;
@@ -264,7 +266,7 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	config_destroy(config);
 
 	free(fullPath);
-	return 0;
+	return true;
 }
 
 void print_data_archivo(Archivo_t *aux){
