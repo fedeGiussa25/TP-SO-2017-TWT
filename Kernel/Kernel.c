@@ -1301,23 +1301,25 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	memcpy(serializedData + sizeof(uint32_t), &path_length, sizeof(uint32_t));
 	memcpy(serializedData + sizeof(uint32_t)*2, path, path_length);
 
-	enviar(sock_fs, &serializedData, sizeof(uint32_t)*2 + path_length);
+	enviar(sock_fs, serializedData, sizeof(uint32_t)*2 + path_length);
 	recibir(sock_fs, &encontrado, sizeof(bool));
 
 	free(serializedData);
 
-	if((!encontrado) && (permisos->creacion))
+	if((encontrado != 1) && (permisos->creacion))
 	{
 		printf("El archivo no existe pero puedo crearlo!\n");
 		//Le dice al fs que cree el archivo
 		codigo = CREAR_ARCHIVO_FS;
-		void* archivo_a_crear = malloc(sizeof(uint32_t) + path_length);
-		memcpy(serializedData, &codigo, sizeof(uint32_t));
-		memcpy(serializedData + sizeof(uint32_t), &path_length, sizeof(uint32_t));
-		memcpy(serializedData + sizeof(uint32_t)*2, path, path_length);
+		void* archivo_a_crear = malloc(sizeof(uint32_t)*2 + path_length);
+		memcpy(archivo_a_crear, &codigo, sizeof(uint32_t));
+		memcpy(archivo_a_crear + sizeof(uint32_t), &path_length, sizeof(uint32_t));
+		memcpy(archivo_a_crear + sizeof(uint32_t)*2, path, path_length);
 
-		enviar(sock_fs, &archivo_a_crear, sizeof(uint32_t)*2 + path_length);
+		enviar(sock_fs, archivo_a_crear, sizeof(uint32_t)*2 + path_length);
 		recibir(sock_fs, &pudo_crear_archivo, sizeof(uint32_t));
+
+		free(archivo_a_crear);
 
 		if(pudo_crear_archivo)
 		{
@@ -1331,7 +1333,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 			return -2; //Afuera de la funcion mata el proceso y le avisa a CPU
 		}
 	}
-	else if((!encontrado) && (!permisos->creacion))
+	else if((encontrado != 1) && (!permisos->creacion))
 	{
 		printf("Error al abrir un archivo para el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
 		return -1;		// Afuera de esta funcion se termina el proceso y le avisa a CPU
@@ -2081,7 +2083,7 @@ int main(int argc, char** argv) {
 							printf("Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
 							printf("  PID: %d\n",pid);
 							printf("  Path: %s\n",file_path);
-							printf("  Permisos: C(%d), R(%d), W(%d)", permisos->creacion, permisos->lectura, permisos->escritura);
+							printf("  Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
 
 							int resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs);
 
