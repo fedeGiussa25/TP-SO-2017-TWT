@@ -252,7 +252,7 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	aux->tamanio = 0;
 	aux->cantidadElementos = 0;
 	aux->array = NULL;
-	int bloque = primer_bloque_libre(data);
+	int bloque = primer_bloque_libre(data) + 1;
 	printf("El primer bloque libre fue el %d\n",bloque);
 	agregarBloque(aux,bloque);
 	bitarray_set_bit(data,bloque-1);
