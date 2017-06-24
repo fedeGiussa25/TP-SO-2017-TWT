@@ -7,7 +7,6 @@ typedef struct{
 	uint32_t cantidadElementos; //es posible sacarlo con un algoritmo pero no me jode ya tenerlo
 }Archivo_t;
 
-
 uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
 	char *fullPath= 
@@ -56,6 +55,7 @@ char *unir_str(char* str1,char* str2){
 	strcat(retorno,str2);
 	return retorno;
 }
+
 char *path_sin_bar(char* path){
 	int32_t dimension = strlen(path);
 	char *retorno = malloc(dimension);
@@ -168,6 +168,7 @@ Archivo_t *get_data_archivo(char *path){
 	config_destroy(config);
 	return aux;
 }
+
 char *int_to_str(int32_t number){
 	int flag = 0;
 	int i;
@@ -195,8 +196,6 @@ char *int_to_str(int32_t number){
 	retorno[digitos] = '\0';
 	return retorno;
 }
-
-
 
 void createDefaultMetadata(char* rutaBase){
 	char* path;
@@ -228,17 +227,18 @@ void agregarBloque(Archivo_t *aux,uint32_t bloque){
 char* array_to_write(Archivo_t *aux){
 	int32_t tamanioReal=0,i;
 	for (i = 0;i<aux->cantidadElementos; i++)
-		tamanioReal+=strlen(aux->array[i]);
+		tamanioReal+=strlen((aux->array[i]));
 	char* charArray= (char*)malloc(tamanioReal*2+2);
 	strcpy(charArray,"[");
 	for (i = 0;i<aux->cantidadElementos; i++){
-		strcat(charArray,aux->array[i]);
+		strcat(charArray,(aux->array[i]));
 		if(i+1!=aux->cantidadElementos)
 			strcat(charArray,",");
 	}
 	strcat(charArray,"]");
 	return charArray;
 }
+
 int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	if(exist(path,montaje)==true)
 		return 1;
@@ -267,7 +267,6 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	return 0;
 }
 
-
 void print_data_archivo(Archivo_t *aux){
 	int i = 0;
 	for(i=0;i<aux->cantidadElementos;i++)
@@ -281,9 +280,7 @@ void kill_archivo(Archivo_t *aux){
 		free(aux->array[i]);
 	free(aux->array);
 	free(aux);
-
 }
-
 
 void delete_archivo(char* path,char* montaje,t_bitarray *data){
 	char* fullPath = unir_str(montaje,path);
@@ -291,13 +288,12 @@ void delete_archivo(char* path,char* montaje,t_bitarray *data){
 	int i;
 	printf("limpiare %d bloques\n",aux->cantidadElementos );
 	for(i=0;i<aux->cantidadElementos;i++){
-		int posicion = atoi(aux->array[i])-1;
+		int posicion = atoi((aux->array[i]))-1;
 		bitarray_clean_bit(data,posicion);
 	}
 	remove(fullPath);
 	free(fullPath);
 }
-
 
 int32_t validar_archivo(char* path,char* montaje){
 	char *fullPath = unir_str(montaje,path);

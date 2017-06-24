@@ -18,8 +18,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#define SIZE_MSG 11
-#define EXIST_MSG 12
+#define SIZE_MSG 15
+#define VALIDAR_MSG 11
+#define CREAR_MSG 12
 #define PATH_ARCH "Archivos/"
 #define PATH_META "Metadata/"
 #define PATH_BLQ "Bloques/"
@@ -33,13 +34,13 @@ uint32_t cantidadBloques;
 
 
 
-t_bitarray *ready_to_work(char *pathBitmap){
+t_bitarray *ready_to_work(char *pathBitmap,void* data){
 	int32_t fd = open(pathBitmap,O_RDWR);
 	struct stat sbuf;
 	fstat(fd,&sbuf);
 	if(fd <0)
 		exit(8);
-	void *data = mmap((caddr_t)0,sbuf.st_size,PROT_READ|PROT_WRITE, MAP_SHARED, fd,0);
+	data = mmap((caddr_t)0,sbuf.st_size,PROT_READ|PROT_WRITE, MAP_SHARED, fd,0);
 	if(data == -1)
 		exit(3);
 	if(msync(data,sbuf.st_size,MS_ASYNC)==-1)
@@ -60,6 +61,8 @@ int main(int argc, char** argv)
 
 	checkArguments(argc);
 	config = config_create(argv[1]);
+	if(config ==NULL)
+		exit(-1);
 	data_config.puerto = config_get_string_value(config, "PUERTO");
 	data_config.montaje = config_get_string_value(config, "PUNTO_MONTAJE");
 	uint32_t puerto = atoi(data_config.puerto);
@@ -79,9 +82,11 @@ int main(int argc, char** argv)
 	find_or_create(montaje,PATH_META);
 
 	char* miMetadata = unir_str(pathMetadata,"Metadata.bin");
-	if(!exist("Metadata.bin",pathMetadata))
-		createDefaultMetadata(pathMetadata);
 	config = config_create(miMetadata);
+	if(config == NULL){
+		createDefaultMetadata(pathMetadata);
+		config = config_create(miMetadata);
+	}
 	tamanioBloques = config_get_int_value(config,"TAMANIO_BLOQUES");
 	cantidadBloques = config_get_int_value(config,"CANTIDAD_BLOQUES");
 	//char *magicNumber = config_get_string_value(config,"MAGIC_NUMBER");
@@ -93,7 +98,8 @@ int main(int argc, char** argv)
 	if(!exist("Bitmap.bin",pathMetadata))
 		create_binFile(pathMetadata,"Bitmap",cantidadBloques/8);
 	char *miBitmap = unir_str(pathMetadata,"Bitmap.bin");
-	t_bitarray *bitmap = ready_to_work(miBitmap);
+	void* dataArchivo;
+	t_bitarray *bitmap = ready_to_work(miBitmap,dataArchivo);
 	free(miBitmap);
 	int32_t aux = find_or_create(montaje,PATH_BLQ);
 	if(aux == 0 || !exist("1.bin",PATH_BLQ)){
@@ -124,15 +130,17 @@ int main(int argc, char** argv)
 	while(1){
 		recibir(kernel,(void *)&msg,sizeof(int32_t));
 		switch(msg){
-			case EXIST_MSG:
+			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = exist(nameArchRequest,pathArchivos);
+				msg = validar_archivo(nameArchRequest,pathArchivos);
+				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				
 				break;
-			case SIZE_MSG:
+			case CREAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = sizeFile(nameArchRequest,pathArchivos);
+				msg = create_archivo(nameArchRequest,pathArchivos,bitmap);
+				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			default:
@@ -144,5 +152,7 @@ int main(int argc, char** argv)
 	free(pathMetadata);
 	free(pathBloques);
 	free(pathArchivos);
+	free(dataArchivo);
+	bitarray_destroy(bitmap);
 	return 0;
 }
