@@ -469,6 +469,26 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	return unEspacio;
 }
 
+void clean_heap(uint32_t direccion){
+	uint32_t corrimiento = 0;
+	while(corrimiento < data_config.marco_size){
+		heapMetadata *unPuntero = (heapMetadata *) (memoria+direccion+corrimiento);
+		if(unPuntero->isFree == true){
+			uint32_t aux = (unPuntero->size) + sizeof(heapMetadata);
+			heapMetadata *otroPuntero = (heapMetadata *) (memoria+direccion+corrimiento+aux);
+			if(otroPuntero->isFree == true){
+				uint32_t valor_anterior = (unPuntero->size);
+				unPuntero->size = (unPuntero->size) + (otroPuntero->size) + sizeof(heapMetadata);
+				printf("El heapMetadata que apuntaba a %d ya no existe y el puntero que apuntaba a %d ahora apunta a %d\n", otroPuntero->size, valor_anterior,unPuntero->size);
+			}else{
+				corrimiento = corrimiento + sizeof(heapMetadata) + unPuntero->size;
+			}
+		}else{
+			corrimiento = corrimiento + sizeof(heapMetadata) + unPuntero->size;
+		}
+	}
+}
+
 void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
@@ -482,14 +502,20 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 		}
 	}
 
+	printf("El frame buscado es el %d\n", frame);
+
 	int direccion_fisica = (frame*tamanio_pagina + direccion) - sizeof(heapMetadata);
 
+	printf("Y la direccion del puntero es %d\n", direccion_fisica);
+
 	//Marcamos espacio como libre
-	heapMetadata *unPuntero = (heapMetadata *) memoria + direccion_fisica;
+	heapMetadata *unPuntero = (heapMetadata *) (memoria + direccion_fisica);
 
 	printf("El puntero localizado tiene %d bytes de tamanio y flag en %d\n", unPuntero->size, unPuntero->isFree);
 
 	unPuntero->isFree = true;
+
+	clean_heap(frame*tamanio_pagina);
 }
 
 void *thread_consola(){

@@ -3,9 +3,9 @@ begin
 	variables f
 
 	#Guarda en f el File Descriptor obtenido
-	# la L es el permiso
-	
-	abrir f L /home/utnso/miarchivo.txt
+	# la LC es el permiso
 
+	abrir f LC miarchivo.txt
+	wait SEM1
 	cerrar f
 end

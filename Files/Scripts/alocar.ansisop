@@ -7,5 +7,4 @@ begin
 	c = *a
 	alocar d 410
 	*d = c
-	wait SEM1
 end
