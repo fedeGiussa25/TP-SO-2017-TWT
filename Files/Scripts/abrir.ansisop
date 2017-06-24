@@ -6,6 +6,6 @@ begin
 	# la LC es el permiso
 
 	abrir f LC miarchivo.txt
-	wait SEM1
+
 	cerrar f
 end

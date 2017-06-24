@@ -190,6 +190,9 @@ t_list* todos_los_procesos;
 t_list* tabla_de_archivos_por_proceso; //Cada elemento es una "tabla_de_archivos_de_proceso" (Uno por cada proceso)
 t_list* tabla_global_de_archivos;
 
+//Sockets Memoria y FS
+int sockfd_memoria, sockfd_fs;
+
 //FUNCIONES
 
 entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
@@ -720,7 +723,7 @@ void file_handler(int sockfs, int tipo){
 }
 
 
-void menu(int* sockfs)
+void menu()
 {
 	while(1)
 	{
@@ -749,11 +752,11 @@ void menu(int* sockfs)
 		}
 		else if((strcmp(command, "f_exist") == 0))
 		{
-			file_handler(*sockfs,FILE_EXISTS);
+			file_handler(sockfd_fs,FILE_EXISTS);
 		}
 		else if((strcmp(command, "f_size") == 0))
 		{
-			file_handler(*sockfs,FILE_SIZE);
+			file_handler(sockfd_fs,FILE_SIZE);
 		}
 		else if((strcmp(command, "files_all") == 0))
 		{
@@ -1287,39 +1290,47 @@ bool puede_crear_archivos(int flag)
 	return false;
 }
 
-int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length, uint32_t sock_fs)
+int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length)
 {
 	uint32_t i = 0, codigo, referencia_tabla_global, offset;
 	uint32_t encontrado = false, pudo_crear_archivo = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
+	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	//Le pregunto a fs si ese archivo existe
 	//Primero serializo data
 	codigo = BUSCAR_ARCHIVO_FS;
-	void* serializedData = malloc(sizeof(uint32_t)*2 + path_length);
-	memcpy(serializedData, &codigo, sizeof(uint32_t));
-	memcpy(serializedData + sizeof(uint32_t), &path_length, sizeof(uint32_t));
-	memcpy(serializedData + sizeof(uint32_t)*2, path, path_length);
+	void* serializedData = malloc(sizeof(uint32_t) + path_length);
 
-	enviar(sock_fs, serializedData, sizeof(uint32_t)*2 + path_length);
-	recibir(sock_fs, &encontrado, sizeof(bool));
+//	memcpy(serializedData, &path_length, sizeof(uint32_t));
+//	memcpy(serializedData + sizeof(uint32_t), path, path_length);
 
-	free(serializedData);
+	printf("Codigo: %d\n", codigo);
+	printf("Path length: %d\n", path_length);
+	printf("Path: %s\n", path);
+
+	enviar(sockfd_fs, &codigo, sizeof(uint32_t));
+	printf("Mande bien el codigo!\n");
+	enviar(sockfd_fs, &path_length, sizeof(uint32_t));
+	printf("Mande bien el tamaño del mensaje!\n");
+	enviar(sockfd_fs, (void *)path, path_length);
+	printf("Mande bien el mensaje!\n");
+	recibir(sockfd_fs, &encontrado, sizeof(encontrado));
 
 	if((encontrado != 1) && (permisos->creacion))
 	{
 		printf("El archivo no existe pero puedo crearlo!\n");
 		//Le dice al fs que cree el archivo
 		codigo = CREAR_ARCHIVO_FS;
-		void* archivo_a_crear = malloc(sizeof(uint32_t)*2 + path_length);
-		memcpy(archivo_a_crear, &codigo, sizeof(uint32_t));
-		memcpy(archivo_a_crear + sizeof(uint32_t), &path_length, sizeof(uint32_t));
-		memcpy(archivo_a_crear + sizeof(uint32_t)*2, path, path_length);
 
-		enviar(sock_fs, archivo_a_crear, sizeof(uint32_t)*2 + path_length);
-		recibir(sock_fs, &pudo_crear_archivo, sizeof(uint32_t));
+		enviar(sockfd_fs, &codigo, sizeof(uint32_t));
+		enviar(sockfd_fs, &path_length, sizeof(path_length));
+		enviar(sockfd_fs, (void *) path, path_length);
+	//	enviar(sock_fs, &codigo, sizeof(uint32_t));
+	//	enviar(sock_fs, serializedData, sizeof(uint32_t) + path_length);
+		recibir(sockfd_fs, &pudo_crear_archivo, sizeof(pudo_crear_archivo));
 
-		free(archivo_a_crear);
+		free(serializedData);
 
 		if(pudo_crear_archivo)
 		{
@@ -1386,7 +1397,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	return archivoAbierto->fd;
 }
 
-char* execute_read(int pid, int fd, int sock_fs, int messageLength)
+char* execute_read(int pid, int fd, int messageLength)
 {
 	char* readText = malloc(messageLength + 1);
 	memset(readText, 0, messageLength + 1);
@@ -1439,8 +1450,8 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 	memcpy(buffer + (sizeof(int)*2), &offset, sizeof(int));
 	memcpy(buffer + (sizeof(int)*3), arch->ruta_del_archivo, strlen(arch->ruta_del_archivo));
 
-	enviar(sock_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo));
-	if(recibir(sock_fs, readText, messageLength) == 1)
+	enviar(sockfd_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo));
+	if(recibir(sockfd_fs, readText, messageLength) == 1)
 	{
 		//Si recibio 1Byte -> Recibio cadena vacia
 		printf("Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
@@ -1450,7 +1461,7 @@ char* execute_read(int pid, int fd, int sock_fs, int messageLength)
 	return readText;
 }
 
-int execute_write(int pid, int archivo, char* message, int messageLength, int sock_mem, int sock_fs)
+int execute_write(int pid, int archivo, char* message, int messageLength, int sock_mem)
 {
 	int sock_consola, codigo;
 	bool escritura_correcta = false;
@@ -1526,8 +1537,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					memcpy(buffer + (sizeof(int)*3), arch->ruta_del_archivo, strlen(arch->ruta_del_archivo));
 					memcpy(buffer + (sizeof(int)*3) + strlen(arch->ruta_del_archivo), message, messageLength);
 
-					enviar(sock_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo) + messageLength);
-					recibir(sock_fs, &escritura_correcta, sizeof(bool));
+					enviar(sockfd_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo) + messageLength);
+					recibir(sockfd_fs, &escritura_correcta, sizeof(bool));
 
 					free(buffer);
 
@@ -1654,7 +1665,7 @@ int main(int argc, char** argv) {
 
 	//Variables para conexiones con servidores
 	char *buf = malloc(256);
-	int sockfd_memoria, sockfd_fs;	//File descriptors de los sockets correspondientes a la memoria y al filesystem
+	//File descriptors de los sockets correspondientes a la memoria y al filesystem
 	int bytes_mem, bytes_fs;
 
 	//variables para conexiones con clientes
@@ -1710,7 +1721,7 @@ int main(int argc, char** argv) {
 
 	//Servidores
 	sockfd_memoria = get_fd_server(data_config.ip_memoria,data_config.puerto_memoria);		//Nos conectamos a la memoria
-	sockfd_fs= get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
+	sockfd_fs = get_fd_server(data_config.ip_fs,data_config.puerto_fs);		//Nos conectamos al fs
 
 	int handshake = HANDSHAKE;
 	int resp;
@@ -1736,6 +1747,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	resp = 0;
 	send(sockfd_fs, &handshake, sizeof(u_int32_t), 0);
 	bytes_fs = recv(sockfd_fs, &resp, sizeof(u_int32_t), 0);
@@ -1756,7 +1768,7 @@ int main(int argc, char** argv) {
 			close(sockfd_fs);
 		}
 	}
-
+	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	//Consolas y CPUs
 	listener = get_fd_listener(data_config.puerto_prog);
 
@@ -1769,7 +1781,8 @@ int main(int argc, char** argv) {
 	//Hilo menu + print command
 	print_commands();
 	pthread_t men;
-	pthread_create(&men,NULL,(void*)menu,&sockfd_fs);
+	pthread_create(&men,NULL,(void*)menu, NULL);
+	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 
 	//Hilo planficacion
 	pthread_t planif;
@@ -2067,12 +2080,10 @@ int main(int argc, char** argv) {
 							recibir(i, &pid, sizeof(uint32_t));
 							recibir(i, &path_length, sizeof(uint32_t));
 
-							char* file_path = malloc(path_length + 2);
-							memset(file_path, 0, path_length + 2);
+							char* file_path = malloc(path_length);
 
 							//Recibo el path del archivo a abrir
 							recibir(i, file_path, path_length);
-							memset(file_path + path_length + 1, '\0', 1);
 
 							//Recibo los permisos con los que se abre el archivo
 
@@ -2082,10 +2093,12 @@ int main(int argc, char** argv) {
 
 							printf("Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
 							printf("  PID: %d\n",pid);
-							printf("  Path: %s\n",file_path);
+							printf("  Path length: %d\n", path_length);
+							printf("  Path: %s\n", file_path);
 							printf("  Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
+							printf("  Por las dudas el socket de FS es: %d\n", sockfd_fs);
 
-							int resultado = execute_open(pid, permisos, file_path, path_length, sockfd_fs);
+							int resultado = execute_open(pid, permisos, file_path, path_length);
 
 							int sock_consola = obtener_consola_asignada_al_proceso(pid);
 
@@ -2122,7 +2135,7 @@ int main(int argc, char** argv) {
 							recibir(i, &fd, sizeof(int));
 							recibir(i, &messageLength, sizeof(int));
 
-							char* readText = execute_read(pid, fd, sockfd_fs, messageLength);
+							char* readText = execute_read(pid, fd, messageLength);
 
 							if(strcmp(readText, "") == 0)
 							{
@@ -2158,7 +2171,7 @@ int main(int argc, char** argv) {
 
 
 							int resultado;
-							resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria, sockfd_fs);
+							resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
 							//Independientemente del resultado, le aviso a CPU
 							//resultado = -1 --> error; resultado = 1 --> ok

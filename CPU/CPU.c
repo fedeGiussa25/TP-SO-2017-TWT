@@ -474,8 +474,8 @@ t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 {
 	printf("Soy abrir archivo con el path: %s\n", direccion);
 	uint32_t codigo = ABRIR_ARCHIVO;
-	uint32_t path_length = strlen(direccion);
-	void* buffer = malloc(sizeof(uint32_t)*3+path_length+sizeof(bool)*3);
+	uint32_t path_length = strlen(direccion)+1;
+	void* buffer = malloc(sizeof(uint32_t)*3 + path_length + sizeof(bool)*3);
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t)*2, &path_length, sizeof(uint32_t));
