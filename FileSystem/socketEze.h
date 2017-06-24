@@ -27,7 +27,7 @@ struct sockaddr_in initAddr(in_addr_t address,uint32_t puerto){
 
 uint32_t enviar(uint32_t socketd, void *buf,uint32_t bytestoSend){
 	uint32_t numbytes;
-	if (numbytes = send(socketd, buf, bytestoSend, 0) <= 0){
+	if (numbytes = send(socketd, buf, bytestoSend, 0) < 0){
 		exit(10);
 	}
 	return numbytes;
