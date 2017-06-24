@@ -128,7 +128,8 @@ int main(int argc, char** argv)
 	char *nameArchRequest;
 	uint32_t msg;
 	while(1){
-		recibir(kernel,(void *)&msg,sizeof(int32_t));
+		if(recibir(kernel,(void *)&msg,sizeof(int32_t)==NULL))
+			exit(6);
 		switch(msg){
 			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);

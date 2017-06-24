@@ -303,6 +303,7 @@ int32_t validar_archivo(char* path,char* montaje){
 	
 	t_config *config = config_create(fullPath);
 	if(config == NULL){
+		printf("%s es un archivo inexistente\n",path );
 		free(fullPath);
 		return valida;
 	}
