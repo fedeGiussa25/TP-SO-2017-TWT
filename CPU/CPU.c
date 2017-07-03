@@ -88,7 +88,7 @@ void eliminar_proceso(u_int32_t PID){
 }
 
 void liberar_registro_stack(registroStack *registro){
-	int i, j;
+	int i;
 	int cant_vars = list_size(registro->vars);
 	//int cant_args = list_size(registro->args);
 
@@ -893,8 +893,6 @@ int main(int argc, char **argv) {
 				send_PCB(fd_kernel, nuevaPCB, codigo);
 			}
 		}
-
-		//TODO send(nuevaPCB);
 	}
 
 	close(fd_kernel);

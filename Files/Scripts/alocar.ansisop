@@ -5,6 +5,6 @@ begin
 	*a = 5
 	alocar b 20
 	c = *a
-	alocar d 410
+	alocar d 430
 	*d = c
 end

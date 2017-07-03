@@ -15,6 +15,7 @@
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
 void *memoria;
+t_queue *cache;
 
 enum{
 	HANDSHAKE = 1,
@@ -39,10 +40,16 @@ typedef struct {
 	int32_t pagina;
 } entrada_tabla;
 
-typedef struct{
+typedef struct {
 	uint32_t size;
 	_Bool isFree;
-} heapMetadata;
+} __attribute__((packed)) heapMetadata;
+
+typedef struct{
+	uint32_t pid;
+	uint32_t pagina;
+	void *contenido;
+} entrada_cache;
 
 /*Funciones*/
 
@@ -150,9 +157,11 @@ void dump_de_tabla(){
 	entrada_tabla *tabla = (entrada_tabla*) memoria;
 
 	for(i=0; i < data_config.marcos; i++){
-		printf("Frame %d: PID = %d, Pagina = %d\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
+		printf("Frame %d:	PID = %d	Pagina = %d\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
 	}
 }
+
+//Funciones de Cache
 
 int espacio_encontrado(int paginas_necesarias, int posicion, entrada_tabla *tabla){
 	int encontrado = 1;
@@ -473,7 +482,7 @@ void clean_heap(uint32_t direccion){
 	uint32_t corrimiento = 0;
 	while(corrimiento < data_config.marco_size){
 		heapMetadata *unPuntero = (heapMetadata *) (memoria+direccion+corrimiento);
-		if(unPuntero->isFree == true){
+		if(unPuntero->isFree == true && (corrimiento+sizeof(heapMetadata)+(unPuntero->size)) < data_config.marco_size){
 			uint32_t aux = (unPuntero->size) + sizeof(heapMetadata);
 			heapMetadata *otroPuntero = (heapMetadata *) (memoria+direccion+corrimiento+aux);
 			if(otroPuntero->isFree == true){
@@ -689,6 +698,13 @@ int main(int argc, char** argv){
 	memoria = calloc(data_config.marcos, data_config.marco_size);
 
 	memcpy(memoria, tabla_de_paginas, espacio_total_tabla);
+
+	/*Creacion de la Cache*/
+
+	cache = queue_create();
+
+	printf("El tamanio de heapMetadata es: %d\n", sizeof(heapMetadata));
+	/*Creacion de Hilos*/
 
 	int valorhiloConsola;
 	pthread_t hiloConsola;
