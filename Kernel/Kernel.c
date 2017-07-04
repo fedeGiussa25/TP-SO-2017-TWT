@@ -466,6 +466,35 @@ int buscar_consola_de_proceso(int processid){
 	return res;
 }
 
+proceso_conexion* buscar_conexion_de_cpu(int cpuSock){
+	int i = 0, dimension = list_size(lista_cpus);
+	proceso_conexion* hola;
+	while(i < dimension)
+		{
+			proceso_conexion* aux = list_get(lista_cpus,i);
+			if(aux->sock_fd == cpuSock)
+				return aux;
+			i++;
+		}
+	//Yes I know, this shit is not kosher but whatevs I only use it once and I take it into account
+	return -1;
+}
+
+proceso_conexion* buscar_conexion_de_proceso(int processID){
+	pthread_mutex_lock(&mutex_fd_cpus);
+	int i = 0, dimension = list_size(lista_cpus);
+	proceso_conexion* hola;
+	while(i < dimension)
+		{
+			proceso_conexion* aux = list_get(lista_cpus,i);
+			if(aux->proceso == processID)
+				hola = aux;
+			i++;
+		}
+	pthread_mutex_unlock(&mutex_fd_cpus);
+	return hola;
+}
+
 PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 	bool _remove_element(void* list_element)
 	    {
@@ -1188,6 +1217,7 @@ void planificacion(){
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
 					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
+					cpu->proceso = pcb_to_use->pid;
 
 					pcb_to_use->estado = "Exec";
 					pthread_mutex_lock(&mutex_exec_queue);
@@ -1747,7 +1777,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	resp = 0;
 	send(sockfd_fs, &handshake, sizeof(u_int32_t), 0);
 	bytes_fs = recv(sockfd_fs, &resp, sizeof(u_int32_t), 0);
@@ -1768,7 +1797,6 @@ int main(int argc, char** argv) {
 			close(sockfd_fs);
 		}
 	}
-	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	//Consolas y CPUs
 	listener = get_fd_listener(data_config.puerto_prog);
 
@@ -1782,7 +1810,6 @@ int main(int argc, char** argv) {
 	print_commands();
 	pthread_t men;
 	pthread_create(&men,NULL,(void*)menu, NULL);
-	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
 
 	//Hilo planficacion
 	pthread_t planif;
@@ -1823,6 +1850,17 @@ int main(int argc, char** argv) {
 						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
 
 						pthread_mutex_lock(&mutex_fd_cpus);
+						proceso_conexion* cpu_a_quitar = buscar_conexion_de_cpu(i);
+						if(cpu_a_quitar != -1){
+							if(cpu_a_quitar->proceso <= pid && cpu_a_quitar->proceso > 0)
+							{
+								printf("Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
+								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
+								end_process(cpu_a_quitar->proceso, sockfd_memoria, -20, consola);
+							}
+							else
+								printf("Se desconecto la CPU %d, que no estaba ejecutando ningun proceso\n",cpu_a_quitar->sock_fd);
+						}
 						remove_and_destroy_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
 
@@ -2025,13 +2063,20 @@ int main(int argc, char** argv) {
 						{
 							PCB *unPCB = recibirPCB(i);
 							print_PCB(unPCB);
+
+							printf("Hasta aca llegue\n");
 							pthread_mutex_lock(&mutex_in_exec);
 							remove_by_fd_socket(lista_en_ejecucion, i);
 							pthread_mutex_unlock(&mutex_in_exec);
 
+							printf("Hasta aca llegue\n");
 							uint32_t PID = unPCB->pid;
 
 							int fd_consola = buscar_consola_de_proceso(unPCB->pid);
+							printf("Hasta aca llegue\n");
+							proceso_conexion* cpu_que_lo_tenia = buscar_conexion_de_proceso(PID);
+							printf("Hasta aca llegue\n");
+							cpu_que_lo_tenia->proceso = 0;
 
 							end_process(PID, sockfd_memoria, 0, fd_consola);
 						}
