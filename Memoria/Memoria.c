@@ -14,8 +14,8 @@
 
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
+pthread_mutex_t mutex_cache;
 void *memoria;
-t_queue *cache;
 
 enum{
 	HANDSHAKE = 1,
@@ -50,6 +50,15 @@ typedef struct{
 	uint32_t pagina;
 	void *contenido;
 } entrada_cache;
+
+typedef struct{
+	uint32_t t_last_ref;
+	uint32_t pid;
+} entrada_admin_cache;
+
+void *contenido_cache;
+entrada_cache *cache;
+entrada_admin_cache *admin_cache;
 
 /*Funciones*/
 
@@ -157,11 +166,183 @@ void dump_de_tabla(){
 	entrada_tabla *tabla = (entrada_tabla*) memoria;
 
 	for(i=0; i < data_config.marcos; i++){
-		printf("Frame %d:	PID = %d	Pagina = %d\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
+		printf("Frame %d:	PID = %d	Pagina = %d	\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
 	}
 }
 
-//Funciones de Cache
+//Funciones de Cache todo
+
+//Flush: vacia la cache
+void flush(){
+	int i;
+	for(i=0; i<data_config.entradas_cache; i++){
+		cache[i].pid = -1;
+		cache[i].pagina = -1;
+		memset(cache[i].contenido, '\0',data_config.marco_size);
+		admin_cache[i].pid = -1;
+		admin_cache[i].t_last_ref = -1;
+	}
+
+}
+
+//Elimina las entradas especificas al proceso
+void flush_process(uint32_t pid){
+	int i;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(admin_cache[i].pid == pid){
+			cache[i].pid = -1;
+			cache[i].pagina = -1;
+			memset(cache[i].contenido, '\0',data_config.marco_size);
+			admin_cache[i].pid = -1;
+			admin_cache[i].t_last_ref = -1;
+		}
+	}
+}
+
+void print_cache(){
+	int i;
+	for(i=0; i<data_config.entradas_cache; i++){
+		printf("Entrada %d:		PID: %d		Pagina: %d		Contenido:%s\n", i, cache[i].pid, cache[i].pagina, (char *) cache[i].contenido);
+	}
+}
+
+void inicializar_cache(){
+	int i;
+	for(i=0; i<data_config.entradas_cache; i++)
+	{
+		cache[i].pagina = -1;
+		cache[i].pid = -1;
+		cache[i].contenido = (contenido_cache+i*data_config.marco_size);
+
+		admin_cache[i].pid = -1;
+		admin_cache[i].t_last_ref = -1;
+	}
+}
+
+_Bool esta_en_cache(uint32_t pid, uint32_t pagina){
+	int i;
+	_Bool encontrado = false;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(cache[i].pagina == pagina && cache[i].pid == pid){
+			encontrado = true;
+		}
+	}
+	return encontrado;
+}
+
+uint32_t cantidad_de_entradas(uint32_t pid){
+	int i, cantidad=0;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(cache[i].pid == pid){
+			cantidad ++;
+		}
+	}
+	return cantidad;
+}
+
+entrada_cache buscar_entrada(uint32_t pid, uint32_t pagina){
+	int i;
+	entrada_cache entrada_buscada;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(cache[i].pagina == pagina && cache[i].pid == pid){
+			entrada_buscada = cache[i];
+		}
+	}
+	return entrada_buscada;
+}
+
+_Bool hay_espacio_en_cache(){
+	int i;
+	_Bool hay_espacio = false;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(cache[i].pagina == -1 || cache[i].pid ==-1){
+			hay_espacio = true;
+		}
+	}
+	return hay_espacio;
+}
+
+int entrada_libre(){
+	int i=0, entrada_libre;
+	_Bool encontrado = false;
+
+	while(encontrado == false && i<data_config.entradas_cache){
+		if(cache[i].pid == -1 || cache[i].pagina == -1){
+			encontrado = true;
+			entrada_libre = i;
+		}else{
+			i++;
+		}
+	}
+	return entrada_libre;
+}
+
+int buscar_victima_global(){
+	int i, max_ref = 0, victima;
+	for(i=0;i<data_config.entradas_cache; i++){
+		if((admin_cache[i].t_last_ref) > max_ref){
+			victima = i;
+			max_ref = admin_cache[i].t_last_ref;
+		}
+	}
+	return victima;
+}
+
+int buscar_victima_local(uint32_t pid){
+	int i, max_ref = 0, victima;
+	for(i=0;i<data_config.entradas_cache; i++){
+		if((admin_cache[i].pid == pid) && (admin_cache[i].t_last_ref) > max_ref){
+			victima = i;
+			max_ref = admin_cache[i].t_last_ref;
+		}
+	}
+	return victima;
+}
+
+void insertar_entrada(uint32_t pid, uint32_t pagina, uint32_t frame){
+	int aux;
+	int direccion = frame*data_config.marco_size;
+
+	if(hay_espacio_en_cache() == true){
+		aux = entrada_libre();
+	}else{
+		if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
+			aux = buscar_victima_global();
+		}else{
+			aux = buscar_victima_local(pid);
+		}
+	}
+
+	cache[aux].pagina = pagina;
+	cache[aux].pid = pid;
+	//Copiamos el contenido de la pagina en la cache
+
+	memcpy(cache[aux].contenido, (memoria+direccion), data_config.marco_size);
+
+	admin_cache[aux].pid = pid;
+	admin_cache[aux].t_last_ref = 0;
+}
+
+void aumentar_referencias(){
+	int i;
+	for(i=0;i<data_config.entradas_cache; i++){
+		if(admin_cache[i].t_last_ref != -1){
+			admin_cache[i].t_last_ref ++;
+		}
+	}
+}
+
+void set_zero_ref(uint32_t pid, uint32_t pagina){
+	int i, posicion;
+	for(i=0; i<data_config.entradas_cache; i++){
+		if(cache[i].pid == pid && cache[i].pagina == pagina){
+			posicion = i;
+		}
+	}
+	admin_cache[posicion].t_last_ref = 0;
+}
+
+/*Fin de Funciones de Cache*/
 
 int espacio_encontrado(int paginas_necesarias, int posicion, entrada_tabla *tabla){
 	int encontrado = 1;
@@ -191,6 +372,7 @@ void finalizar_proceso(int PID){
 			tabla[i].pagina = -2;
 		}
 	}
+	flush_process(PID);
 }
 
 int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
@@ -368,27 +550,38 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 	int tamanio_pagina = data_config.marco_size;
 
 	void *instruccion = malloc(offset);
+	if(esta_en_cache(PID, pagina) == false){
+		usleep(data_config.retardo_memoria);
 
-	while(encontrado == 0 && i < data_config.marcos){
-		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-			frame = tabla[i].frame;
-			encontrado = 1;
-		}else{
-			i++;
+		while(encontrado == 0 && i < data_config.marcos){
+			if(tabla[i].PID == PID && tabla[i].pagina == pagina){
+				frame = tabla[i].frame;
+				encontrado = 1;
+			}else{
+				i++;
+			}
 		}
-	}
 
-	if(encontrado == 0){
-		printf("Page not Found\n");
-		memcpy(instruccion, "", strlen(""));
-		return instruccion;
-	}
+		if(encontrado == 0){
+			printf("Page not Found\n");
+			memcpy(instruccion, "", strlen(""));
+			return instruccion;
+		}
+		int direccion_fisica = frame*tamanio_pagina;
+		//Copiamos la instruccion
+		memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
 
-	int direccion_fisica = frame*tamanio_pagina;
+		//Insertamos la pagina en la cache
+		printf("Agregamos la pagina a la cache\n");
+		insertar_entrada(PID, pagina, frame);
 
-	//Copiamos la instruccion
-	memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
-
+		}else{
+			printf("La pagina esta en cache\n");
+			entrada_cache unaCache = buscar_entrada(PID, pagina);
+			memcpy(instruccion, (unaCache.contenido+inicio), offset);
+			aumentar_referencias();
+			set_zero_ref(unaCache.pid, unaCache.pagina);
+		}
 	return instruccion;
 }
 
@@ -530,19 +723,31 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 void *thread_consola(){
 	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensajes\n\n");
 	while(1){
-		char *command = malloc(20);
+		char *command = malloc(10);
+		char *subcommand = malloc(10);
 		scanf("%s", command);
 		if((strcmp(command, "dump")) == 0){
-			pthread_mutex_lock(&mutex_memoria);
-			dump_de_tabla();
-			pthread_mutex_unlock(&mutex_memoria);
-		}else{
-			if(strcmp(command, "clear") == 0){
-				system("clear");
-			}else{
-				printf("Comando incorrecto\n");
+			scanf("%s", subcommand);
+			if((strcmp(subcommand, "tabla")) == 0){
+				pthread_mutex_lock(&mutex_memoria);
+				dump_de_tabla();
+				pthread_mutex_unlock(&mutex_memoria);
+			} else if(strcmp(subcommand, "cache")== 0){
+				pthread_mutex_lock(&mutex_cache);
+				print_cache();
+				pthread_mutex_unlock(&mutex_cache);
+			} else{
+				printf("No existe tal estructura\n");
 			}
 		}
+		else if(strcmp(command, "clear") == 0)
+		{
+			system("clear");
+		}
+		else{
+			printf("Comando incorrecto\n");
+		}
+		free(subcommand);
 		free(command);
 	}
 }
@@ -699,11 +904,16 @@ int main(int argc, char** argv){
 
 	memcpy(memoria, tabla_de_paginas, espacio_total_tabla);
 
-	/*Creacion de la Cache*/
+	/*Creacion de la Cache, el contenido y el Admin de cache*/
 
-	cache = queue_create();
+	contenido_cache = calloc(data_config.entradas_cache, data_config.marco_size);
 
-	printf("El tamanio de heapMetadata es: %d\n", sizeof(heapMetadata));
+	cache = malloc(data_config.entradas_cache*sizeof(entrada_cache));
+
+	admin_cache = malloc(data_config.entradas_cache*sizeof(entrada_admin_cache));
+
+	inicializar_cache();
+
 	/*Creacion de Hilos*/
 
 	int valorhiloConsola;
