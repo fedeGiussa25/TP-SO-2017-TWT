@@ -14,7 +14,6 @@
 
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
-pthread_mutex_t mutex_cache;
 void *memoria;
 
 enum{
@@ -202,7 +201,7 @@ void flush_process(uint32_t pid){
 void print_cache(){
 	int i;
 	for(i=0; i<data_config.entradas_cache; i++){
-		printf("Entrada %d:		PID: %d		Pagina: %d		Contenido:%s\n", i, cache[i].pid, cache[i].pagina, (char *) cache[i].contenido);
+		printf("Entrada %d:		PID: %d		Pagina: %d		Contenido:\n%s\n", i, cache[i].pid, cache[i].pagina, (char *) cache[i].contenido);
 	}
 }
 
@@ -303,24 +302,35 @@ void insertar_entrada(uint32_t pid, uint32_t pagina, uint32_t frame){
 	int aux;
 	int direccion = frame*data_config.marco_size;
 
-	if(hay_espacio_en_cache() == true){
-		aux = entrada_libre();
-	}else{
-		if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
-			aux = buscar_victima_global();
+	if(data_config.entradas_cache > 0 && data_config.cache_x_proceso > 0){
+		printf("Agregamos la pagina a la cache\n");
+		if(hay_espacio_en_cache() == true){
+			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
+				printf("Buscamos una entrada libre\n");
+				aux = entrada_libre();
+			}else{
+				printf("Buscamos una victima local\n");
+				aux = buscar_victima_local(pid);
+			}
 		}else{
-			aux = buscar_victima_local(pid);
+			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
+				printf("Buscamos una victima global\n");
+				aux = buscar_victima_global();
+			}else{
+				printf("Buscamos una victima local\n");
+				aux = buscar_victima_local(pid);
+			}
 		}
+
+		cache[aux].pagina = pagina;
+		cache[aux].pid = pid;
+		//Copiamos el contenido de la pagina en la cache
+
+		memcpy(cache[aux].contenido, (memoria+direccion), data_config.marco_size);
+
+		admin_cache[aux].pid = pid;
+		admin_cache[aux].t_last_ref = 0;
 	}
-
-	cache[aux].pagina = pagina;
-	cache[aux].pid = pid;
-	//Copiamos el contenido de la pagina en la cache
-
-	memcpy(cache[aux].contenido, (memoria+direccion), data_config.marco_size);
-
-	admin_cache[aux].pid = pid;
-	admin_cache[aux].t_last_ref = 0;
 }
 
 void aumentar_referencias(){
@@ -551,7 +561,7 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 
 	void *instruccion = malloc(offset);
 	if(esta_en_cache(PID, pagina) == false){
-		usleep(data_config.retardo_memoria);
+		usleep(data_config.retardo_memoria * 1000);
 
 		while(encontrado == 0 && i < data_config.marcos){
 			if(tabla[i].PID == PID && tabla[i].pagina == pagina){
@@ -572,7 +582,7 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 		memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
 
 		//Insertamos la pagina en la cache
-		printf("Agregamos la pagina a la cache\n");
+		aumentar_referencias();
 		insertar_entrada(PID, pagina, frame);
 
 		}else{
@@ -589,6 +599,8 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
 
+	usleep(data_config.retardo_memoria * 1000);
+
 	while(encontrado == 0 && i < data_config.marcos){
 		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
 			frame = tabla[i].frame;
@@ -601,6 +613,17 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 	int direccion_fisica = frame*tamanio_pagina;
 
 	memcpy(memoria+direccion_fisica+offset, value, tamanio);
+
+	if(esta_en_cache(PID, pagina) == true){
+		printf("Actualizamos la pagina en la cache\n");
+		entrada_cache unaCache = buscar_entrada(PID, pagina);
+		memcpy((unaCache.contenido+offset), value, tamanio);
+		aumentar_referencias();
+		set_zero_ref(unaCache.pid, unaCache.pagina);
+	}else{
+		aumentar_referencias();
+		insertar_entrada(PID, pagina, frame);
+	}
 
 }
 
@@ -666,6 +689,17 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 		}
 	}
 
+	if(esta_en_cache(PID, pagina) == true){
+		printf("Actualizamos la pagina en la cache\n");
+		entrada_cache unaCache = buscar_entrada(PID, pagina);
+		memcpy((unaCache.contenido), (memoria + frame*tamanio_pagina), tamanio_pagina);
+		aumentar_referencias();
+		set_zero_ref(unaCache.pid, unaCache.pagina);
+	}else{
+		aumentar_referencias();
+		insertar_entrada(PID, pagina, frame);
+	}
+
 	unEspacio->direccion = puntero;
 	unEspacio->page_counter = pagina;
 	return unEspacio;
@@ -718,10 +752,22 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	unPuntero->isFree = true;
 
 	clean_heap(frame*tamanio_pagina);
+
+	if(esta_en_cache(PID, pagina) == true){
+		printf("Actualizamos la pagina en la cache\n");
+		entrada_cache unaCache = buscar_entrada(PID, pagina);
+		memcpy((unaCache.contenido), (memoria + frame*tamanio_pagina), tamanio_pagina);
+		aumentar_referencias();
+		set_zero_ref(unaCache.pid, unaCache.pagina);
+	}else{
+		aumentar_referencias();
+		insertar_entrada(PID, pagina, frame);
+	}
 }
 
 void *thread_consola(){
-	printf("Ingrese un comando \nComandos disponibles:\n dump - Muestra tabla de paginas\n clear - Limpia la consola de mensajes\n\n");
+	printf("Ingrese un comando \nComandos disponibles:\n dump tabla - Muestra tabla de paginas\n dump cache - Muestra la cache\n"
+			" flush - Limpia la cache\n clear - Limpia la consola de mensajes\n\n");
 	while(1){
 		char *command = malloc(10);
 		char *subcommand = malloc(10);
@@ -733,9 +779,9 @@ void *thread_consola(){
 				dump_de_tabla();
 				pthread_mutex_unlock(&mutex_memoria);
 			} else if(strcmp(subcommand, "cache")== 0){
-				pthread_mutex_lock(&mutex_cache);
+				pthread_mutex_lock(&mutex_memoria);
 				print_cache();
-				pthread_mutex_unlock(&mutex_cache);
+				pthread_mutex_unlock(&mutex_memoria);
 			} else{
 				printf("No existe tal estructura\n");
 			}
@@ -743,6 +789,12 @@ void *thread_consola(){
 		else if(strcmp(command, "clear") == 0)
 		{
 			system("clear");
+		}
+		else if(strcmp(command, "flush") == 0){
+			pthread_mutex_lock(&mutex_memoria);
+			flush();
+			pthread_mutex_unlock(&mutex_memoria);
+			printf("Se ha limpiado la cache\n");
 		}
 		else{
 			printf("Comando incorrecto\n");
@@ -789,7 +841,6 @@ void *thread_proceso(int fd){
 				free(aux);
 			}
 			if(codigo == BUSCAR_INSTRUCCION){
-				usleep(data_config.retardo_memoria);
 
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
@@ -809,7 +860,6 @@ void *thread_proceso(int fd){
 				free(buffer);
 			}
 			if(codigo == GUARDAR_VALOR){
-				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
@@ -819,13 +869,11 @@ void *thread_proceso(int fd){
 
 			}
 			if(codigo == ELIMINAR_PROCESO){
-				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(int), 0);
 				finalizar_proceso(PID);
 				printf("Proceso %d borrado correctamente\n", PID);
 			}
 			if(codigo == OBTENER_VALOR){
-				usleep(data_config.retardo_memoria);
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &inicio, sizeof(int), 0);
