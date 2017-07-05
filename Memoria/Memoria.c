@@ -169,7 +169,63 @@ void dump_de_tabla(){
 	}
 }
 
-//Funciones de Cache todo
+void memory_size(){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	printf("La memoria tiene %d frames\n", data_config.marcos);
+	int i=0, frames_ocupados = 0, frames_libres = 0;
+	while(i < data_config.marcos){
+		if(tabla[i].PID == -2 && tabla[i].pagina == -2){
+			frames_libres++;
+			i++;
+		}else{
+			frames_ocupados++;
+			i++;
+		}
+	}
+	printf("Hay %d frames libres y %d ocupados\n", frames_libres, frames_ocupados);
+}
+
+void process_size(int pid){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i=0, paginas_de_proceso=0;
+	while(i < data_config.marcos){
+		if(tabla[i].PID == pid){
+			paginas_de_proceso++;
+		}
+		i++;
+	}
+	printf("El proceso %d tiene %d paginas\n", pid, paginas_de_proceso);
+}
+
+void dump_de_memoria(){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i;
+	for(i=0; i<data_config.marcos; i++){
+		if(tabla[i].PID != -2){
+			void *contenido_frame = malloc(data_config.marco_size);
+			memcpy(contenido_frame, memoria+(i*data_config.marco_size), data_config.marco_size);
+			printf("Frame %d:\n%s\n", i, (char *) contenido_frame);
+			free(contenido_frame);
+		}
+		else{
+			printf("Frame %d:\n\n", i);
+		}
+	}
+}
+
+void dump_de_proceso(int pid){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i;
+	for(i=0; i<data_config.marcos; i++){
+		if(tabla[i].PID == pid){
+			void *contenido_frame = malloc(data_config.marco_size);
+			memcpy(contenido_frame, memoria+(i*data_config.marco_size), data_config.marco_size);
+			printf("Frame %d, pagina: %d\n%s\n", i, tabla[i].pagina,(char *) contenido_frame);
+			free(contenido_frame);
+		}
+	}
+}
+//Funciones de Cache
 
 //Flush: vacia la cache
 void flush(){
@@ -767,10 +823,13 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 
 void *thread_consola(){
 	printf("Ingrese un comando \nComandos disponibles:\n dump tabla - Muestra tabla de paginas\n dump cache - Muestra la cache\n"
-			" flush - Limpia la cache\n clear - Limpia la consola de mensajes\n\n");
+			" dump memoria - Muestra el contenido de la memoria\n dump proceso <PID> - Muestra el contenido de la memoria de un proceso\n"
+			" flush - Limpia la cache\n clear - Limpia la consola de mensajes\n size memoria - Cantidad de frames, ocupados y libres\n"
+			" size proceso <PID> - Cantidad de paginas de dicho proceso\n retardo <Tiempo en milisegundos> - Modifica el retardo de respuesta de la memoria\n\n");
 	while(1){
-		char *command = malloc(10);
-		char *subcommand = malloc(10);
+		char *command = malloc(20);
+		char *subcommand = malloc(20);
+		int *numero = malloc(sizeof(int));
 		scanf("%s", command);
 		if((strcmp(command, "dump")) == 0){
 			scanf("%s", subcommand);
@@ -782,7 +841,32 @@ void *thread_consola(){
 				pthread_mutex_lock(&mutex_memoria);
 				print_cache();
 				pthread_mutex_unlock(&mutex_memoria);
-			} else{
+			} else if(strcmp(subcommand, "memoria") == 0){
+				pthread_mutex_lock(&mutex_memoria);
+				dump_de_memoria();
+				pthread_mutex_unlock(&mutex_memoria);
+			} else if(strcmp(subcommand, "proceso") == 0){
+				scanf("%d", numero);
+				pthread_mutex_lock(&mutex_memoria);
+				dump_de_proceso(*numero);
+				pthread_mutex_unlock(&mutex_memoria);
+			}
+			else{
+				printf("No existe tal estructura\n");
+			}
+		}
+		else if(strcmp(command, "size") == 0){
+			scanf("%s",subcommand);
+			if(strcmp(subcommand, "memoria")==0){
+				pthread_mutex_lock(&mutex_memoria);
+				memory_size();
+				pthread_mutex_unlock(&mutex_memoria);
+			}else if(strcmp(subcommand, "proceso")==0){
+				scanf("%d", numero);
+				pthread_mutex_lock(&mutex_memoria);
+				process_size(*numero);
+				pthread_mutex_unlock(&mutex_memoria);
+			}else{
 				printf("No existe tal estructura\n");
 			}
 		}
@@ -796,9 +880,21 @@ void *thread_consola(){
 			pthread_mutex_unlock(&mutex_memoria);
 			printf("Se ha limpiado la cache\n");
 		}
+		else if(strcmp(command, "retardo") == 0){
+			scanf("%d",numero);
+			if(*numero>=0){
+				pthread_mutex_lock(&mutex_memoria);
+				data_config.retardo_memoria = *numero;
+				pthread_mutex_unlock(&mutex_memoria);
+				printf("Retardo modificado\n");
+			}else{
+				printf("Error: el retardo debe ser mayor o igual a 0\n");
+			}
+		}
 		else{
 			printf("Comando incorrecto\n");
 		}
+		free(numero);
 		free(subcommand);
 		free(command);
 	}
@@ -1048,6 +1144,9 @@ int main(int argc, char** argv){
 	buf[bytes_leidos]='\0';
 	printf("%s",buf);*/
 
+	free(contenido_cache);
+	free(admin_cache);
+	free(cache);
 	free(memoria);
 	free(cfgPath);
 	config_destroy(config);
