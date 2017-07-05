@@ -1,0 +1,1 @@
+LogExample.d: ../LogExample.c

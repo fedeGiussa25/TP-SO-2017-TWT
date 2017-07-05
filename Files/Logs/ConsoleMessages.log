@@ -1,0 +1,195 @@
+[INFO] 01:15:20:581 Consola/(7850:7850): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 01:15:23:184 Consola/(7850:7850): Hilo creado satisfactoriamente
+
+[INFO] 01:15:23:184 Consola/(7850:7854): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 01:15:23:184 Consola/(7850:7854): Hilo 1: Script "for" procesado
+
+[INFO] 01:15:23:184 Consola/(7850:7854): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 01:15:23:268 Consola/(7850:7854): Hilo 1: Se esta ejecutando el programa 18
+
+[INFO] 01:15:25:993 Consola/(7850:7850): Hilo: 1 ejecutando proceso: 18
+
+[INFO] 01:15:27:688 Consola/(7850:7854): Mensaje del script "for" (PID: 18): Finalizo el programa satisfactoriamente!
+
+[INFO] 01:15:27:688 Consola/(7850:7854): Informacion sobre el programa 18:
+[INFO] 01:15:27:688 Consola/(7850:7854): 
+	La fecha de inicio del programa es: 5/7/2017  1:15:23
+[INFO] 01:15:27:688 Consola/(7850:7854): 
+	La fecha de finalizacion del programa es: 5/7/2017  1:15:27
+[INFO] 01:15:27:688 Consola/(7850:7854): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 01:15:27:688 Consola/(7850:7854): 
+	El tiempo total de ejecucion del programa en segundos es: 4
+
+[INFO] 01:15:27:688 Consola/(7850:7854): El hilo 1 ha pasado a mejor vida
+
+[INFO] 01:15:28:906 Consola/(7850:7850): Cantidad de hilos abiertos: 0
+
+[INFO] 01:15:37:345 Consola/(7850:7850): Hilo creado satisfactoriamente
+
+[INFO] 01:15:37:345 Consola/(7850:7858): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 01:15:37:345 Consola/(7850:7858): Hilo 1: Script "for" procesado
+
+[INFO] 01:15:37:345 Consola/(7850:7858): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 01:15:37:440 Consola/(7850:7858): Hilo 1: Se esta ejecutando el programa 19
+
+[INFO] 01:15:39:920 Consola/(7850:7850): Cantidad de hilos abiertos: 1
+
+[INFO] 01:15:41:825 Consola/(7850:7858): Mensaje del script "for" (PID: 19): Finalizo el programa satisfactoriamente!
+
+[INFO] 01:15:41:825 Consola/(7850:7858): Informacion sobre el programa 19:
+[INFO] 01:15:41:825 Consola/(7850:7858): 
+	La fecha de inicio del programa es: 5/7/2017  1:15:37
+[INFO] 01:15:41:825 Consola/(7850:7858): 
+	La fecha de finalizacion del programa es: 5/7/2017  1:15:41
+[INFO] 01:15:41:825 Consola/(7850:7858): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 01:15:41:825 Consola/(7850:7858): 
+	El tiempo total de ejecucion del programa en segundos es: 4
+
+[INFO] 01:15:41:825 Consola/(7850:7858): El hilo 1 ha pasado a mejor vida
+
+[INFO] 01:16:00:822 Consola/(7850:7850): Hilo creado satisfactoriamente
+
+[INFO] 01:16:00:822 Consola/(7850:7861): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 01:16:00:822 Consola/(7850:7861): Hilo 1: Script "for" procesado
+
+[INFO] 01:16:00:822 Consola/(7850:7861): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 01:16:00:868 Consola/(7850:7861): Hilo 1: Se esta ejecutando el programa 20
+
+[INFO] 01:16:02:920 Consola/(7850:7850): Hilo creado satisfactoriamente
+
+[INFO] 01:16:02:921 Consola/(7850:7862): Hilo 2: El archivo existe y fue abierto
+
+[INFO] 01:16:02:921 Consola/(7850:7862): Hilo 2: Script "for" procesado
+
+[INFO] 01:16:02:921 Consola/(7850:7862): Hilo 2:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 01:16:02:982 Consola/(7850:7862): Hilo 2: Se esta ejecutando el programa 21
+
+[INFO] 01:16:05:343 Consola/(7850:7861): Mensaje del script "for" (PID: 20): Finalizo el programa satisfactoriamente!
+
+[INFO] 01:16:05:343 Consola/(7850:7861): Informacion sobre el programa 20:
+[INFO] 01:16:05:343 Consola/(7850:7861): 
+	La fecha de inicio del programa es: 5/7/2017  1:16:0
+[INFO] 01:16:05:343 Consola/(7850:7861): 
+	La fecha de finalizacion del programa es: 5/7/2017  1:16:5
+[INFO] 01:16:05:343 Consola/(7850:7861): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 01:16:05:343 Consola/(7850:7861): 
+	El tiempo total de ejecucion del programa en segundos es: 5
+
+[INFO] 01:16:05:343 Consola/(7850:7861): El hilo 1 ha pasado a mejor vida
+
+[INFO] 01:16:09:691 Consola/(7850:7862): Mensaje del script "for" (PID: 21): Finalizo el programa satisfactoriamente!
+
+[INFO] 01:16:09:691 Consola/(7850:7862): Informacion sobre el programa 21:
+[INFO] 01:16:09:691 Consola/(7850:7862): 
+	La fecha de inicio del programa es: 5/7/2017  1:16:2
+[INFO] 01:16:09:691 Consola/(7850:7862): 
+	La fecha de finalizacion del programa es: 5/7/2017  1:16:9
+[INFO] 01:16:09:691 Consola/(7850:7862): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 01:16:09:691 Consola/(7850:7862): 
+	El tiempo total de ejecucion del programa en segundos es: 7
+
+[INFO] 01:16:09:691 Consola/(7850:7862): El hilo 2 ha pasado a mejor vida
+
+[INFO] 01:16:10:915 Consola/(7850:7850): No hay hilos abiertos para mostrar
+
+[INFO] 01:16:21:690 Consola/(7850:7850): Hilo creado satisfactoriamente
+
+[INFO] 01:16:21:690 Consola/(7850:7868): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 01:16:21:690 Consola/(7850:7868): Hilo 1: Script "for" procesado
+
+[INFO] 01:16:21:690 Consola/(7850:7868): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 01:16:21:844 Consola/(7850:7868): Hilo 1: Se esta ejecutando el programa 22
+
+[INFO] 01:16:23:281 Consola/(7850:7850): Se desconectaron los hilos
+
+[INFO] 01:16:23:282 Consola/(7850:7868): La ejecucion del script "for" (PID: 22) ha sido abortada
+
+[INFO] 01:16:23:282 Consola/(7850:7868): Informacion sobre el programa 22:
+[INFO] 01:16:23:282 Consola/(7850:7868): 
+	La fecha de inicio del programa es: 5/7/2017  1:16:21
+[INFO] 01:16:23:282 Consola/(7850:7868): 
+	La fecha de finalizacion del programa es: 5/7/2017  1:16:23
+[INFO] 01:16:23:282 Consola/(7850:7868): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 01:16:23:282 Consola/(7850:7868): 
+	El tiempo total de ejecucion del programa en segundos es: 2
+
+[INFO] 01:16:23:282 Consola/(7850:7868): El hilo 1 ha pasado a mejor vida
+
