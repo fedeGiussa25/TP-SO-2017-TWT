@@ -15,6 +15,7 @@
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
 void *memoria;
+t_list** hash_index;
 
 enum{
 	HANDSHAKE = 1,
@@ -225,6 +226,73 @@ void dump_de_proceso(int pid){
 		}
 	}
 }
+
+//Funciones de indice de Hash
+
+unsigned int calcular_posicion(int pid, int num_pagina) {
+	char str1[20];
+	char str2[20];
+	sprintf(str1, "%d", pid);
+	sprintf(str2, "%d", num_pagina);
+	strcat(str1, str2);
+	unsigned int indice = atoi(str1) % data_config.marcos;
+	return indice;
+}
+
+int es_pagina_correcta(int pos_candidata, int pid, int pagina) {
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	if(tabla[pos_candidata].PID == pid && tabla[pos_candidata].pagina == pagina){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+void inicializar_indice() {
+	hash_index = malloc(sizeof(t_list*) * data_config.marcos);
+	int i;
+	for (i = 0; i < data_config.marcos; ++i){
+		hash_index[i] = list_create();
+	}
+}
+
+int buscar_en_indice(int indice, int pid, int pagina) {
+	int i = 0, frame_buscado, encontrado = 0;
+	while(encontrado == 0 && i < list_size(hash_index[indice])){
+		if (es_pagina_correcta((int)list_get(hash_index[indice], i), pid, pagina)== 1) {
+			frame_buscado = (int) list_get(hash_index[indice], i);
+			encontrado = 1;
+		}else{
+			i++;
+		}
+	}
+	if(encontrado == 1){
+		return frame_buscado;
+	}else{
+		return -1;
+	}
+}
+
+void agregar_frame_en_indice(int pos_inicial, int nro_frame) {
+	list_add(hash_index[pos_inicial], nro_frame);
+}
+
+void borrar_de_indice(int posicion, int frame) {
+	int i = 0;
+	int index_frame;
+
+	for (i = 0; i < list_size(hash_index[posicion]); i++) {
+		if (frame == (int) list_get(hash_index[posicion], i)) {
+			index_frame = i;
+			i = list_size(hash_index[posicion]);
+		}
+	}
+
+	list_remove(hash_index[posicion], index_frame);
+}
+
+//Fin de funciones de hash
+
 //Funciones de Cache
 
 //Flush: vacia la cache
@@ -434,6 +502,9 @@ void finalizar_proceso(int PID){
 
 	for(i= 0; i<cant_paginas; i++){
 		if(tabla[i].PID == PID){
+			int posicion_heap = calcular_posicion(tabla[i].PID, tabla[i].pagina);
+			borrar_de_indice(posicion_heap, tabla[i].frame);
+
 			tabla[i].PID = -2;
 			tabla[i].pagina = -2;
 		}
@@ -462,6 +533,8 @@ int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
 	for(j=0; j<paginas; j++){
 		tabla[i+j].PID = PID;
 		tabla[i+j].pagina = numero_de_pagina+j;
+		int posicion_hash = calcular_posicion(PID, numero_de_pagina+j);
+		agregar_frame_en_indice(posicion_hash, (i+j));
 	}
 
 	return paginas;
@@ -512,6 +585,8 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 		for(j=0; j<paginas_usadas; j++){
 			tabla[i+j].PID = PID;
 			tabla[i+j].pagina = j;
+			int posicion_hash = calcular_posicion(PID, j);
+			agregar_frame_en_indice(posicion_hash, (i+j));
 		}
 
 		int guardado_de_stack = buscar_espacio_stack(PID, stack, paginas_usadas);
@@ -562,6 +637,8 @@ espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 	}else{
 		tabla[i].PID = pid;
 		tabla[i].pagina = numero_de_pagina;
+		int posicion_hash = calcular_posicion(pid, numero_de_pagina);
+		agregar_frame_en_indice(posicion_hash, i);
 	}
 
 	heapMetadata *unEspacio = malloc(sizeof(heapMetadata));
@@ -611,28 +688,22 @@ int32_t buscar_espacio_libre(uint32_t espacio, uint32_t direccion_fisica){
 }
 
 void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
-	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i=0, frame, encontrado = 0;
+	int frame, posicion_en_indice;
 	int tamanio_pagina = data_config.marco_size;
 
 	void *instruccion = malloc(offset);
 	if(esta_en_cache(PID, pagina) == false){
 		usleep(data_config.retardo_memoria * 1000);
 
-		while(encontrado == 0 && i < data_config.marcos){
-			if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-				frame = tabla[i].frame;
-				encontrado = 1;
-			}else{
-				i++;
-			}
-		}
-
-		if(encontrado == 0){
+		posicion_en_indice = calcular_posicion(PID, pagina);
+		frame = buscar_en_indice(posicion_en_indice, PID, pagina);
+		if(frame < 0){
 			printf("Page not Found\n");
 			memcpy(instruccion, "", strlen(""));
 			return instruccion;
 		}
+
+
 		int direccion_fisica = frame*tamanio_pagina;
 		//Copiamos la instruccion
 		memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
@@ -652,19 +723,14 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 }
 
 void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
-	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+	int frame, tamanio_pagina = data_config.marco_size, posicion_en_indice;
 
 	usleep(data_config.retardo_memoria * 1000);
 
-	while(encontrado == 0 && i < data_config.marcos){
-		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-			frame = tabla[i].frame;
-			encontrado = 1;
-		}else{
-			i++;
-		}
-	}
+	posicion_en_indice = calcular_posicion(PID, pagina);
+	frame = buscar_en_indice(posicion_en_indice, PID, pagina);
+
+	//printf("El frame buscado es el %d\n", frame);
 
 	int direccion_fisica = frame*tamanio_pagina;
 
@@ -684,18 +750,11 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 }
 
 espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
-	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+	int frame, posicion_hash, tamanio_pagina = data_config.marco_size;
 	espacio_reservado *unEspacio = malloc(sizeof(espacio_reservado));
 
-	while(encontrado == 0 && i < data_config.marcos){
-		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-			frame = tabla[i].frame;
-			encontrado = 1;
-		}else{
-			i++;
-		}
-	}
+	posicion_hash = calcular_posicion(PID, pagina);
+	frame = buscar_en_indice(posicion_hash, PID, pagina);
 
 	int direccion_fisica = frame*tamanio_pagina;
 
@@ -712,16 +771,9 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 				no_hay_espacio = true;
 			}else{
 				pagina ++;
-				i = 0;
-				encontrado = 0;
-				while(encontrado == 0 && i < data_config.marcos){
-					if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-						frame = tabla[i].frame;
-						encontrado = 1;
-					}else{
-						i++;
-					}
-				}
+
+				posicion_hash = calcular_posicion(PID, pagina);
+				frame = buscar_en_indice(posicion_hash, PID, pagina);
 
 				int direccion_fisica = frame*tamanio_pagina;
 				puntero = buscar_espacio_libre(espacio, direccion_fisica);
@@ -729,16 +781,11 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 		}else if(puntero < 0 && process_last_page(PID, pagina) == false){
 			printf("Buscamos la siguiente pagina\n");
 			pagina ++;
-			i = 0;
-			encontrado = 0;
-			while(encontrado == 0 && i < data_config.marcos){
-				if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-					frame = tabla[i].frame;
-					encontrado = 1;
-				}else{
-					i++;
-				}
-			}
+
+			posicion_hash = calcular_posicion(PID, pagina);
+			frame = buscar_en_indice(posicion_hash, PID, pagina);
+
+			printf("El frame buscado para alocar heap es el %d\n", frame);
 
 			int direccion_fisica = frame*tamanio_pagina;
 			puntero = buscar_espacio_libre(espacio, direccion_fisica);
@@ -782,19 +829,12 @@ void clean_heap(uint32_t direccion){
 }
 
 void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
-	entrada_tabla *tabla = (entrada_tabla *) memoria;
-	int i=0, frame, encontrado = 0, tamanio_pagina = data_config.marco_size;
+	int frame, posicion_hash, tamanio_pagina = data_config.marco_size;
 
-	while(encontrado == 0 && i < data_config.marcos){
-		if(tabla[i].PID == PID && tabla[i].pagina == pagina){
-			frame = tabla[i].frame;
-			encontrado = 1;
-		}else{
-			i++;
-		}
-	}
+	posicion_hash = calcular_posicion(PID, pagina);
+	frame = buscar_en_indice(posicion_hash, PID, pagina);
 
-	printf("El frame buscado es el %d\n", frame);
+	printf("El frame buscado para liberar heap es el %d\n", frame);
 
 	int direccion_fisica = (frame*tamanio_pagina + direccion) - sizeof(heapMetadata);
 
@@ -822,10 +862,10 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 }
 
 void *thread_consola(){
-	printf("Ingrese un comando \nComandos disponibles:\n dump tabla - Muestra tabla de paginas\n dump cache - Muestra la cache\n"
-			" dump memoria - Muestra el contenido de la memoria\n dump proceso <PID> - Muestra el contenido de la memoria de un proceso\n"
-			" flush - Limpia la cache\n clear - Limpia la consola de mensajes\n size memoria - Cantidad de frames, ocupados y libres\n"
-			" size proceso <PID> - Cantidad de paginas de dicho proceso\n retardo <Tiempo en milisegundos> - Modifica el retardo de respuesta de la memoria\n\n");
+	printf("Ingrese un comando \nComandos disponibles:\n dump tabla		Muestra tabla de paginas\n dump cache		Muestra la cache\n"
+			" dump memoria		Muestra la memoria\n dump proceso <PID>	Muestra memoria de un proceso\n"
+			" flush			Limpia la cache\n clear			Limpia la consola de mensajes\n size memoria		Total de frames, ocupados y libres\n"
+			" size proceso <PID>	Paginas de proceso\n retardo <miliseg>	Modifica el retardo de Memoria\n\n");
 	while(1){
 		char *command = malloc(20);
 		char *subcommand = malloc(20);
@@ -1039,24 +1079,23 @@ int main(int argc, char** argv){
 	/*Creacion de tabla de memoria*/
 
 	entrada_tabla *tabla_de_paginas = malloc(sizeof(entrada_tabla) * data_config.marcos);
-
 	inicializar_tabla(tabla_de_paginas);
 
 	/*Creacion del espacio de memoria*/
 
 	memoria = calloc(data_config.marcos, data_config.marco_size);
-
 	memcpy(memoria, tabla_de_paginas, espacio_total_tabla);
 
 	/*Creacion de la Cache, el contenido y el Admin de cache*/
 
 	contenido_cache = calloc(data_config.entradas_cache, data_config.marco_size);
-
 	cache = malloc(data_config.entradas_cache*sizeof(entrada_cache));
-
 	admin_cache = malloc(data_config.entradas_cache*sizeof(entrada_admin_cache));
-
 	inicializar_cache();
+
+	/*Creacion de Indice de Hash*/
+
+	inicializar_indice();
 
 	/*Creacion de Hilos*/
 
