@@ -583,6 +583,28 @@ PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 	return PCB_buscado;
 }
 
+//Devuelve bytes liberados
+int liberarHeap(int PID){
+	int i = 0, dimension = list_size(heap), bytes_liberados = 0;
+	while(i < dimension)
+	{
+		heap_de_proceso* hearocess = list_get(heap,i);
+		if(hearocess->pid == PID)
+		{
+			int j = 0, dimension_heap_proceso = list_size(hearocess->heap);
+			while(j < dimension_heap_proceso)
+			{
+				puntero* ptro = list_get(hearocess->heap,j);
+				bytes_liberados += ptro->size;
+				free(ptro);
+				j++;
+			}
+		}
+		i++;
+	}
+	return bytes_liberados;
+}
+
 void end_process(int PID, int exit_code, int sock_consola, bool consola_conectada){
 	int i = 0;
 	bool encontrado = 0;
@@ -608,6 +630,14 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		}
 		i++;
 	}
+
+	//Aca indico cuantos bytes quedaron leakeando
+	int bytes_lost = liberarHeap(PID);
+	if(bytes_lost != 0)
+		printf("Memory leak: se perdieron %d bytes\n",bytes_lost);
+	else
+		printf("No hubo Memory leaks, bien ahi!\n");
+
 	pthread_mutex_unlock(&mutex_process_list);
 	if(!encontrado && consola_conectada)
 	{
@@ -727,10 +757,10 @@ void print_commands()
 	printf("\t list    		- Lista de Procesos\n");
 	printf("\t state   		- Estado de un Proceso\n");
 	printf("\t plan    		- Detener/Reanudar Planificacion\n");
-	printf("\t f_exist 		- Existencia de un archivo\n");
+/*	printf("\t f_exist 		- Existencia de un archivo\n");
 	printf("\t f_size  		- Dimension de un archivo\n");
 	printf("\t files_all    - Lista de todos los archivos\n");
-	printf("\t files	    - Lista de los archivos de un proceso\n\n");
+	printf("\t files	    - Lista de los archivos de un proceso\n\n");*/
 }
 
 void pcb_state()
