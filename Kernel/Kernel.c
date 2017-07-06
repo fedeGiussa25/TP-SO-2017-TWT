@@ -74,7 +74,7 @@ enum{
 	FILE_SIZE = 11,
 	FILE_EXISTS = 12,
 	FIN_DE_RAFAGA = 13,
-	PROCESO_FINALIZO_ERRONEAMENTE = 15,
+	PROCESO_FINALIZO_ERRONEAMENTE = 25,
 //Acciones sobre archivos
 	ABRIR_ARCHIVO = 14,
 	LEER_ARCHIVO = 15,
@@ -282,10 +282,6 @@ PCB* create_PCB(char* script, int fd_consola){
 	list_add(todos_los_procesos,nuevo_PCB);
 	pthread_mutex_unlock(&mutex_process_list);
 
-	pthread_mutex_lock(&mutex_procesos_actuales);
-	procesos_actuales++;
-	pthread_mutex_unlock(&mutex_procesos_actuales);
-
 	pthread_mutex_lock(&mutex_fd_consolas);
 	proceso_conexion *consola = remove_by_fd_socket(lista_consolas,fd_consola);
 	consola->proceso = nuevo_PCB->pid;
@@ -413,6 +409,7 @@ void remove_PCB_from_specific_queue(int processid,t_queue* queue){
 void delete_PCB(PCB* pcb){
 	pthread_mutex_lock(&mutex_procesos_actuales);
 	procesos_actuales--;
+	printf("La cantidad de procesos actuales es: %d\n",procesos_actuales);
 	pthread_mutex_unlock(&mutex_procesos_actuales);
 	pthread_mutex_lock(&mutex_exit_queue);
 	queue_push(exit_queue,pcb);
@@ -601,7 +598,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
-				printf("El proceso ha sido finalizado\n");
+				printf("El proceso ha sido finalizado con Exit Code: %d\n", PCB->exit_code);
 				encontrado = 1;
 			}
 			else
@@ -755,7 +752,8 @@ void pcb_state()
 			PCB* PCB = list_get(todos_los_procesos,i);
 			if(*PID == PCB->pid)
 			{
-				print_PCB(PCB);
+			//	print_PCB(PCB);
+				printf("Proceso: %d\n",PCB->pid);
 				printf("Estado: %s\n", PCB->estado);
 				if(!strcmp(PCB->estado,"Exit"))
 					printf("Exit code: %d\n", PCB->exit_code);
@@ -866,14 +864,6 @@ void menu()
 				plan_go=true;
 				printf("Se ha reanudado la planificacion\n\n");
 			}
-		}
-		else if((strcmp(command, "f_exist") == 0))
-		{
-			file_handler(sockfd_fs,FILE_EXISTS);
-		}
-		else if((strcmp(command, "f_size") == 0))
-		{
-			file_handler(sockfd_fs,FILE_SIZE);
 		}
 		else if((strcmp(command, "files_all") == 0))
 		{
@@ -1102,6 +1092,7 @@ void signal(char *id_semaforo){
 		pthread_mutex_lock(&mutex_ready_queue);
 		queue_push(ready_queue, unPCB);
 		pthread_mutex_unlock(&mutex_ready_queue);
+		printf("El proceso %d paso de Wait a Ready\n",unPCB->pid);
 	}
 
 	list_add(semaforos, unSem);
@@ -1244,17 +1235,25 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 				i++;
 			}
 			pthread_mutex_unlock(&mutex_fd_consolas);
-			printf("Ya esta el proceso en Ready\n\n");
+			printf("El proceso %d paso de New a Ready\n\n",pcb_to_use->pid);
+
+			pthread_mutex_lock(&mutex_procesos_actuales);
+			procesos_actuales++;
+			printf("La cantidad de procesos actuales es: %d\n",procesos_actuales);
+			pthread_mutex_unlock(&mutex_procesos_actuales);
+
 		}
 		//significa que no hay espacio
 		if(page_counter < 0)
 		{
-			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
+			printf("El proceso PID %d no se ha podido guardar en memoria \n",pcb_to_use->pid);
 			pcb_to_use->estado = "Exit";
 			pcb_to_use->exit_code = -1;
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
+			printf("El proceso PID %d ha pasado de New a Ready \n\n",pcb_to_use->pid);
+
 			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
 	}
@@ -1313,6 +1312,8 @@ void planificacion(){
 
 					pcb_to_use->estado = "Exec";
 
+					printf("El proceso %d ha pasado de Ready a Exec\n",pcb_to_use->pid);
+
 					pthread_mutex_lock(&mutex_exec_queue);
 					queue_push(exec_queue,pcb_to_use);
 					pthread_mutex_unlock(&mutex_exec_queue);
@@ -1335,7 +1336,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 	char* script = (char*) sms->realbuf;
 	pcb_to_use = create_PCB(script,sms->fd_consola);
 
-	if(procesos_actuales <= sms->grado_multiprog)	
+	if(procesos_actuales < data_config.grado_multiprog)
 		guardado_en_memoria(sms, pcb_to_use);
 	else
 	{
@@ -1347,7 +1348,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		queue_push(new_queue,new);
 		pthread_mutex_unlock(&mutex_new_queue);
 		printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
-		int error = -1;
+		int error = 1;
 		send(sms->fd_consola, &error,sizeof(int),0);
 	}
 
@@ -1997,7 +1998,6 @@ int main(int argc, char** argv) {
 										{
 											printf("El proceso no esta en ejecucion, se puede finalizar ahora\n");
 											end_process(pcb->pid, -6, i, false);
-											proceso_conexion *conexion_cpu = buscar_conexion_de_proceso(consola_a_quitar->proceso);
 										}
 									} else printf("El proceso ya ha sido finalizado\n");
 								}
@@ -2166,7 +2166,8 @@ int main(int argc, char** argv) {
 								queue_push(unSem->cola_de_bloqueados, unPCB);
 								list_add(semaforos, unSem);
 								pthread_mutex_unlock(&mutex_semaforos_ansisop);
-								printf("termino todo el envio\n");
+								printf("El proceso %d paso de Exec a Wait\n",unPCB->pid);
+								printf("Termino todo el envio\n");
 							}
 
 							free(id_sem);
@@ -2488,6 +2489,7 @@ int main(int argc, char** argv) {
 							}else{
 								//Si llegamos aca, significa que el flaco se quiso hacer el lunga y reservar mas que una pagina
 								printf("Error: No es posible reservar un espacio mayor que una pagina\n");
+								error = -8;
 								enviar(i, &error, sizeof(int32_t));
 							}
 						}

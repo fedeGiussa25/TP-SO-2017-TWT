@@ -66,6 +66,7 @@ bool stackOverflow;
 bool programaTerminado;
 bool procesoBloqueado;
 bool procesoAbortado;
+int32_t codigo_error;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -126,6 +127,7 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	{
 		printf("Stack Overflow al definir variable %c\n", identificador_variable);
 		stackOverflow=true;
+		codigo_error = -20;
 		return -1;
 	}
 
@@ -449,6 +451,7 @@ t_puntero twt_reservar (t_valor_variable espacio)
 
 	if(puntero < 0){
 		procesoAbortado=true;
+		codigo_error = puntero;
 	}
 
 	return puntero;
@@ -855,6 +858,7 @@ int main(int argc, char **argv) {
 		programaTerminado = false;
 		procesoBloqueado = false;
 		procesoAbortado = false;
+		codigo_error = 0;
 
 		if(quantum < 0){
 			printf("Estoy ejecutando en FIFO\n");
@@ -870,7 +874,8 @@ int main(int argc, char **argv) {
 				send_PCB(fd_kernel, nuevaPCB, codigo);
 			}
 			else{
-				codigo = 100;
+				codigo = 25;
+				enviar(fd_kernel, &codigo_error, sizeof(int32_t));
 				send_PCB(fd_kernel, nuevaPCB, codigo);
 			}
 		}

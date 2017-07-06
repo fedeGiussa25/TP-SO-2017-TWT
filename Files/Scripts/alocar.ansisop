@@ -5,6 +5,7 @@ begin
 	*a = 5
 	alocar b 20
 	c = *a
+	wait SEM1
 	alocar d 430
 	*d = c
 end
