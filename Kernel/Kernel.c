@@ -1337,7 +1337,7 @@ void planificacion(){
 					}
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
-					printf("Mande Codigo: %d", codigo);
+					printf("Mande Codigo: %d\n", codigo);
 					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
 					cpu->proceso = pcb_to_use->pid;
 
@@ -1379,8 +1379,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		queue_push(new_queue,new);
 		pthread_mutex_unlock(&mutex_new_queue);
 		printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
-		int error = 1;
-		send(sms->fd_consola, &error,sizeof(int),0);
+		send(sms->fd_consola, &pcb_to_use->pid,sizeof(int),0);
 	}
 
 	free(sms);

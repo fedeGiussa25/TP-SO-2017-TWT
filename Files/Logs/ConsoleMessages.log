@@ -3065,3 +3065,104 @@ begin
 	a = b + 12
 end
 
+[INFO] 19:13:59:939 Consola/(2783:2783): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 19:14:06:499 Consola/(2783:2783): Hilo creado satisfactoriamente
+
+[INFO] 19:14:06:499 Consola/(2783:2784): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 19:14:06:500 Consola/(2783:2784): Hilo 1: Script "facil" procesado
+
+[INFO] 19:14:06:500 Consola/(2783:2784): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b
+	a = 3
+	b = 5
+	a = b + 12
+end
+
+[INFO] 19:14:06:500 Consola/(2783:2784): Hilo 1: Se esta ejecutando el programa 1
+
+[INFO] 19:14:09:544 Consola/(2783:2783): Hilo creado satisfactoriamente
+
+[INFO] 19:14:09:544 Consola/(2783:2785): Hilo 2: El archivo existe y fue abierto
+
+[INFO] 19:14:09:544 Consola/(2783:2785): Hilo 2: Script "facil" procesado
+
+[INFO] 19:14:09:544 Consola/(2783:2785): Hilo 2:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b
+	a = 3
+	b = 5
+	a = b + 12
+end
+
+[INFO] 19:14:09:545 Consola/(2783:2785): Hilo 2: Se esta ejecutando el programa 2
+
+[INFO] 19:14:13:533 Consola/(2783:2783): Hilo creado satisfactoriamente
+
+[INFO] 19:14:13:533 Consola/(2783:2786): Hilo 3: El archivo existe y fue abierto
+
+[INFO] 19:14:13:533 Consola/(2783:2786): Hilo 3: Script "facil" procesado
+
+[INFO] 19:14:13:533 Consola/(2783:2786): Hilo 3:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b
+	a = 3
+	b = 5
+	a = b + 12
+end
+
+[INFO] 19:14:13:534 Consola/(2783:2786): Hilo 3: Se esta ejecutando el programa 3
+
+[INFO] 19:14:28:443 Consola/(2783:2784): Mensaje del script "facil" (PID: 1): Finalizo el programa satisfactoriamente!
+
+[INFO] 19:14:28:443 Consola/(2783:2784): Informacion sobre el programa 1:
+[INFO] 19:14:28:443 Consola/(2783:2784): 
+	La fecha de inicio del programa es: 6/7/2017  19:14:6
+[INFO] 19:14:28:443 Consola/(2783:2784): 
+	La fecha de finalizacion del programa es: 6/7/2017  19:14:28
+[INFO] 19:14:28:443 Consola/(2783:2784): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 19:14:28:443 Consola/(2783:2784): 
+	El tiempo total de ejecucion del programa en segundos es: 22
+
+[INFO] 19:14:28:443 Consola/(2783:2784): El hilo 1 ha pasado a mejor vida
+
+[INFO] 19:14:28:846 Consola/(2783:2785): Mensaje del script "facil" (PID: 2): Finalizo el programa satisfactoriamente!
+
+[INFO] 19:14:28:846 Consola/(2783:2785): Informacion sobre el programa 2:
+[INFO] 19:14:28:846 Consola/(2783:2785): 
+	La fecha de inicio del programa es: 6/7/2017  19:14:9
+[INFO] 19:14:28:846 Consola/(2783:2785): 
+	La fecha de finalizacion del programa es: 6/7/2017  19:14:28
+[INFO] 19:14:28:846 Consola/(2783:2785): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 19:14:28:846 Consola/(2783:2785): 
+	El tiempo total de ejecucion del programa en segundos es: 19
+
+[INFO] 19:14:28:846 Consola/(2783:2785): El hilo 2 ha pasado a mejor vida
+
+[INFO] 19:14:29:249 Consola/(2783:2786): Mensaje del script "facil" (PID: 3): Finalizo el programa satisfactoriamente!
+
+[INFO] 19:14:29:249 Consola/(2783:2786): Informacion sobre el programa 3:
+[INFO] 19:14:29:249 Consola/(2783:2786): 
+	La fecha de inicio del programa es: 6/7/2017  19:14:13
+[INFO] 19:14:29:249 Consola/(2783:2786): 
+	La fecha de finalizacion del programa es: 6/7/2017  19:14:29
+[INFO] 19:14:29:249 Consola/(2783:2786): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 19:14:29:249 Consola/(2783:2786): 
+	El tiempo total de ejecucion del programa en segundos es: 16
+
+[INFO] 19:14:29:249 Consola/(2783:2786): El hilo 3 ha pasado a mejor vida
+
