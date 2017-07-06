@@ -502,18 +502,27 @@ proceso_conexion* buscar_conexion_de_consola(int consolaSock){
 }
 
 PCB* get_PCB(int PId){
-
 	int i = 0, dimension = list_size(todos_los_procesos);
-	PCB *aux;
+	PCB *to_ret;
 	while(i < dimension){
-		aux = list_get(todos_los_procesos,i);
+		PCB *aux = list_get(todos_los_procesos,i);
 		if(aux->pid == PId)
-
-			return aux;
+			to_ret = aux;
 		i++;
 	}
+	return to_ret;
+}
 
-	return -1;
+bool exist_PCB(int PId){
+	int i = 0, dimension = list_size(todos_los_procesos);
+	bool encontrado = false;
+	while(i < dimension){
+		PCB *aux = list_get(todos_los_procesos,i);
+		if(aux->pid == PId)
+			encontrado = true;
+		i++;
+	}
+	return encontrado;
 }
 
 bool proceso_en_ejecucion(int processID){
@@ -523,8 +532,10 @@ bool proceso_en_ejecucion(int processID){
 	while(i < dimension){
 		aux = list_get(lista_en_ejecucion,i);
 		if(aux->proceso == processID)
+		{
 			pthread_mutex_unlock(&mutex_in_exec);
 			return true;
+		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_in_exec);
@@ -1928,6 +1939,7 @@ int main(int argc, char** argv) {
 							perror("recv");
 						}
 
+						bool fue_CPU = false;
 						//Dado que no sabemos a que proceso pertenece dicho socket,
 						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
 
@@ -1935,52 +1947,62 @@ int main(int argc, char** argv) {
 						//Aca es donde me encargo de que el proceso muere si se desconecta la CPU
 						proceso_conexion* cpu_a_quitar = buscar_conexion_de_cpu(i);
 						if(cpu_a_quitar != -1){
+							fue_CPU = true;
 							if(cpu_a_quitar->proceso <= pid && cpu_a_quitar->proceso > 0)
 							{
 								printf("Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
 								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
 								end_process(cpu_a_quitar->proceso, -20, consola, true);
+
+								pthread_mutex_lock(&mutex_in_exec);
+								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
 							}
 							else
 								printf("Se desconecto la CPU %d, que no estaba ejecutando ningun proceso\n",cpu_a_quitar->sock_fd);
 						}
-						remove_and_destroy_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
+						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
 
-						pthread_mutex_lock(&mutex_fd_consolas);
+						if(!fue_CPU){
+							pthread_mutex_lock(&mutex_fd_consolas);
+							//Idem con consola
+							proceso_conexion* consola_a_quitar = buscar_conexion_de_consola(i);
+							PCB* pcb;
+							bool exists;
+							pthread_mutex_lock(&mutex_process_list);
+							if((exists = exist_PCB(consola_a_quitar->proceso)) != -1)
+								pcb = get_PCB(consola_a_quitar->proceso);
+							pthread_mutex_unlock(&mutex_process_list);
 
-						//Idem con consola
-						proceso_conexion* consola_a_quitar = buscar_conexion_de_consola(i);
-
-						pthread_mutex_lock(&mutex_process_list);
-						PCB* pcb = get_PCB(consola_a_quitar->proceso);
-						pthread_mutex_unlock(&mutex_process_list);
-
-						if(consola_a_quitar != -1){
-							if(consola_a_quitar->proceso <= pid && consola_a_quitar->proceso > 0)
-							{
-								if((strcmp(pcb->estado,"Exit")) != 0)
+							if(consola_a_quitar != -1 && exists){
+								if(consola_a_quitar->proceso <= pid && consola_a_quitar->proceso > 0)
 								{
-									printf("Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
-									if(proceso_en_ejecucion(consola_a_quitar->proceso) && (strcmp(pcb->estado,"Exec")) == 0)
+									if((strcmp(pcb->estado,"Exit")) != 0)
 									{
-										printf("El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
-										just_a_pid* aux = malloc(sizeof(just_a_pid));
-										aux->proceso = pcb->pid;
-										pthread_mutex_lock(&mutex_to_delete);
-										list_add(procesos_a_borrar,aux);
-										pthread_mutex_unlock(&mutex_to_delete);
-									}
-									else
-									{
-										printf("El proceso no esta en ejecucion, se puede finalizar ahora\n");
-										end_process(pcb->pid, -6, i, false);
-									}
-								} else printf("El proceso ya ha sido finalizado\n");
+										printf("Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
+										if(proceso_en_ejecucion(consola_a_quitar->proceso) && (strcmp(pcb->estado,"Exec")) == 0)
+										{
+											printf("El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
+											just_a_pid* aux = malloc(sizeof(just_a_pid));
+											aux->proceso = pcb->pid;
+
+											pthread_mutex_lock(&mutex_to_delete);
+											list_add(procesos_a_borrar,aux);
+											pthread_mutex_unlock(&mutex_to_delete);
+										}
+										else
+										{
+											printf("El proceso no esta en ejecucion, se puede finalizar ahora\n");
+											end_process(pcb->pid, -6, i, false);
+											proceso_conexion *conexion_cpu = buscar_conexion_de_proceso(consola_a_quitar->proceso);
+										}
+									} else printf("El proceso ya ha sido finalizado\n");
+								}
 							}
+							remove_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
+							pthread_mutex_unlock(&mutex_fd_consolas);
 						}
-						remove_and_destroy_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
-						pthread_mutex_unlock(&mutex_fd_consolas);
 
 						close(i);
 						FD_CLR(i, &fd_procesos); // remove from master set
@@ -2000,7 +2022,7 @@ int main(int argc, char** argv) {
 							{
 								printf("Es una CPU\n");
 								nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
-								nueva_conexion_cpu->sock_fd = newfd;
+								nueva_conexion_cpu->sock_fd = i;
 								nueva_conexion_cpu->proceso = 0;
 								pthread_mutex_lock(&mutex_fd_cpus);
 								list_add(lista_cpus, nueva_conexion_cpu);
@@ -2188,6 +2210,13 @@ int main(int argc, char** argv) {
 							print_PCB(unPCB);
 							uint32_t PID = unPCB->pid;
 							int fd_consola = buscar_consola_de_proceso(PID);
+
+							pthread_mutex_lock(&mutex_in_exec);
+							remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
+
+							printf("Elimine el proceso de la lista de exec\n");
+
 							if(!proceso_para_borrar(PID))
 							{
 								printf("El proceso no estaba para borrar\n");
@@ -2200,12 +2229,6 @@ int main(int argc, char** argv) {
 							}
 
 							printf("Ya termine toda la operacion de borrado\n");
-
-							pthread_mutex_lock(&mutex_in_exec);
-							remove_by_fd_socket(lista_en_ejecucion, i);
-							pthread_mutex_unlock(&mutex_in_exec);
-
-							printf("Elimine el proceso de la lista de exec\n");
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
