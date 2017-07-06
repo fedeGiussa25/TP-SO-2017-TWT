@@ -39,9 +39,9 @@ typedef struct{
 
 typedef struct{
 	char id;
-	int page;
-	int offset;
-	int size;
+	uint32_t page;
+	uint32_t offset;
+	uint32_t size;
 }variable;
 
 typedef struct{
@@ -200,6 +200,7 @@ void verificar_conexion_socket(int fd, int estado){
 
 int corrimiento;
 void *sendbuf;
+void *stackbuf;
 u_int32_t tamanio_stack;
 
 /*
@@ -235,6 +236,17 @@ void serializarVariables(variable* var)
 	memcpy(sendbuf+corrimiento, &(var->size), sizeof(int));
 	corrimiento = corrimiento+sizeof(int);
 }
+void serializarVariablesV2(variable* var)
+{
+	memcpy(stackbuf+corrimiento, &(var->id), sizeof(char));
+	corrimiento = corrimiento+sizeof(char);
+	memcpy(stackbuf+corrimiento, &(var->offset), sizeof(uint32_t));
+	corrimiento = corrimiento+sizeof(uint32_t);
+	memcpy(stackbuf+corrimiento, &(var->page), sizeof(uint32_t));
+	corrimiento = corrimiento+sizeof(uint32_t);
+	memcpy(stackbuf+corrimiento, &(var->size), sizeof(uint32_t));
+	corrimiento = corrimiento+sizeof(uint32_t);
+}
 void serializarElestac(registroStack* registro)
 {
 
@@ -268,6 +280,39 @@ void serializarElestac(registroStack* registro)
 	corrimiento = corrimiento + sizeof(int);
 }
 
+void serializarElestacV2(registroStack* registro)
+{
+
+	//Meto en el stackbuf los argumentos
+	uint32_t cantArgumentos = list_size(registro->args);
+	memcpy(stackbuf+corrimiento, &cantArgumentos, sizeof(uint32_t));
+	corrimiento = corrimiento+sizeof(uint32_t);
+
+	list_iterate(registro->args, (void *) serializarVariablesV2); //Funcion casteada a (void*) porque list_iterate lo requiere
+
+	//Meto en el stackbuf las variables
+
+	uint32_t cantVariables = registro->vars->elements_count;
+	memcpy(stackbuf+corrimiento, &cantVariables, sizeof(uint32_t));
+	corrimiento = corrimiento+sizeof(uint32_t);
+
+	list_iterate(registro->vars, (void *) serializarVariablesV2);
+
+	//Meto en el stackbuf retPos
+
+	memcpy(stackbuf+corrimiento, &(registro->ret_pos), sizeof(uint32_t));
+	corrimiento = corrimiento + sizeof(uint32_t);
+
+	//Meto en el stackbuf retVar
+
+	memcpy(stackbuf+corrimiento, &(registro->ret_var.offset),sizeof(uint32_t));
+	corrimiento = corrimiento + sizeof(uint32_t);
+	memcpy(stackbuf+corrimiento, &(registro->ret_var.page),sizeof(uint32_t));
+	corrimiento = corrimiento + sizeof(uint32_t);
+	memcpy(stackbuf+corrimiento, &(registro->ret_var.size),sizeof(uint32_t));
+	corrimiento = corrimiento + sizeof(uint32_t);
+}
+
 registroStack* registro;
 
 void sumar_tamanio_registro(registroStack *unRegistro){
@@ -277,17 +322,38 @@ void sumar_tamanio_registro(registroStack *unRegistro){
 
 	uint32_t tamanio_resto = sizeof(pagoffsize)+sizeof(uint32_t);
 
-	//uint32_t cantVarsYArgs;
-/*
-	if(list_size(unRegistro->args)>0){
-		cantVarsYArgs = sizeof(uint32_t);
-	}
+	//uint32_t cantVarsYArgs=0;
+
+	//if(list_size(unRegistro->args)>0){
+
+/*	}
 	if(list_size(unRegistro->vars)>0){
 		cantVarsYArgs = cantVarsYArgs + sizeof(uint32_t);
-	}
-*/
+	}*/
 
-	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto ;
+
+	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto;
+
+}
+
+void sumar_tamanio_registroV2(registroStack *unRegistro){
+
+	uint32_t tamanio_argumentos = sizeof(variable)*list_size(unRegistro->args);
+	uint32_t tamanio_variables = sizeof(variable)*list_size(unRegistro->vars);
+
+	uint32_t tamanio_resto = sizeof(pagoffsize)+sizeof(uint32_t);
+
+	//uint32_t cantVarsYArgs=0;
+
+	//if(list_size(unRegistro->args)>0){
+		uint32_t cantVarsYArgs = sizeof(uint32_t)*2;
+/*	}
+	if(list_size(unRegistro->vars)>0){
+		cantVarsYArgs = cantVarsYArgs + sizeof(uint32_t);
+	}*/
+
+
+	tamanio_stack = tamanio_stack + tamanio_argumentos + tamanio_variables + tamanio_resto + cantVarsYArgs;
 
 }
 
@@ -344,6 +410,68 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 	return sendbuf;
 }
 
+void *PCB_cerealV2(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_t objetivo){
+	uint32_t codigo_cpu, tamanio_indice_codigo, tamanio_indice_stack, tamanio_indice_etiquetas, cantRegistros,tamanio_estado;
+	switch(objetivo){
+		case MEMPCB:
+			codigo_cpu = 2;
+			sendbuf = malloc(sizeof(uint32_t)*4 + sms->messageLength);
+			memcpy(sendbuf,&codigo_cpu,sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int),&(pcb->pid),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)+sizeof(uint32_t),(stack_size),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)*2+sizeof(uint32_t),&(sms->messageLength),sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(int)*3+sizeof(uint32_t),sms->realbuf,sms->messageLength);
+			break;
+		case FULLPCB:
+			tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
+
+			tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
+			cantRegistros = pcb->stack_index->elements_count; //Es la cantidad de registros de Stack
+			tamanio_estado = strlen(pcb->estado) + 1;
+
+			tamanio_stack = 0;
+
+			if(cantRegistros>0){
+				list_iterate(pcb->stack_index, (void*) sumar_tamanio_registro);
+			}
+
+			sendbuf = malloc(sizeof(uint32_t)*9/*Propio de PCB*/+ sizeof(int32_t)/*exit_code*/+ sizeof(uint32_t)/*tamanio de i_de_codigo*/+ tamanio_indice_codigo+
+					tamanio_indice_etiquetas+ sizeof(uint32_t)/*tamanio de estado*/ + tamanio_estado+ sizeof(uint32_t)/*cant_registros_stack*/+ tamanio_stack);
+
+			stackbuf = malloc(tamanio_stack);
+			memcpy(sendbuf, &(pcb->pid), sizeof(u_int32_t));
+			memcpy(sendbuf+sizeof(uint32_t), &(pcb->page_counter), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*2, &(pcb->direccion_inicio_codigo), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*3, &(pcb->program_counter), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*4, &(pcb->cantidad_de_instrucciones), sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*5, &tamanio_indice_codigo, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*6, pcb->indice_de_codigo, tamanio_indice_codigo);
+			memcpy(sendbuf+sizeof(uint32_t)*6+tamanio_indice_codigo, &tamanio_indice_etiquetas, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*7+tamanio_indice_codigo, pcb->lista_de_etiquetas, tamanio_indice_etiquetas);
+			memcpy(sendbuf+sizeof(uint32_t)*7+tamanio_indice_codigo+tamanio_indice_etiquetas, &tamanio_estado, sizeof(uint32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*8+tamanio_indice_codigo+tamanio_indice_etiquetas, pcb->estado, tamanio_estado);
+
+			memcpy(sendbuf+sizeof(uint32_t)*8+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, &(pcb->exit_code), sizeof(int32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*9+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, &(pcb->primerPaginaStack), sizeof(int32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*10+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, &(pcb->stackPointer), sizeof(int32_t));
+			memcpy(sendbuf+sizeof(uint32_t)*11+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, &(pcb->tamanioStack), sizeof(int32_t));
+
+			memcpy(sendbuf+sizeof(uint32_t)*12+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, &cantRegistros, sizeof(int32_t));
+
+			corrimiento = 0;
+			if(cantRegistros>0)
+			{
+			list_iterate(pcb->stack_index, (void*) serializarElestacV2);
+
+			memcpy(sendbuf+sizeof(uint32_t)*13+tamanio_indice_codigo+tamanio_indice_etiquetas+tamanio_estado, stackbuf, tamanio_stack);
+			}
+			break;
+
+	}
+
+	return sendbuf;
+}
+
 /*void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	void *sendbuf;
 	uint32_t codigo_cpu = 2, numbytes, page_counter, direccion;
@@ -391,12 +519,32 @@ void *PCB_cereal(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint32_
 
 void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
-	//int tamanio_indice_stack=calcularTamañoStack();
 	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
 	void *ultraBuffer = PCB_cereal(NULL,pcb,NULL,FULLPCB);
 
 	uint32_t tamanio_total_buffer = sizeof(uint32_t)*10 + sizeof(u_int32_t) +tamanio_indice_etiquetas +tamanio_indice_codigo+tamanio_stack;
+
+	//Creamos un buffer completo, que ademas del PCB llevara un codigo.
+	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(uint32_t));
+	memcpy(ultimateBuffer, &codigo, sizeof(uint32_t));
+	memcpy(ultimateBuffer+sizeof(uint32_t), ultraBuffer, tamanio_total_buffer);
+
+	send(sock_fd, ultimateBuffer, sizeof(uint32_t) + tamanio_total_buffer,0);
+
+	printf("Mande un PCB :D\n\n");
+	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
+	free(ultimateBuffer); //Vos tambien.
+}
+void send_PCBV2(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
+	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
+	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
+	uint32_t tamanio_estado = strlen(pcb->estado) + 1;
+	//Creamos nuestro heroico buffer, quien se va a encargar de llevar el PCB a la CPU
+	void *ultraBuffer = PCB_cerealV2(NULL,pcb,NULL,FULLPCB);
+
+	uint32_t tamanio_total_buffer = sizeof(uint32_t)*9/*Propio de PCB*/+ sizeof(int32_t)/*exit_code*/+ sizeof(uint32_t)/*tamanio de i_de_codigo*/+ tamanio_indice_codigo+
+			tamanio_indice_etiquetas+ sizeof(uint32_t)/*tamanio de estado*/ + tamanio_estado+ sizeof(uint32_t)/*cant_registros_stack*/+ tamanio_stack;
 
 	//Creamos un buffer completo, que ademas del PCB llevara un codigo.
 	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(uint32_t));
@@ -580,4 +728,162 @@ PCB* recibirPCB(uint32_t fd_socket)
 	pcb->stackPointer=stack_pointer;
 
 	return pcb;
+}
+PCB* recibirPCBV2(uint32_t fd_socket)
+{
+	uint32_t pid, page_counter, direccion_inicio_codigo, program_counter, cantidad_de_instrucciones, stack_size, primerPagStack, stack_pointer, tamanio_estado;
+	int32_t exit_code;
+
+
+	uint32_t tamanio_indice_codigo, tamanio_indice_etiquetas;
+	uint32_t cantRegistros =0;
+
+	PCB* pcb = malloc(sizeof(PCB));
+
+	recv(fd_socket, &pid, sizeof(u_int32_t),0);
+
+	recv(fd_socket, &page_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &direccion_inicio_codigo, sizeof(uint32_t),0);
+
+	recv(fd_socket, &program_counter, sizeof(uint32_t),0);
+
+	recv(fd_socket, &cantidad_de_instrucciones, sizeof(uint32_t),0);
+
+	recv(fd_socket, &tamanio_indice_codigo, sizeof(uint32_t),0);
+
+	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
+
+	recv(fd_socket, indice_de_codigo, tamanio_indice_codigo,0);
+
+	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
+
+	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
+
+	if(tamanio_indice_etiquetas>0)
+	{
+		recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
+	}
+
+	recv(fd_socket, &tamanio_estado, sizeof(uint32_t),0);
+
+	recv(fd_socket, pcb->estado, tamanio_estado,0);
+
+	recv(fd_socket, &exit_code, sizeof(int32_t),0);
+
+	recv(fd_socket, &primerPagStack,sizeof(uint32_t),0);
+
+	recv(fd_socket, &stack_pointer,sizeof(uint32_t),0);
+
+	recv(fd_socket, &stack_size,sizeof(uint32_t),0);
+
+	recv(fd_socket, &cantRegistros,sizeof(uint32_t),0);
+
+	//Recibo STACK
+
+	pcb->stack_index = list_create();
+
+	int registrosAgregados = 0;
+
+	int cantArgumentos=0, cantVariables=0;
+
+	if(cantRegistros>0){
+
+	while(registrosAgregados < cantRegistros)
+	{
+		recv(fd_socket, &cantArgumentos, sizeof(uint32_t),0);
+
+		printf("cant argums: %d\n", cantArgumentos);
+		registroStack* nuevoReg = malloc(sizeof(registroStack));
+
+		nuevoReg->args = list_create();
+
+		if(cantArgumentos>0) //Si tiene argumentos
+		{
+		//Recibo argumentos:
+
+		int argumentosAgregados = 0;
+
+		while(argumentosAgregados < cantArgumentos)
+		{
+			variable *nuevoArg = malloc(sizeof(variable));
+
+			recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
+
+			recv(fd_socket, &(nuevoArg->offset), sizeof(uint32_t),0);
+
+			recv(fd_socket, &(nuevoArg->page), sizeof(uint32_t),0);
+
+			recv(fd_socket, &(nuevoArg->size), sizeof(uint32_t),0);
+
+			list_add(nuevoReg->args, nuevoArg);
+			argumentosAgregados++;
+			}
+		} //Fin recepcion argumentos
+
+			recv(fd_socket, &cantVariables, sizeof(int),0);
+
+			nuevoReg->vars= list_create();
+			printf("cant vars: %d\n", cantVariables);
+			if(cantVariables>0) //Si tiene variables
+			{
+			//Recibo variables:
+
+			int variablesAgregadas = 0;
+
+			while(variablesAgregadas < cantVariables)
+			{
+				variable *nuevaVar = malloc(sizeof(variable));
+
+				recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
+
+				recv(fd_socket, &(nuevaVar->offset), sizeof(uint32_t),0);
+
+				recv(fd_socket, &(nuevaVar->page), sizeof(uint32_t),0);
+
+				recv(fd_socket, &(nuevaVar->size), sizeof(uint32_t),0);
+
+
+				list_add(nuevoReg->vars, nuevaVar);
+
+				variablesAgregadas++;
+
+			}
+		} //Fin recepcion variables
+
+			//Recibo retPos
+
+			recv(fd_socket, &(nuevoReg->ret_pos), sizeof(uint32_t),0);
+
+
+			//Recibo retVar
+
+			recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(uint32_t),0);
+
+			recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(uint32_t),0);
+
+			recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(uint32_t),0);
+
+			list_add(pcb->stack_index, nuevoReg);
+
+			registrosAgregados++;
+
+
+	}//Fin recepcion Stack
+	}
+
+	pcb->pid = pid;
+	pcb->page_counter = page_counter;
+	pcb->lista_de_etiquetas_length=tamanio_indice_etiquetas;
+	pcb->lista_de_etiquetas=indice_de_etiquetas;
+	pcb->direccion_inicio_codigo = direccion_inicio_codigo;
+	pcb->program_counter = program_counter;
+	pcb->cantidad_de_instrucciones = cantidad_de_instrucciones;
+	pcb->indice_de_codigo = indice_de_codigo;
+	pcb->tamanioStack = stack_size;
+	pcb->primerPaginaStack=primerPagStack;
+	pcb->stackPointer=stack_pointer;
+	pcb->exit_code=exit_code;
+	//strcpy(pcb->estado, estado);
+
 }

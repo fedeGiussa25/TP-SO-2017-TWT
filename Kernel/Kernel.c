@@ -1337,6 +1337,7 @@ void planificacion(){
 					}
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
+					printf("Mande Codigo: %d", codigo);
 					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
 					cpu->proceso = pcb_to_use->pid;
 

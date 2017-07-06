@@ -564,7 +564,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t_valor_variable tamanio)
 {
 	memset(informacion+tamanio, '\0', 1);
-	printf("Soy escribir en archivo: %d la informacion: %s con tamanio: %d\n", descriptor_archivo, informacion, tamanio);
+	printf("Soy escribir en archivo: %d la informacion: %s con tamanio: %d\n", descriptor_archivo, (char*)informacion, tamanio);
 	int desc_salida=descriptor_archivo;
 	uint32_t resp;
 	if(desc_salida==0)
