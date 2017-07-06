@@ -74,6 +74,7 @@ enum{
 	FILE_SIZE = 11,
 	FILE_EXISTS = 12,
 	FIN_DE_RAFAGA = 13,
+	PROCESO_FINALIZO_ERRONEAMENTE = 15,
 //Acciones sobre archivos
 	ABRIR_ARCHIVO = 14,
 	LEER_ARCHIVO = 15,
@@ -1250,6 +1251,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		{
 			printf("El proceso PID %d no se ha podido guardar en memoria \n\n",pcb_to_use->pid);
 			pcb_to_use->estado = "Exit";
+			pcb_to_use->exit_code = -1;
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
@@ -2502,8 +2504,6 @@ int main(int argc, char** argv) {
 								if(puntero_existe(heap_buscado->heap, direccion)){
 									puntero *unPuntero = remove_puntero(heap_buscado->heap, direccion);
 
-
-
 									uint32_t corrimiento = unPuntero->direccion - (unPuntero->pagina * tamanio_pagina);
 									uint32_t cod = 9;
 									void *buffer = malloc(sizeof(uint32_t)*4);
@@ -2526,6 +2526,43 @@ int main(int argc, char** argv) {
 								printf("El proceso no tiene paginas alocadas\n");
 								enviar(i, &error, sizeof(int32_t));
 							}
+						}
+						if(codigo == PROCESO_FINALIZO_ERRONEAMENTE)
+						{
+							void* buffer_codigo = malloc(4);
+							recibir(i, buffer_codigo, 4);
+							PCB *unPCB = recibirPCB(i);
+							print_PCB(unPCB);
+							uint32_t PID = unPCB->pid;
+							int fd_consola = buscar_consola_de_proceso(PID);
+
+							pthread_mutex_lock(&mutex_in_exec);
+							remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
+
+							printf("Elimine el proceso de la lista de exec\n");
+
+							if(!proceso_para_borrar(PID))
+							{
+								printf("El proceso no estaba para borrar\n");
+								end_process(PID, *(int*)buffer_codigo, fd_consola, true);
+							}
+							else
+							{
+								printf("El proceso estaba para borrar\n");
+								end_process(PID, *(int*)buffer_codigo, fd_consola, false);
+							}
+
+							printf("Ya termine toda la operacion de borrado\n");
+
+							pthread_mutex_lock(&mutex_fd_cpus);
+							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
+							pthread_mutex_unlock(&mutex_fd_cpus);
+
+							cpu->proceso = 0;
+
+							printf("Settee el proceso actual de la CPU en 0\n");
+							free(buffer_codigo);
 						}
 						memset(buf,0,256);
 					}
