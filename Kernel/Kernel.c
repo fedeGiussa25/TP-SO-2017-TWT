@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/log.h>
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
 #include <string.h>
@@ -28,6 +29,7 @@
 #include "../config_shortcuts/config_shortcuts.h"
 #include <parser/metadata_program.h>
 #include "../shared_libs/PCB.h"
+#include <errno.h>
 
 //Mutex de listas de conexion
 pthread_mutex_t mutex_fd_cpus;
@@ -165,6 +167,7 @@ int listener_cpu;
 int fdmax_cpu;
 int procesos_actuales = 0; //La uso para ver que no haya mas de lo que la multiprogramacion permite
 bool plan_go = true;
+t_log *kernelLog;
 
 fd_set fd_procesos;
 
@@ -223,39 +226,45 @@ entrada_indice_de_codigo* create_indice_de_codigo(t_metadata_program *metadata){
 void print_metadata(t_metadata_program* metadata){
 	int i;
 
-	printf("\n\n***INFORMACION DE METADATA***\n");
-	printf("instruccion_inicio = %d\n", metadata->instruccion_inicio);
-	printf("instrucciones_size = %d\n", metadata->instrucciones_size);
+	printf("Se imprimio la informacion de metadata en el log\n");
+	log_info(kernelLog, "\n\n***INFORMACION DE METADATA***\n");
+	log_info(kernelLog, "instruccion_inicio = %d\n", metadata->instruccion_inicio);
+	log_info(kernelLog, "instrucciones_size = %d\n", metadata->instrucciones_size);
 
-	printf("Instrucciones serializadas: \n");
+	log_info(kernelLog, "Instrucciones serializadas: \n");
 
 	for(i=0; i<(metadata->instrucciones_size); i++){
-		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, metadata->instrucciones_serializado[i].start, metadata->instrucciones_serializado[i].offset);
+		log_info(kernelLog, "Instruccion %d: Inicio = %d, Offset = %d\n", i, metadata->instrucciones_serializado[i].start, metadata->instrucciones_serializado[i].offset);
 	}
 
-	printf("etiquetas_size = %d\n", metadata->etiquetas_size);
-	printf("etiquetas = %s\n", metadata->etiquetas);
+	log_info(kernelLog, "etiquetas_size = %d\n", metadata->etiquetas_size);
+	log_info(kernelLog, "etiquetas = %s\n", metadata->etiquetas);
 
-	printf("cantidad_de_funciones = %d\n", metadata->cantidad_de_funciones);
-	printf("cantidad_de_etiquetas = %d\n", metadata->cantidad_de_etiquetas);
-	printf("***FIN DE LA METADATA***\n\n");
+	log_info(kernelLog, "cantidad_de_funciones = %d\n", metadata->cantidad_de_funciones);
+	log_info(kernelLog, "cantidad_de_etiquetas = %d\n", metadata->cantidad_de_etiquetas);
+	log_info(kernelLog, "***FIN DE LA METADATA***\n\n");
 }
+
 
 void print_PCB(PCB* pcb){
 	int i;
-	printf("\nPID: %d\n", pcb->pid);
-	printf("page_counter: %d\n", pcb->page_counter);
-	printf("direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
-	printf("program_counter: %d\n", pcb->program_counter);
-	printf("cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
-	printf("primer pagina del stack: %d\n", pcb->primerPaginaStack);
-	printf("stack pointer: %d\n", pcb->stackPointer);
-	printf("Stack size: %d\n\n", pcb->tamanioStack);
+
+	printf("Se imprimieron los datos de un pcb en el log\n");
+
+	log_info(kernelLog, "\nPID: %d\n", pcb->pid);
+	log_info(kernelLog, "page_counter: %d\n", pcb->page_counter);
+	log_info(kernelLog, "direccion_inicio_codigo: %d\n", pcb->direccion_inicio_codigo);
+	log_info(kernelLog, "program_counter: %d\n", pcb->program_counter);
+	log_info(kernelLog, "cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
+	log_info(kernelLog, "primer pagina del stack: %d\n", pcb->primerPaginaStack);
+	log_info(kernelLog, "stack pointer: %d\n", pcb->stackPointer);
+	log_info(kernelLog, "Stack size: %d\n\n", pcb->tamanioStack);
 	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
-		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
+		log_info(kernelLog, "Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
 	}
-	printf("\n");
+	log_info(kernelLog, "\n");
 }
+
 
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script, int fd_consola){
@@ -300,6 +309,7 @@ PCB* create_PCB(char* script, int fd_consola){
 	return nuevo_PCB;
 }
 
+
 void remove_PCB_from_list(t_list* lista, int pid){
 	int i = 0, dimension = list_size(lista), encontrado = 0;
 	while(!encontrado && i < dimension){
@@ -311,6 +321,7 @@ void remove_PCB_from_list(t_list* lista, int pid){
 		i++;
 	}
 }
+
 
 int queue_exists(uint32_t processid, t_queue *queue){
 	int i = 0, len, encontrado = 0;
@@ -339,6 +350,7 @@ int queue_exists(uint32_t processid, t_queue *queue){
 	}
 	return encontrado;
 }
+
 
 PCB *remove_and_get_PCB(int processid,t_queue* queue){
 	int i = 0, len;
@@ -373,6 +385,7 @@ PCB *remove_and_get_PCB(int processid,t_queue* queue){
 	return toReturn;
 }
 
+
 //Esta funcion es un quilombo asi que la explico aca
 //No hay manera de sacar un objeto de un queue sin sacar todos los que tiene adelante
 void remove_PCB_from_specific_queue(int processid,t_queue* queue){
@@ -406,15 +419,17 @@ void remove_PCB_from_specific_queue(int processid,t_queue* queue){
 	list_destroy(lista_auxiliar);
 }
 
+
 void delete_PCB(PCB* pcb){
 	pthread_mutex_lock(&mutex_procesos_actuales);
 	procesos_actuales--;
-	printf("La cantidad de procesos actuales es: %d\n",procesos_actuales);
+	log_info(kernelLog, "La cantidad de procesos actuales es: %d\n", procesos_actuales);
 	pthread_mutex_unlock(&mutex_procesos_actuales);
 	pthread_mutex_lock(&mutex_exit_queue);
 	queue_push(exit_queue,pcb);
 	pthread_mutex_unlock(&mutex_exit_queue);
 }
+
 
 void remove_from_semaphore(uint32_t PID){
 	int i, encontrado = 0;
@@ -428,6 +443,7 @@ void remove_from_semaphore(uint32_t PID){
 		}
 	}
 }
+
 
 void remove_from_queue(PCB* pcb){
 	if(strcmp(pcb->estado,"New")==0)
@@ -454,8 +470,9 @@ void remove_from_queue(PCB* pcb){
 		remove_from_semaphore(pcb->pid);
 		pthread_mutex_unlock(&mutex_semaforos_ansisop);
 	}
-	else printf("PCB invalido, no se encuentra en ninguna cola");
+	else log_error(kernelLog, "Se ha intentado eliminar un PCB que no se encuentra en ninguna cola");
 }
+
 
 int buscar_consola_de_proceso(int processid){
 	pthread_mutex_lock(&mutex_fd_consolas);
@@ -473,6 +490,7 @@ int buscar_consola_de_proceso(int processid){
 	return res;
 }
 
+
 proceso_conexion* buscar_conexion_de_cpu(int cpuSock){
 	int i = 0, dimension = list_size(lista_cpus);
 	while(i < dimension)
@@ -485,6 +503,7 @@ proceso_conexion* buscar_conexion_de_cpu(int cpuSock){
 	//Yes I know, this shit is not kosher but whatevs I only use it once and I take it into account
 	return -1;
 }
+
 
 proceso_conexion* buscar_conexion_de_consola(int consolaSock){
 	int i = 0, dimension = list_size(lista_consolas);
@@ -499,6 +518,7 @@ proceso_conexion* buscar_conexion_de_consola(int consolaSock){
 	return -1;
 }
 
+
 PCB* get_PCB(int PId){
 	int i = 0, dimension = list_size(todos_los_procesos);
 	PCB *to_ret;
@@ -511,6 +531,7 @@ PCB* get_PCB(int PId){
 	return to_ret;
 }
 
+
 bool exist_PCB(int PId){
 	int i = 0, dimension = list_size(todos_los_procesos);
 	bool encontrado = false;
@@ -522,6 +543,7 @@ bool exist_PCB(int PId){
 	}
 	return encontrado;
 }
+
 
 bool proceso_en_ejecucion(int processID){
 	pthread_mutex_lock(&mutex_in_exec);
@@ -540,13 +562,14 @@ bool proceso_en_ejecucion(int processID){
 	return false;
 }
 
+
 bool proceso_para_borrar(int processID){
 	pthread_mutex_lock(&mutex_to_delete);
 	int i = 0, dimension = list_size(procesos_a_borrar);
 	just_a_pid *aux;
 	while(i < dimension){
 		aux = list_get(procesos_a_borrar,i);
-		printf("%d\n", aux->proceso);
+		log_info(kernelLog, "%d\n", aux->proceso);
 		if(aux->proceso == processID)
 		{
 			pthread_mutex_unlock(&mutex_to_delete);
@@ -557,6 +580,7 @@ bool proceso_para_borrar(int processID){
 	pthread_mutex_unlock(&mutex_to_delete);
 	return false;
 }
+
 
 proceso_conexion* buscar_conexion_de_proceso(int processID){
 	pthread_mutex_lock(&mutex_fd_cpus);
@@ -573,6 +597,7 @@ proceso_conexion* buscar_conexion_de_proceso(int processID){
 	return hola;
 }
 
+
 PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 	bool _remove_element(void* list_element)
 	    {
@@ -582,6 +607,7 @@ PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 	PCB* PCB_buscado =  list_remove_by_condition(lista,*_remove_element);
 	return PCB_buscado;
 }
+
 
 //Devuelve bytes liberados
 int liberarHeap(int PID){
@@ -605,6 +631,7 @@ int liberarHeap(int PID){
 	return bytes_liberados;
 }
 
+
 void end_process(int PID, int exit_code, int sock_consola, bool consola_conectada){
 	int i = 0;
 	bool encontrado = 0;
@@ -620,12 +647,12 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
-				printf("El proceso ha sido finalizado con Exit Code: %d\n", PCB->exit_code);
+				log_info(kernelLog, "El proceso ha sido finalizado con Exit Code: %d\n", PCB->exit_code);
 				encontrado = 1;
 			}
 			else
 			{
-				printf("El proceso elegido ya esta finalizado\n");
+				log_info(kernelLog, "El proceso elegido ya esta finalizado\n");
 			}
 		}
 		i++;
@@ -634,15 +661,15 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	//Aca indico cuantos bytes quedaron leakeando
 	int bytes_lost = liberarHeap(PID);
 	if(bytes_lost != 0)
-		printf("Memory leak: se perdieron %d bytes\n",bytes_lost);
+		log_info(kernelLog, "Memory leak: se perdieron %d bytes\n",bytes_lost);
 	else
-		printf("No hubo Memory leaks, bien ahi!\n");
+		log_info(kernelLog, "No hubo Memory leaks, bien ahi!\n");
 
 	pthread_mutex_unlock(&mutex_process_list);
 	if(!encontrado && consola_conectada)
 	{
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
-	 		printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
+	 		log_info(kernelLog, "El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 			//Lo mando 0 para que sepa que no se pudo borrar el proceso
 			uint32_t codigo_de_cancelado_no_ok = 0;
 			memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_no_ok,sizeof(uint32_t));
@@ -659,7 +686,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		send(sockfd_memoria,sendbuf_mem,sizeof(uint32_t)*2,0);
 		free(sendbuf_mem);
 
-		printf("Ya le avise a memoria que borre el proceso\n");
+		log_info(kernelLog, "Ya le avise a memoria que borre el proceso\n");
 
 		if(consola_conectada){
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
@@ -685,45 +712,59 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			free(sendbuf_consola_mensajera);
 		}
 	}
-	printf("\n");
 }
+
 
 void print_PCB_list(){
 	if(list_size(todos_los_procesos)>0)
 	{
 		int i = 0;
 		pthread_mutex_lock(&mutex_process_list);
+
+		printf("Se imprime lista de PCBs en el log\n");
+
+		log_info(kernelLog, "***LISTA DE PCBs***\n");
+
 		while(i < list_size(todos_los_procesos))
 		{
 			PCB* aux = list_get(todos_los_procesos,i);
-			printf("PID: %d\n",aux->pid);
+			log_info(kernelLog,"PID: %d\n",aux->pid);
 			i++;
 		}
 		pthread_mutex_unlock(&mutex_process_list);
-		printf("\n");
 	}
-	else printf("No hay procesos en planificacion\n\n");
+	else log_info(kernelLog, "No hay procesos en planificacion\n");
 }
+
 
 void print_all_files(){
 	pthread_mutex_lock(&mutex_archivos_globales);
-	if(list_size(tabla_global_de_archivos) > 0){
+
+	printf("Se imprimen la informacion de todos los archivos en el log\n");
+
+	if(list_size(tabla_global_de_archivos) > 0)
+	{
 		int i = 0;
-		while(i < list_size(tabla_global_de_archivos)){
+		while(i < list_size(tabla_global_de_archivos))
+		{
 			archivo_global* aux = list_get(tabla_global_de_archivos,i);
-			printf("Ruta del archivo: %s ; Instancias abiertas: %d\n",aux->ruta_del_archivo,aux->instancias_abiertas);
+			log_info(kernelLog, "Ruta del archivo: %s ; Instancias abiertas: %d\n", aux->ruta_del_archivo, aux->instancias_abiertas);
 			i++;
 		}
-	} else printf("No se ha abierto ningun archivo\n");
+	}
+	else
+		log_info(kernelLog, "No se ha abierto ningun archivo\n");
+
 	pthread_mutex_unlock(&mutex_archivos_globales);
-	printf("\n");
 }
+
 
 void print_files_from_process(){
 	int i = 0, j = 0, encontrado = 0;
 	int* PID = malloc(sizeof(int));
+
 	printf("Ingrese el PID del proceso cuyos archivos desea ver: ");
-	scanf("%d",PID);
+	scanf("%d", PID);
 
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
 	while(i < list_size(tabla_de_archivos_por_proceso) && encontrado == 0)
@@ -731,24 +772,28 @@ void print_files_from_process(){
 		tabla_de_archivos_de_proceso* aux_table = list_get(tabla_de_archivos_por_proceso,i);
 		if(aux_table->pid == *PID)
 		{
-			if(list_size(aux_table->lista_de_archivos) > 0){
+			printf("Se imprime la informacion de los archivos del proceso en el log\n", *PID);
+
+			if(list_size(aux_table->lista_de_archivos) > 0)
+			{
 				while(j < list_size(aux_table->lista_de_archivos))
 				{
 					archivo_de_proceso* aux_file = list_get(aux_table->lista_de_archivos,j);
 					pthread_mutex_lock(&mutex_archivos_globales);
 					archivo_global* aux_global = list_get(tabla_global_de_archivos,aux_file->referencia_a_tabla_global);
 					pthread_mutex_unlock(&mutex_archivos_globales);
-					printf("Ruta del archivo: %s ; File descriptor: %d\n",aux_global->ruta_del_archivo,aux_file->fd);
+					log_info(kernelLog, "Ruta del archivo: %s ; File descriptor: %d\n",aux_global->ruta_del_archivo,aux_file->fd);
 					j++;
 				}
-			} else printf("Este proceso no ha abierto ningun archivo\n");
+			}
+			else
+				log_info(kernelLog, "Este proceso no ha abierto ningun archivo\n");
+
 			encontrado = 1;
 		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_archivos_x_proceso);
-	printf("\n");
-
 }
 
 void print_commands()
@@ -768,11 +813,14 @@ void pcb_state()
 	int i = 0;
 	bool encontrado = 0;
 	int* PID = malloc(sizeof(int));
+
 	printf("Ingrese el PID del PCB cuyo estado desea ver: ");
 	scanf("%d",PID);
+
 	if(*PID<1)
 	{
-		printf("Los PIDs empiezan en 1 genio :l");
+		printf("Los PIDs empiezan en 1, genio :l");
+		log_error(kernelLog, "Se intento localizar el PCB de un proceso con pid menor a 1, lo cual es invalido\n");
 	}
 	else
 	{
@@ -811,6 +859,7 @@ void file_handler(int sockfs, int tipo){
 	char* archivo = malloc(100);
 	printf("Ingrese el nombre del archivo: ");
 	scanf("%s",archivo);
+
 	uint32_t dimension = strlen(archivo);
 
 	void* buffer = malloc(sizeof(uint32_t)*2+dimension);
@@ -820,11 +869,11 @@ void file_handler(int sockfs, int tipo){
 	{
 		case FILE_SIZE:
 			memcpy(buffer,&codigo_size,sizeof(uint32_t));
-			printf("Codigo: %d\n", codigo_size);
+			log_info(kernelLog, "Codigo: %d\n", codigo_size);
 			break;
 		case FILE_EXISTS:
 			memcpy(buffer,&codigo_exists,sizeof(uint32_t));
-			printf("Codigo: %d\n", codigo_exists);
+			log_info(kernelLog, "Codigo: %d\n", codigo_exists);
 			break;
 		default:
 			memcpy(buffer,&codigo_fail,sizeof(uint32_t));
@@ -835,8 +884,8 @@ void file_handler(int sockfs, int tipo){
 	memcpy(buffer+sizeof(uint32_t),&dimension,sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t)*2,archivo,sizeof(uint32_t));
 
-	printf("Dimension: %d\n", dimension);
-	printf("Archivo: %s\n", archivo);
+	log_info(kernelLog, "Dimension: %d\n", dimension);
+	log_info(kernelLog, "Archivo: %s\n", archivo);
 
 	//Mando el mensaje y espero la respuesta
 	send(sockfs,buffer,sizeof(uint32_t)*2+dimension,0);
@@ -848,23 +897,27 @@ void file_handler(int sockfs, int tipo){
 	{
 			case FILE_SIZE:
 				if(respuesta >= 1)
-					printf("El archivo %s tiene un tamaño de %d\n",archivo,respuesta);
+					log_info(kernelLog, "El archivo %s tiene un tamaño de %d\n", archivo, respuesta);
 				if(respuesta == 0)
-					printf("Algo raro paso, probablemente se haya desconetado FS\n");
+					printf("Ocurrio un error, revisar el log\n");
+					log_error(kernelLog, "Algo raro paso, probablemente se haya desconetado FS\n");
 				if(respuesta == -1)
-					printf("El archivo %s no existe\n",archivo);
+					log_info(kernelLog, "El archivo %s no existe\n", archivo);
 				break;
 			case FILE_EXISTS:
 				if(respuesta == true)
-					printf("El archivo %s existe\n",archivo);
+					log_info(kernelLog, "El archivo %s existe\n",archivo);
 				if(respuesta == false)
-					printf("El archivo %s no existe\n",archivo);
+					log_info(kernelLog, "El archivo %s no existe\n",archivo);
 				break;
 			default:
 				break;
 	}
-	if(respuesta == -10) printf("Algo salio muy mal\n");
-	printf("\n");
+	if(respuesta == -10)
+	{
+		printf("Ocurrio un error, revisar el log\n");
+		log_error(kernelLog, "Algo salio muy mal\n");
+	}
 }
 
 
@@ -886,13 +939,13 @@ void menu()
 		{
 			if(plan_go)
 			{
-				plan_go=false;
-				printf("Se ha detenido la planificacion\n\n");
+				plan_go = false;
+				log_info(kernelLog, "Se ha detenido la planificacion\n");
 			}
 			else
 			{
 				plan_go=true;
-				printf("Se ha reanudado la planificacion\n\n");
+				log_info(kernelLog, "Se ha reanudado la planificacion\n");
 			}
 		}
 		else if((strcmp(command, "files_all") == 0))
@@ -927,28 +980,34 @@ int get_fd_server(char* ip, char* puerto){
 
 	if ((result = getaddrinfo(ip, puerto, &hints, &servinfo)) != 0)
 	{
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
+		printf("Ocurrio un error de conexion, revisar el log\n");
+		log_error(kernelLog, "Getaddrinfo: %s\n", gai_strerror(result));
+
 		return 1;
 	}
 
 	for(p = servinfo; p != NULL; p = p->ai_next)
 	{
+		int errornum;
 		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			perror("client: socket");
+			errornum = errno;
+			printf("Ocurrio un error de conexion, revisar el log\n");
+			log_error(kernelLog, "Error - Client: socket %s\n", strerror(errornum));
 			continue;
 		}
 		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
 		{
-			close(sockfd);
-			perror("client: connect");
+			close(sockfd);errornum = errno;
+			printf("Ocurrio un error de conexion, revisar el log\n");
+			log_error(kernelLog, "Error - Client: connect %s\n", strerror(errornum));
 			continue;
 		}
 		break;
 	}
 	if (p == NULL)
 	{
-		fprintf(stderr, "client: failed to connect\n");
+		log_error(kernelLog, "Client: failed to connect\n");
 		return 2;
 	}
 
@@ -990,28 +1049,31 @@ void print_config(){
 	int k = 0;
 	int i =0;
 
-	printf("Puerto Programas: %s\n", data_config.puerto_prog);
-	printf("Puerto CPUs: %s\n", data_config.puerto_cpu);
-	printf("IP Memoria: %s\n", data_config.ip_memoria);
-	printf("Puerto Memoria: %s\n", data_config.puerto_memoria);
-	printf("IP FS: %s\n", data_config.ip_fs);
-	printf("Puerto FS: %s\n", data_config.puerto_fs);
-	printf("Quantum: %i\n", data_config.quantum);
-	printf("Quantum Sleep: %i\n", data_config.quantum_sleep);
-	printf("Algoritmo: %s\n", data_config.algoritmo);
-	printf("Grado Multiprog: %i\n", data_config.grado_multiprog);
+	printf("Se imprime la informacion del archivo de configuracion en el log\n");
+
+	log_info(kernelLog, "***INFORMACION DEL ARCHIVO DE CONFIG***");
+	log_info(kernelLog, "Puerto Programas: %s\n", data_config.puerto_prog);
+	log_info(kernelLog, "Puerto CPUs: %s\n", data_config.puerto_cpu);
+	log_info(kernelLog, "IP Memoria: %s\n", data_config.ip_memoria);
+	log_info(kernelLog, "Puerto Memoria: %s\n", data_config.puerto_memoria);
+	log_info(kernelLog, "IP FS: %s\n", data_config.ip_fs);
+	log_info(kernelLog, "Puerto FS: %s\n", data_config.puerto_fs);
+	log_info(kernelLog, "Quantum: %i\n", data_config.quantum);
+	log_info(kernelLog, "Quantum Sleep: %i\n", data_config.quantum_sleep);
+	log_info(kernelLog, "Algoritmo: %s\n", data_config.algoritmo);
+	log_info(kernelLog, "Grado Multiprog: %i\n", data_config.grado_multiprog);
 
 	while(data_config.sem_ids[i]!=NULL)
 	{
-		printf("Semaforo %s = %i\n",data_config.sem_ids[i],data_config.sem_init[i]);
+		log_info(kernelLog, "Semaforo %s = %i\n",data_config.sem_ids[i],data_config.sem_init[i]);
 		i++;
 	}
 	while(data_config.shared_vars[k]!=NULL)
 	{
-		printf("Variable Global %i: %s\n",k,data_config.shared_vars[k]);
+		log_info(kernelLog, "Variable Global %i: %s\n",k,data_config.shared_vars[k]);
 		k++;
 	}
-	printf("Tamaño del Stack: %i\n", data_config.stack_size);
+	log_info(kernelLog, "Tamaño del Stack: %i\n", data_config.stack_size);
 }
 
 //Funciones de Capa Memoria
@@ -1047,17 +1109,20 @@ void print_vars(){
 	int max_var = list_size(variables_compartidas);
 	int max_sem = list_size(semaforos);
 	int i = 0, j=0;
-	printf("Variables Compartidas:\n");
+
+	printf("Se imprime informacion de variables compartidas y semaforos en el log\n");
+	log_info(kernelLog, "Variables Compartidas:\n");
+
 	while(i < max_var)
 	{
 		variable_compartida *unaVar = list_get(variables_compartidas, i);
-		printf("Variable %s, valor = %d\n", unaVar->ID, unaVar->valor);
+		log_info(kernelLog, "Variable %s, valor = %d\n", unaVar->ID, unaVar->valor);
 		i++;
 	}
 	while(j < max_sem)
 	{
 		semaforo_cola *unSem = list_get(semaforos, j);
-		printf("Semaforo %s, valor = %d\n", unSem->sem->ID, unSem->sem->valor);
+		log_info(kernelLog, "Semaforo %s, valor = %d\n", unSem->sem->ID, unSem->sem->valor);
 		j++;
 	}
 }
@@ -1122,7 +1187,7 @@ void signal(char *id_semaforo){
 		pthread_mutex_lock(&mutex_ready_queue);
 		queue_push(ready_queue, unPCB);
 		pthread_mutex_unlock(&mutex_ready_queue);
-		printf("El proceso %d paso de Wait a Ready\n",unPCB->pid);
+		log_info(kernelLog, "El proceso %d paso de Wait a Ready\n",unPCB->pid);
 	}
 
 	list_add(semaforos, unSem);
@@ -1177,7 +1242,7 @@ void print_heap(t_list* heap_proceso){
 	int tamanio = list_size(heap_proceso), i;
 	for(i=0; i< tamanio; i++){
 		puntero *unPuntero = list_get(heap_proceso, i);
-		printf("Puntero %d, pagina: %d, direccion: %d, espacio: %d\n", i, unPuntero->pagina, unPuntero->direccion, unPuntero->size);
+		log_info(kernelLog, "Puntero %d, pagina: %d, direccion: %d, espacio: %d\n", i, unPuntero->pagina, unPuntero->direccion, unPuntero->size);
 	}
 }
 /*
@@ -1232,12 +1297,12 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	//Le mando el codigo y el largo a la memoria
 	//INICIO SERIALIZACION PARA MEMORIAAAAA
 	sendbuf = (void*) PCB_cereal(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
-	printf("Mandamos a memoria!\n");
+	log_info(kernelLog, "Mandamos a memoria!\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
 	//YA SERIALIZE Y MANDE A MEMORIA MIAMEEEEEEEEEE
 
 	//Me quedo esperando que responda memoria
-	printf("Y esperamos!\n");
+	log_info(kernelLog, "Y esperamos!\n");
 
 	numbytes = recv(sms->fd_mem, &page_counter, sizeof(int),0);
 	recv(sms->fd_mem, &direccion, sizeof(int),0);
@@ -1247,7 +1312,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		//significa que hay espacio y guardo las cosas
 		if(page_counter > 0)
 		{
-			printf("El proceso PID %d se ha guardado en memoria \n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso PID %d se ha guardado en memoria \n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
 			pcb_to_use->primerPaginaStack=page_counter-data_config.stack_size; //pagina donde arranca el stack
 			pcb_to_use->direccion_inicio_codigo = direccion;
@@ -1265,24 +1330,25 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 				i++;
 			}
 			pthread_mutex_unlock(&mutex_fd_consolas);
-			printf("El proceso %d paso de New a Ready\n\n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso %d paso de New a Ready\n\n",pcb_to_use->pid);
 
 			pthread_mutex_lock(&mutex_procesos_actuales);
 			procesos_actuales++;
-			printf("La cantidad de procesos actuales es: %d\n",procesos_actuales);
+			log_info(kernelLog, "La cantidad de procesos actuales es: %d\n",procesos_actuales);
 			pthread_mutex_unlock(&mutex_procesos_actuales);
 
 		}
 		//significa que no hay espacio
 		if(page_counter < 0)
 		{
-			printf("El proceso PID %d no se ha podido guardar en memoria \n",pcb_to_use->pid);
+			printf("Ocurrio un error al guardar un proceso en memoria, revisar el log\n");
+			log_error(kernelLog, "El proceso PID %d no se ha podido guardar en memoria \n",pcb_to_use->pid);
 			pcb_to_use->estado = "Exit";
 			pcb_to_use->exit_code = -1;
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
-			printf("El proceso PID %d ha pasado de New a Ready \n\n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso PID %d ha pasado de New a Ready \n\n",pcb_to_use->pid);
 
 			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
@@ -1337,13 +1403,13 @@ void planificacion(){
 					}
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
-					printf("Mande Codigo: %d\n", codigo);
+					log_info(kernelLog, "Mande Codigo: %d\n", codigo);
 					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
 					cpu->proceso = pcb_to_use->pid;
 
 					pcb_to_use->estado = "Exec";
 
-					printf("El proceso %d ha pasado de Ready a Exec\n",pcb_to_use->pid);
+					log_info(kernelLog, "El proceso %d ha pasado de Ready a Exec\n",pcb_to_use->pid);
 
 					pthread_mutex_lock(&mutex_exec_queue);
 					queue_push(exec_queue,pcb_to_use);
@@ -1378,7 +1444,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 		pthread_mutex_lock(&mutex_new_queue);
 		queue_push(new_queue,new);
 		pthread_mutex_unlock(&mutex_new_queue);
-		printf("El sistema ya llego a su tope de multiprogramacion.\nEl proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n\n");
+		log_info(kernelLog, "El sistema ya llego a su tope de multiprogramacion. El proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n");
 		send(sms->fd_consola, &pcb_to_use->pid,sizeof(int),0);
 	}
 
@@ -1451,7 +1517,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	uint32_t encontrado = false, pudo_crear_archivo = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
-	printf("Por las dudas el socket de FS es: %d\n", sockfd_fs);
+	log_info(kernelLog, "Por las dudas el socket de FS es: %d\n", sockfd_fs);
 	//Le pregunto a fs si ese archivo existe
 	//Primero serializo data
 	codigo = BUSCAR_ARCHIVO_FS;
@@ -1460,21 +1526,21 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 //	memcpy(serializedData, &path_length, sizeof(uint32_t));
 //	memcpy(serializedData + sizeof(uint32_t), path, path_length);
 
-	printf("Codigo: %d\n", codigo);
-	printf("Path length: %d\n", path_length);
-	printf("Path: %s\n", path);
+	log_info(kernelLog, "Codigo: %d\n", codigo);
+	log_info(kernelLog, "Path length: %d\n", path_length);
+	log_info(kernelLog, "Path: %s\n", path);
 
 	enviar(sockfd_fs, &codigo, sizeof(uint32_t));
-	printf("Mande bien el codigo!\n");
+	log_info(kernelLog, "Mande bien el codigo!\n");
 	enviar(sockfd_fs, &path_length, sizeof(uint32_t));
-	printf("Mande bien el tamaño del mensaje!\n");
+	log_info(kernelLog, "Mande bien el tamaño del mensaje!\n");
 	enviar(sockfd_fs, (void *)path, path_length);
-	printf("Mande bien el mensaje!\n");
+	log_info(kernelLog, "Mande bien el mensaje!\n");
 	recibir(sockfd_fs, &encontrado, sizeof(encontrado));
 
 	if((encontrado != 1) && (permisos->creacion))
 	{
-		printf("El archivo no existe pero puedo crearlo!\n");
+		log_info(kernelLog, "El archivo no existe pero puedo crearlo!\n");
 		//Le dice al fs que cree el archivo
 		codigo = CREAR_ARCHIVO_FS;
 
@@ -1489,19 +1555,21 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 		if(pudo_crear_archivo)
 		{
-			printf("Se creo re bien\n");
+			log_info(kernelLog, "Se creo re bien\n");
 			//Si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
 			offset = 0;
 		}
 		else
 		{
-			printf("Error al abrir un archivo para el proceso %d: El FS no pudo crear el archivo\n", pid);
+			printf("Ocurrio un error al abrir un archivo, revisar el log\n");
+			log_error(kernelLog, "Error al abrir un archivo para el proceso %d: El FS no pudo crear el archivo\n", pid);
 			return -2; //Afuera de la funcion mata el proceso y le avisa a CPU
 		}
 	}
 	else if((encontrado != 1) && (!permisos->creacion))
 	{
-		printf("Error al abrir un archivo para el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
+		printf("Ocurrio un error al abrir un archivo, revisar el log\n");
+		log_info(kernelLog, "Error al abrir un archivo para el proceso %d: El archivo no existe y no se tienen permisos para crearlo\n", pid);
 		return -1;		// Afuera de esta funcion se termina el proceso y le avisa a CPU
 	}
 
@@ -1517,7 +1585,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 		{
 			existe = true;
 			aux->instancias_abiertas++;
-			printf("Encontre el archivo en la tabla global\n");
+			log_info(kernelLog, "Encontre el archivo en la tabla global\n");
 		}
 		i++;
 	}
@@ -1525,7 +1593,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	//Si no esta en la tabla global, creo otra entrada en dicha tabla
 	if(!existe)
 	{
-		printf("No encontre el archivo en la tabla global asi que lo agrego\n");
+		log_info(kernelLog, "No encontre el archivo en la tabla global asi que lo agrego\n");
 		archivo_global* nuevo = malloc(sizeof(archivo_global));
 		nuevo->instancias_abiertas = 1;
 		nuevo->ruta_del_archivo = path;
@@ -1541,7 +1609,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
 
-	printf("Setteanding the new archive baby!\n");
+	log_info(kernelLog, "Setteanding the new archive baby!\n");
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
@@ -1560,7 +1628,8 @@ char* execute_read(int pid, int fd, int messageLength)
 	if(fd < 3)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
-		printf("Error de lectura en el proceso %d\n", pid);
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
 		return readText;
 	}
 
@@ -1586,7 +1655,8 @@ char* execute_read(int pid, int fd, int messageLength)
 	//Si no lo encontre signfica que el proceso nunca abrio ese archivo
 	if(!encontrado)
 	{
-		printf("Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
 		return readText;
 	}
 
@@ -1609,7 +1679,8 @@ char* execute_read(int pid, int fd, int messageLength)
 	if(recibir(sockfd_fs, readText, messageLength) == 1)
 	{
 		//Si recibio 1Byte -> Recibio cadena vacia
-		printf("Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
 	}
 	free(buffer);
 
@@ -1645,7 +1716,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	{
 		//Estos fd NUNCA se van a usar, si me los piden hubo un error
 		end_process(pid, -2, sock_consola, true);
-		printf("Error al escribir el archivo %d para el proceso %d: El archivo que se intenta escribir no existe\n", archivo, pid);
+		printf("Ocurrio un error al escribir un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo que se intenta escribir no existe\n", archivo, pid);
 		return -1;
 	}
 
@@ -1701,7 +1773,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					{
 						//Termino el proceso con exit code -11 -> El fs no pudo escribir el archivo
 						end_process(pid, -11, sock_consola, true);
-						printf("Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
+						printf("Ocurrio un error al escribir un archivo, revisar el log\n");
+						log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
 						return -1;
 					}
 
@@ -1713,7 +1786,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 				{
 					//Termino el proceso con exit code -4
 					end_process(pid, -4, sock_consola, true);
-					printf("Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
+					printf("Ocurrio un error al escribir un archivo revisar el log\n");
+					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
 					return -1;
 				}
 				encontrado = true;
@@ -1725,7 +1799,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		if(!encontrado)
 		{
 			end_process(pid,-4,sock_consola, true);
-			printf("Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
+			printf("Ocurrio un error al escribir un archivo, revisar el log\n");
+			log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
 			return -1;
 		}
 	}
@@ -1754,11 +1829,12 @@ int execute_close(int pid, int fd)
 	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
 	if(!encontrado)
 	{
-		printf("Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
+		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
 		return -1;
 	}
 
-	printf("El proceso %d existe\n", pid);
+	log_info(kernelLog, "El proceso %d existe\n", pid);
 	i = 0;
 	encontrado = false;
 
@@ -1768,19 +1844,20 @@ int execute_close(int pid, int fd)
 		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
 		if(arch_aux->fd == fd)
 		{
-			printf("Encontre el archivo %d para el proceso %d", fd, pid);
+			log_info(kernelLog, "Encontre el archivo %d para el proceso %d", fd, pid);
 			encontrado = true;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
 			list_remove(tabla_archivos->lista_de_archivos,i);
 			free(arch_aux);
-			printf("Borre el archivo %d de la tabla de archivos y lo libere\n", fd);
+			log_info(kernelLog, "Borre el archivo %d de la tabla de archivos y lo libere\n", fd);
 		}
 		i++;
 	}
 	//Si no encuentro el fd, hay tabla :P
 	if(!encontrado)
 	{
-		printf("Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
+		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
 		return -1;
 	}
 
@@ -1796,7 +1873,7 @@ int execute_close(int pid, int fd)
 	{
 		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
 		//en 0, por lo que tengo que eliminar esa fila de la tabla global
-		printf("Ningun otro proceso tiene abierto el archivo borrado so I borrar it of the global table\n");
+		log_info(kernelLog, "Ningun otro proceso tiene abierto el archivo borrado so I borrar it of the global table\n");
 		pthread_mutex_lock(&mutex_archivos_globales);
 		list_remove(tabla_global_de_archivos, referencia_tabla_global);
 		pthread_mutex_unlock(&mutex_archivos_globales);
@@ -1804,7 +1881,7 @@ int execute_close(int pid, int fd)
 	else
 		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
 		arch->instancias_abiertas--;
-		printf("Disminui en 1 las instancias abiertas del archivo\n");
+		log_info(kernelLog, "Disminui en 1 las instancias abiertas del archivo\n");
 
 	return 1;
 }
@@ -1828,6 +1905,10 @@ int main(int argc, char** argv) {
 	fd_set read_fds;
 	int codigo, processID;
 	int messageLength;
+
+	//Creo el log
+	kernelLog = log_create("../../Files/Logs/Kernel.log", "Kernel", false, LOG_LEVEL_INFO);
+	log_info(kernelLog, "\n\n//////////////////////\n\n");	//lo pongo para separar entre ejecuciones
 
 	//Consolas y cpus
 	lista_cpus = list_create();
@@ -1885,20 +1966,23 @@ int main(int argc, char** argv) {
 	bytes_mem = recv(sockfd_memoria, &resp, sizeof(u_int32_t), 0);
 	if(bytes_mem > 0 && resp > 0)
 	{
-				printf("Conectado con Memoria\n");
-				tamanio_pagina = resp;
-				printf("Tamaño de pagina = %d\n", resp);
+		log_info(kernelLog, "Conectado con Memoria\n");
+		tamanio_pagina = resp;
+		log_info(kernelLog, "Tamaño de pagina = %d\n", resp);
 	}
 	else
 	{
 		if(bytes_mem == -1)
 		{
-			perror("recieve");
+			int errornum = errno;		//esto mas el strerror() permite reemplazar el perror();
+										//tengo que guardar el nro de error porque una llamada a sistema me lo puede cambiar
+			printf("Ocurrio un error, revisar el log\n");
+			log_error(kernelLog, "Se ha producido un error: %s\n", strerror(errornum));
 			exit(3);
 		}
 		if(bytes_mem == 0)
 		{
-			printf("Se desconecto el socket: %d\n", sockfd_memoria);
+			log_info(kernelLog, "Se desconecto el socket: %d\n", sockfd_memoria);
 			close(sockfd_memoria);
 		}
 	}
@@ -1908,18 +1992,22 @@ int main(int argc, char** argv) {
 	bytes_fs = recv(sockfd_fs, &resp, sizeof(u_int32_t), 0);
 	if(bytes_fs > 0 && resp == 1)
 	{
-		printf("Conectado con FS\n");
+		log_info(kernelLog, "Conectado con FS\n");
 	}
 	else
 	{
 		if(bytes_mem == -1)
 		{
-			perror("recieve");
+			int errornum = errno;
+
+			printf("Ocurrio un error, revisar el log\n");
+			log_error(kernelLog, "Se ha producido un error con un receive: %s\n", strerror(errornum));
+
 			exit(3);
 		}
 		if(bytes_mem == 0)
 		{
-			printf("Se desconecto el socket: %d\n", sockfd_fs);
+			log_info(kernelLog, "Se desconecto el socket: %d\n", sockfd_fs);
 			close(sockfd_fs);
 		}
 	}
@@ -1946,7 +2034,10 @@ int main(int argc, char** argv) {
 		read_fds = fd_procesos;
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
 		{
-			perror("select");
+			int errornum = errno;
+
+			printf("Ocurrio un error, revisar el log\n");
+			log_error(kernelLog, "Se ha producido un error con un select: %s\n", strerror(errornum));
 			exit(4);
 		}
 
@@ -1965,11 +2056,14 @@ int main(int argc, char** argv) {
 					{
 						if (nbytes == 0)
 						{
-							printf("selectserver: socket %d hung up\n", i);
+							log_error(kernelLog, "Selectserver: socket %d hung up\n", i);
 						}
 						else
 						{
-							perror("recv");
+							int errornum = errno;
+
+							printf("Ocurrio un error, revisar el log\n");
+							log_error(kernelLog, "Se ha producido un error con un recv: %s\n", strerror(errornum));
 						}
 
 						bool fue_CPU = false;
@@ -1983,7 +2077,7 @@ int main(int argc, char** argv) {
 							fue_CPU = true;
 							if(cpu_a_quitar->proceso <= pid && cpu_a_quitar->proceso > 0)
 							{
-								printf("Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
+								log_info(kernelLog, "Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
 								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
 								end_process(cpu_a_quitar->proceso, -20, consola, true);
 
@@ -1992,7 +2086,7 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_in_exec);
 							}
 							else
-								printf("Se desconecto la CPU %d, que no estaba ejecutando ningun proceso\n",cpu_a_quitar->sock_fd);
+								log_info(kernelLog, "Se desconecto la CPU %d, que no estaba ejecutando ningun proceso\n",cpu_a_quitar->sock_fd);
 						}
 						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
@@ -2013,10 +2107,10 @@ int main(int argc, char** argv) {
 								{
 									if((strcmp(pcb->estado,"Exit")) != 0)
 									{
-										printf("Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
+										log_info(kernelLog, "Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
 										if(proceso_en_ejecucion(consola_a_quitar->proceso) && (strcmp(pcb->estado,"Exec")) == 0)
 										{
-											printf("El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
+											log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
 											just_a_pid* aux = malloc(sizeof(just_a_pid));
 											aux->proceso = pcb->pid;
 
@@ -2026,10 +2120,10 @@ int main(int argc, char** argv) {
 										}
 										else
 										{
-											printf("El proceso no esta en ejecucion, se puede finalizar ahora\n");
+											log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
 											end_process(pcb->pid, -6, i, false);
 										}
-									} else printf("El proceso ya ha sido finalizado\n");
+									} else log_info(kernelLog, "El proceso ya ha sido finalizado\n");
 								}
 							}
 							remove_by_fd_socket(lista_consolas, i); //Lo sacamos de la lista de conexiones de consola y liberamos la memoria
@@ -2039,12 +2133,12 @@ int main(int argc, char** argv) {
 						close(i);
 						FD_CLR(i, &fd_procesos); // remove from master set
 
-						printf("Hay %d cpus conectadas\n", list_size(lista_cpus));
-						printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
+						log_info(kernelLog, "Hay %d cpus conectadas\n", list_size(lista_cpus));
+						log_info(kernelLog, "Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 					}
 					else
 					{
-						printf("Se recibio: %d\n", codigo);
+						log_info(kernelLog, "Se recibio: %d\n", codigo);
 
 						//Si el codigo es 1 significa que el proceso del otro lado esta haciendo el handshake
 						if(codigo == HANDSHAKE){
@@ -2052,7 +2146,7 @@ int main(int argc, char** argv) {
 
 							if(processID == ID_CPU)		//Si el processID es 1, sabemos que es una CPU
 							{
-								printf("Es una CPU\n");
+								log_info(kernelLog, "Es una CPU\n");
 								nueva_conexion_cpu = malloc(sizeof(proceso_conexion));
 								nueva_conexion_cpu->sock_fd = i;
 								nueva_conexion_cpu->proceso = 0;
@@ -2060,19 +2154,19 @@ int main(int argc, char** argv) {
 								list_add(lista_cpus, nueva_conexion_cpu);
 								pthread_mutex_unlock(&mutex_fd_cpus);
 
-								printf("Hay %d cpus conectadas\n\n", list_size(lista_cpus));
+								log_info(kernelLog, "Hay %d cpus conectadas\n\n", list_size(lista_cpus));
 							}
 
 							if(processID == ID_CONSOLA)		//Si en cambio el processID es 2, es una Consola
 							{
-								printf("Es una Consola\n");
+								log_info(kernelLog, "Es una Consola\n");
 								nueva_conexion_consola = malloc(sizeof(proceso_conexion));
 								nueva_conexion_consola->sock_fd = newfd;
 								pthread_mutex_lock(&mutex_fd_consolas);
 								list_add(lista_consolas, nueva_conexion_consola);
 								pthread_mutex_unlock(&mutex_fd_consolas);
 
-								printf("Hay %d consolas conectadas\n\n", list_size(lista_consolas));
+								log_info(kernelLog, "Hay %d consolas conectadas\n\n", list_size(lista_consolas));
 							}
 						}
 
@@ -2080,10 +2174,10 @@ int main(int argc, char** argv) {
 						if(codigo == NUEVO_PROGRAMA)
 						{
 							//Agarro el resto del mensaje
-							printf("Ding, dong, bing, bong! Me llego un script!\n");
+							log_info(kernelLog, "Ding, dong, bing, bong! Me llego un script!\n");
 
 							recv(i, &messageLength, sizeof(int), 0);
-							printf("El script mide: %d \n", messageLength);
+							log_info(kernelLog, "El script mide: %d \n", messageLength);
 							void* aux = malloc(messageLength + 2);
 							memset(aux,0,messageLength + 2);
 							recv(i, aux, messageLength, 0);
@@ -2103,7 +2197,7 @@ int main(int argc, char** argv) {
 							}
 							else
 							{
-								printf("Lo sentimos, la planificacion no esta en funcionamiento\n\n");
+								log_info(kernelLog, "Lo sentimos, la planificacion no esta en funcionamiento\n\n");
 								int error = -1;
 								send(i, &error, sizeof(int), 0);
 							}
@@ -2127,7 +2221,7 @@ int main(int argc, char** argv) {
 							char *id_var = malloc(tamanio);
 							recv(i, id_var, tamanio,0);
 
-							printf("Hay que modificar la variable %s con el valor %d\n", id_var, value);
+							log_info(kernelLog, "Hay que modificar la variable %s con el valor %d\n", id_var, value);
 							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							asignar_valor_variable_compartida(id_var, value);
 							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
@@ -2142,11 +2236,11 @@ int main(int argc, char** argv) {
 							char *id_var = malloc(tamanio);
 							recv(i, id_var, tamanio,0);
 
-							printf("Hay que obtener el valor de la variable %s\n", id_var);
+							log_info(kernelLog, "Hay que obtener el valor de la variable %s\n", id_var);
 							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							value = obtener_valor_variable_compartida(id_var);
 							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
-							printf("La variable %s tiene valor %d\n", id_var, value);
+							log_info(kernelLog, "La variable %s tiene valor %d\n", id_var, value);
 
 							send(i, &value, sizeof(u_int32_t), 0);
 						}
@@ -2159,7 +2253,7 @@ int main(int argc, char** argv) {
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 							char *id_sem = malloc(messageLength);
 							recv(i, id_sem, messageLength, 0);
-							printf("CPU pide: Wait en semaforo: %s\n\n", id_sem);
+							log_info(kernelLog, "CPU pide: Wait en semaforo: %s\n\n", id_sem);
 							valor = wait(id_sem, PID);
 							print_vars();
 
@@ -2177,11 +2271,11 @@ int main(int argc, char** argv) {
 								remove_by_fd_socket(lista_en_ejecucion, i);
 								pthread_mutex_unlock(&mutex_in_exec);
 
-								printf("check 1\n");
+								log_info(kernelLog, "check 1\n");
 								pthread_mutex_lock(&mutex_semaforos_ansisop);
 								semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
 
-								printf("check 2\n");
+								log_info(kernelLog, "check 2\n");
 								pthread_mutex_lock(&mutex_exec_queue);
 								remove_PCB_from_specific_queue(PID, exec_queue);
 								pthread_mutex_unlock(&mutex_exec_queue);
@@ -2192,12 +2286,12 @@ int main(int argc, char** argv) {
 								list_add(todos_los_procesos, PCB_a_modif);
 								pthread_mutex_unlock(&mutex_process_list);
 
-								printf("check 3\n");
+								log_info(kernelLog, "check 3\n");
 								queue_push(unSem->cola_de_bloqueados, unPCB);
 								list_add(semaforos, unSem);
 								pthread_mutex_unlock(&mutex_semaforos_ansisop);
-								printf("El proceso %d paso de Exec a Wait\n",unPCB->pid);
-								printf("Termino todo el envio\n");
+								log_info(kernelLog, "El proceso %d paso de Exec a Wait\n",unPCB->pid);
+								log_info(kernelLog, "Termino todo el envio\n");
 							}
 
 							free(id_sem);
@@ -2208,7 +2302,7 @@ int main(int argc, char** argv) {
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 							char *id_sem = malloc(messageLength);
 							recv(i, id_sem, messageLength, 0);
-							printf("CPU pide: Signal en semaforo: %s \n\n", id_sem);
+							log_info(kernelLog, "CPU pide: Signal en semaforo: %s \n\n", id_sem);
 							signal(id_sem);
 							print_vars();
 							free(id_sem);
@@ -2223,12 +2317,12 @@ int main(int argc, char** argv) {
 
 							if(!proceso_en_ejecucion(pid))
 							{
-								printf("El proceso no esta en ejecucion, se puede finalizar ahora\n");
+								log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
 								end_process(pid, -6, i, false);
 							}
 							else
 							{
-								printf("El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
+								log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
 								proceso_conexion* aux = buscar_conexion_de_consola(i);
 								pthread_mutex_lock(&mutex_to_delete);
 								list_add(procesos_a_borrar,aux);
@@ -2248,20 +2342,20 @@ int main(int argc, char** argv) {
 							remove_by_fd_socket(lista_en_ejecucion, i);
 							pthread_mutex_unlock(&mutex_in_exec);
 
-							printf("Elimine el proceso de la lista de exec\n");
+							log_info(kernelLog, "Elimine el proceso de la lista de exec\n");
 
 							if(!proceso_para_borrar(PID))
 							{
-								printf("El proceso no estaba para borrar\n");
+								log_info(kernelLog, "El proceso no estaba para borrar\n");
 								end_process(PID, 0, fd_consola, true);
 							}
 							else
 							{
-								printf("El proceso estaba para borrar\n");
+								log_info(kernelLog, "El proceso estaba para borrar\n");
 								end_process(PID, -6, fd_consola, false);
 							}
 
-							printf("Ya termine toda la operacion de borrado\n");
+							log_info(kernelLog, "Ya termine toda la operacion de borrado\n");
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
@@ -2269,7 +2363,7 @@ int main(int argc, char** argv) {
 
 							cpu->proceso = 0;
 
-							printf("Settee el proceso actual de la CPU en 0\n");
+							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 						}
 
 						//Si un proceso termino su rafaga...
@@ -2327,12 +2421,12 @@ int main(int argc, char** argv) {
 							recibir(i, &(permisos->lectura), sizeof(bool));
 							recibir(i, &(permisos->escritura), sizeof(bool));
 
-							printf("Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
-							printf("  PID: %d\n",pid);
-							printf("  Path length: %d\n", path_length);
-							printf("  Path: %s\n", file_path);
-							printf("  Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
-							printf("  Por las dudas el socket de FS es: %d\n", sockfd_fs);
+							log_info(kernelLog, "Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
+							log_info(kernelLog, "  PID: %d\n",pid);
+							log_info(kernelLog, "  Path length: %d\n", path_length);
+							log_info(kernelLog, "  Path: %s\n", file_path);
+							log_info(kernelLog, "  Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
+							log_info(kernelLog, "  Por las dudas el socket de FS es: %d\n", sockfd_fs);
 
 							int resultado = execute_open(pid, permisos, file_path, path_length);
 
@@ -2355,7 +2449,7 @@ int main(int argc, char** argv) {
 							else
 							{
 								//Pudo abrir el archivo, le mando el fd a cpu
-								printf("Un archivo ha sido abierto exitosamente para el proceso %d\n", pid);
+								log_info(kernelLog, "Un archivo ha sido abierto exitosamente para el proceso %d\n", pid);
 								enviar(i, &resultado, sizeof(int));
 							}
 
@@ -2383,7 +2477,7 @@ int main(int argc, char** argv) {
 							else
 							{
 								codigo = 1;
-								printf("Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
+								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
 								enviar(i, readText, messageLength);
 							}
@@ -2424,9 +2518,9 @@ int main(int argc, char** argv) {
 							recibir(i, &pid, sizeof(uint32_t));
 							recibir(i, &fd, sizeof(uint32_t));
 
-							printf("Me pidieron cerrar un archivo con las siguientes caracteristicas:\n");
-							printf("  PID: %d\n",pid);
-							printf("  FD: %d\n",fd);
+							log_info(kernelLog, "Me pidieron cerrar un archivo con las siguientes caracteristicas:\n");
+							log_info(kernelLog, "  PID: %d\n",pid);
+							log_info(kernelLog, "  FD: %d\n",fd);
 
 							if(fd != 1)
 								resultado = execute_close(pid, fd);
@@ -2441,7 +2535,7 @@ int main(int argc, char** argv) {
 								end_process(pid, sockfd_memoria, -12, sock_consola);
 							}
 							else
-								printf("Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
+								log_info(kernelLog, "Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
 
 							enviar(i, &resultado, sizeof(uint32_t));
 						}
@@ -2456,7 +2550,7 @@ int main(int argc, char** argv) {
 							//tamanio maximo alocable es igual al tamanio de pagina menos el tamanio de un heapMetadata
 							uint32_t tam_max_alocable = tamanio_pagina - sizeof(uint32_t)*2;
 
-							printf("El proceso %d necesita alocar %d bytes\n", pid, espacio);
+							log_info(kernelLog, "El proceso %d necesita alocar %d bytes\n", pid, espacio);
 
 							if(tiene_heap(pid) == false && espacio <= tam_max_alocable){
 								uint32_t cod = SOLICITAR_HEAP;
@@ -2484,7 +2578,7 @@ int main(int argc, char** argv) {
 								list_add(todos_los_procesos, unPCB);
 								pthread_mutex_unlock(&mutex_process_list);
 
-								printf("Debemos alocar en la pagina %d\n", pagina_de_heap);
+								log_info(kernelLog, "Debemos alocar en la pagina %d\n", pagina_de_heap);
 
 								void *buffer = malloc(sizeof(uint32_t)*4);
 								uint32_t cod = ALOCAR;
@@ -2501,7 +2595,7 @@ int main(int argc, char** argv) {
 								uint32_t direccion = (pagina_de_heap * tamanio_pagina) + corrimiento;
 
 								if(corrimiento > 0){
-									printf("El puntero apunta a la direccion %d\n", direccion);
+									log_info(kernelLog, "El puntero apunta a la direccion %d\n", direccion);
 									puntero *unPuntero = malloc(sizeof(puntero));
 									unPuntero->direccion = direccion;
 									unPuntero->size = espacio;
@@ -2513,12 +2607,13 @@ int main(int argc, char** argv) {
 									enviar(i, &direccion, sizeof(int32_t));
 									free(buffer);
 								}else{
-									printf("No hay espacio suficiente para el pedido\n");
+									log_info(kernelLog, "No hay espacio suficiente para el pedido\n");
 									enviar(i, &error, sizeof(int32_t));
 								}
 							}else{
 								//Si llegamos aca, significa que el flaco se quiso hacer el lunga y reservar mas que una pagina
-								printf("Error: No es posible reservar un espacio mayor que una pagina\n");
+								printf("Ocurrio un error al reservar memoria, revisar el log\n");
+								log_error(kernelLog, "Error: No es posible reservar un espacio mayor que una pagina\n");
 								error = -8;
 								enviar(i, &error, sizeof(int32_t));
 							}
@@ -2547,15 +2642,15 @@ int main(int argc, char** argv) {
 									enviar(sockfd_memoria, buffer, sizeof(uint32_t)*4);
 									free(unPuntero);
 									list_add(heap, heap_buscado);
-									printf("El espacio ha sido liberado!\n");
+									log_info(kernelLog, "El espacio ha sido liberado!\n");
 									enviar(i, &ok, sizeof(int32_t));
 								}
 								else{
-									printf("El proceso no tiene dicha direccion reservada\n");
+									log_info(kernelLog, "El proceso no tiene dicha direccion reservada\n");
 									enviar(i, &error, sizeof(int32_t));
 								}
 							}else{
-								printf("El proceso no tiene paginas alocadas\n");
+								log_info(kernelLog, "El proceso no tiene paginas alocadas\n");
 								enviar(i, &error, sizeof(int32_t));
 							}
 						}
@@ -2572,20 +2667,20 @@ int main(int argc, char** argv) {
 							remove_by_fd_socket(lista_en_ejecucion, i);
 							pthread_mutex_unlock(&mutex_in_exec);
 
-							printf("Elimine el proceso de la lista de exec\n");
+							log_info(kernelLog, "Elimine el proceso de la lista de exec\n");
 
 							if(!proceso_para_borrar(PID))
 							{
-								printf("El proceso no estaba para borrar\n");
+								log_info(kernelLog, "El proceso no estaba para borrar\n");
 								end_process(PID, *(int*)buffer_codigo, fd_consola, true);
 							}
 							else
 							{
-								printf("El proceso estaba para borrar\n");
+								log_info(kernelLog, "El proceso estaba para borrar\n");
 								end_process(PID, *(int*)buffer_codigo, fd_consola, false);
 							}
 
-							printf("Ya termine toda la operacion de borrado\n");
+							log_info(kernelLog, "Ya termine toda la operacion de borrado\n");
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
@@ -2593,7 +2688,7 @@ int main(int argc, char** argv) {
 
 							cpu->proceso = 0;
 
-							printf("Settee el proceso actual de la CPU en 0\n");
+							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 							free(buffer_codigo);
 						}
 						memset(buf,0,256);
