@@ -1,0 +1,889 @@
+[INFO] 12:15:41:12 Kernel/(4455:4455): 
+
+//////////////////////
+
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): 
+
+//////////////////////
+
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 12:15:59:380 Kernel/(4466:4466): Puerto Programas: 9034
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Puerto CPUs: 9034
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): IP Memoria: 127.0.0.1
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Puerto Memoria: 5003
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): IP FS: 127.0.0.1
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Puerto FS: 5009
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Quantum: 3
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Quantum Sleep: 500
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Algoritmo: FIFO
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Grado Multiprog: 2
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM1 = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM2 = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM3 = 5
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable Global 0: !Global
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable Global 1: !UnaVar
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable Global 2: !tiempo3
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Tamaño del Stack: 1
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variables Compartidas:
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable Global, valor = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable UnaVar, valor = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Variable tiempo3, valor = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM1, valor = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM2, valor = 0
+
+[INFO] 12:15:59:380 Kernel/(4466:4466): Semaforo SEM3, valor = 5
+
+[ERROR] 12:15:59:380 Kernel/(4466:4466): Error - Client: connect Connection refused
+
+[ERROR] 12:15:59:380 Kernel/(4466:4466): Client: failed to connect
+
+[INFO] 12:15:59:381 Kernel/(4466:4466): Conectado con Memoria
+
+[INFO] 12:15:59:381 Kernel/(4466:4466): Tamaño de pagina = 512
+
+[INFO] 12:16:40:220 Kernel/(4466:4466): Se recibio: 1
+
+[INFO] 12:16:40:220 Kernel/(4466:4466): Es una Consola
+
+[INFO] 12:16:40:220 Kernel/(4466:4466): Hay 1 consolas conectadas
+
+
+[INFO] 12:16:40:233 Kernel/(4466:4466): Se recibio: 2
+
+[INFO] 12:16:40:233 Kernel/(4466:4466): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 12:16:40:233 Kernel/(4466:4466): El script mide: 51 
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): instruccion_inicio = 0
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): instrucciones_size = 5
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instrucciones serializadas: 
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instruccion 1: Inicio = 22, Offset = 7
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instruccion 2: Inicio = 29, Offset = 7
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instruccion 3: Inicio = 36, Offset = 12
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Instruccion 4: Inicio = 48, Offset = 4
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): etiquetas_size = 0
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): etiquetas = (null)
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): cantidad_de_funciones = 0
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): cantidad_de_etiquetas = 0
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): ***FIN DE LA METADATA***
+
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Mandamos a memoria!
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): Y esperamos!
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): El proceso 1 paso de New a Ready
+
+
+[INFO] 12:16:40:234 Kernel/(4466:4466): La cantidad de procesos actuales es: 1
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): 
+
+//////////////////////
+
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 12:43:58:622 Kernel/(5489:5489): Puerto Programas: 9034
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Puerto CPUs: 9034
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): IP Memoria: 127.0.0.1
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Puerto Memoria: 5003
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): IP FS: 127.0.0.1
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Puerto FS: 5009
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Quantum: 3
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Quantum Sleep: 500
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Algoritmo: FIFO
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Grado Multiprog: 2
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM1 = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM2 = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM3 = 5
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable Global 0: !Global
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable Global 1: !UnaVar
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable Global 2: !tiempo3
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Tamaño del Stack: 1
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variables Compartidas:
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable Global, valor = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable UnaVar, valor = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Variable tiempo3, valor = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM1, valor = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM2, valor = 0
+
+[INFO] 12:43:58:622 Kernel/(5489:5489): Semaforo SEM3, valor = 5
+
+[ERROR] 12:43:58:622 Kernel/(5489:5489): Error - Client: connect Connection refused
+
+[ERROR] 12:43:58:622 Kernel/(5489:5489): Client: failed to connect
+
+[INFO] 12:43:58:623 Kernel/(5489:5489): Conectado con Memoria
+
+[INFO] 12:43:58:623 Kernel/(5489:5489): Tamaño de pagina = 512
+
+[INFO] 12:46:10:12 Kernel/(5489:5489): Se recibio: 1
+
+[INFO] 12:46:10:12 Kernel/(5489:5489): Es una Consola
+
+[INFO] 12:46:10:12 Kernel/(5489:5489): Hay 1 consolas conectadas
+
+
+[INFO] 12:46:10:27 Kernel/(5489:5489): Se recibio: 2
+
+[INFO] 12:46:10:27 Kernel/(5489:5489): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 12:46:10:27 Kernel/(5489:5489): El script mide: 76 
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): instruccion_inicio = 0
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): instrucciones_size = 7
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instrucciones serializadas: 
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 0: Inicio = 6, Offset = 18
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 1: Inicio = 24, Offset = 5
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 2: Inicio = 29, Offset = 6
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 3: Inicio = 44, Offset = 7
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 4: Inicio = 51, Offset = 7
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 5: Inicio = 58, Offset = 14
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Instruccion 6: Inicio = 72, Offset = 4
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): etiquetas_size = 11
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): etiquetas = inicio
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): cantidad_de_funciones = 0
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): cantidad_de_etiquetas = 1
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): ***FIN DE LA METADATA***
+
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Mandamos a memoria!
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): Y esperamos!
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): El proceso 1 paso de New a Ready
+
+
+[INFO] 12:46:10:28 Kernel/(5489:5489): La cantidad de procesos actuales es: 1
+
+[INFO] 12:46:54:204 Kernel/(5489:5489): Se recibio: 1
+
+[INFO] 12:46:54:204 Kernel/(5489:5489): Es una CPU
+
+[INFO] 12:46:54:204 Kernel/(5489:5489): Hay 1 cpus conectadas
+
+
+[INFO] 12:46:54:204 Kernel/(5489:5492): Mande Codigo: 10
+
+[INFO] 12:46:54:204 Kernel/(5489:5492): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Se recibio: 10
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): 
+PID: 1
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): page_counter: 2
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): direccion_inicio_codigo: 512
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): program_counter: 7
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): cantidad_de_instrucciones: 7
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): primer pagina del stack: 1
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): stack pointer: 0
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Stack size: 1
+
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 0: Inicio = 6, Offset = 18
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 1: Inicio = 24, Offset = 5
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 2: Inicio = 29, Offset = 6
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 3: Inicio = 44, Offset = 7
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 4: Inicio = 51, Offset = 7
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 5: Inicio = 58, Offset = 14
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Instruccion 6: Inicio = 72, Offset = 4
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): 
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Elimine el proceso de la lista de exec
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): El proceso no estaba para borrar
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): La cantidad de procesos actuales es: 0
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): No hubo Memory leaks, bien ahi!
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Ya le avise a memoria que borre el proceso
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Ya termine toda la operacion de borrado
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Settee el proceso actual de la CPU en 0
+
+[ERROR] 12:46:58:533 Kernel/(5489:5489): Selectserver: socket 6 hung up
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): El proceso ya ha sido finalizado
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Hay 1 cpus conectadas
+
+[INFO] 12:46:58:533 Kernel/(5489:5489): Hay 0 consolas conectadas
+
+
+[INFO] 12:47:09:171 Kernel/(5489:5491): ***LISTA DE PCBs***
+
+[INFO] 12:47:09:171 Kernel/(5489:5491): PID: 1
+
+[ERROR] 12:54:23:510 Kernel/(5489:5489): Selectserver: socket 7 hung up
+
+[INFO] 12:54:23:510 Kernel/(5489:5489): Se desconecto la CPU 7, que no estaba ejecutando ningun proceso
+
+[INFO] 12:54:23:510 Kernel/(5489:5489): Hay 0 cpus conectadas
+
+[INFO] 12:54:23:510 Kernel/(5489:5489): Hay 0 consolas conectadas
+
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): 
+
+//////////////////////
+
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 12:55:00:542 Kernel/(5931:5931): Puerto Programas: 9034
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Puerto CPUs: 9034
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): IP Memoria: 127.0.0.1
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Puerto Memoria: 5003
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): IP FS: 127.0.0.1
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Puerto FS: 5009
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Quantum: 3
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Quantum Sleep: 500
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Algoritmo: FIFO
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Grado Multiprog: 2
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM1 = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM2 = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM3 = 5
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable Global 0: !Global
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable Global 1: !UnaVar
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable Global 2: !tiempo3
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Tamaño del Stack: 1
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variables Compartidas:
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable Global, valor = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable UnaVar, valor = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Variable tiempo3, valor = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM1, valor = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM2, valor = 0
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Semaforo SEM3, valor = 5
+
+[ERROR] 12:55:00:542 Kernel/(5931:5931): Error - Client: connect Connection refused
+
+[ERROR] 12:55:00:542 Kernel/(5931:5931): Client: failed to connect
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Conectado con Memoria
+
+[INFO] 12:55:00:542 Kernel/(5931:5931): Tamaño de pagina = 512
+
+[INFO] 12:55:09:486 Kernel/(5931:5931): Se recibio: 1
+
+[INFO] 12:55:09:486 Kernel/(5931:5931): Es una CPU
+
+[INFO] 12:55:09:486 Kernel/(5931:5931): Hay 1 cpus conectadas
+
+
+[INFO] 12:55:24:510 Kernel/(5931:5931): Se recibio: 1
+
+[INFO] 12:55:24:510 Kernel/(5931:5931): Es una Consola
+
+[INFO] 12:55:24:510 Kernel/(5931:5931): Hay 1 consolas conectadas
+
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Se recibio: 2
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): El script mide: 89 
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): instruccion_inicio = 0
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): instrucciones_size = 7
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instrucciones serializadas: 
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 0: Inicio = 6, Offset = 19
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 1: Inicio = 25, Offset = 13
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 2: Inicio = 38, Offset = 13
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 3: Inicio = 51, Offset = 11
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 4: Inicio = 62, Offset = 11
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 5: Inicio = 73, Offset = 13
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Instruccion 6: Inicio = 86, Offset = 4
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): etiquetas_size = 0
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): etiquetas = (null)
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): cantidad_de_funciones = 0
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): cantidad_de_etiquetas = 0
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): ***FIN DE LA METADATA***
+
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Mandamos a memoria!
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): Y esperamos!
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): El proceso 1 paso de New a Ready
+
+
+[INFO] 12:55:24:522 Kernel/(5931:5931): La cantidad de procesos actuales es: 1
+
+[INFO] 12:55:24:522 Kernel/(5931:5934): Mande Codigo: 10
+
+[INFO] 12:55:24:522 Kernel/(5931:5934): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 12:55:24:622 Kernel/(5931:5931): Se recibio: 18
+
+[INFO] 12:55:24:622 Kernel/(5931:5931): El proceso 1 necesita alocar 50 bytes
+
+[INFO] 12:55:24:623 Kernel/(5931:5931): Debemos alocar en la pagina 2
+
+[INFO] 12:55:24:662 Kernel/(5931:5931): El puntero apunta a la direccion 1029
+
+[INFO] 12:55:24:662 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): Se recibio: 18
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): El proceso 1 necesita alocar 20 bytes
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): Debemos alocar en la pagina 2
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): El puntero apunta a la direccion 1084
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:55:24:863 Kernel/(5931:5931): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:55:25:64 Kernel/(5931:5931): Se recibio: 19
+
+[INFO] 12:55:25:64 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:55:25:64 Kernel/(5931:5931): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:55:25:64 Kernel/(5931:5931): El espacio ha sido liberado!
+
+[INFO] 12:55:25:265 Kernel/(5931:5931): Se recibio: 19
+
+[INFO] 12:55:25:265 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:55:25:265 Kernel/(5931:5931): El espacio ha sido liberado!
+
+[INFO] 12:55:25:365 Kernel/(5931:5931): Se recibio: 18
+
+[INFO] 12:55:25:365 Kernel/(5931:5931): El proceso 1 necesita alocar 70 bytes
+
+[INFO] 12:55:25:365 Kernel/(5931:5931): Debemos alocar en la pagina 2
+
+[INFO] 12:55:25:365 Kernel/(5931:5931): El puntero apunta a la direccion 1029
+
+[INFO] 12:55:25:365 Kernel/(5931:5931): Puntero 0, pagina: 2, direccion: 1029, espacio: 70
+
+[INFO] 12:55:25:566 Kernel/(5931:5931): Se recibio: 10
+
+[INFO] 12:55:25:566 Kernel/(5931:5931): 
+PID: 1
+
+[INFO] 12:55:25:566 Kernel/(5931:5931): page_counter: 2
+
+[INFO] 12:55:25:566 Kernel/(5931:5931): direccion_inicio_codigo: 512
+
+[INFO] 12:55:25:566 Kernel/(5931:5931): program_counter: 7
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): cantidad_de_instrucciones: 7
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): primer pagina del stack: 1
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): stack pointer: 0
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Stack size: 1
+
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 0: Inicio = 6, Offset = 19
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 1: Inicio = 25, Offset = 13
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 2: Inicio = 38, Offset = 13
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 3: Inicio = 51, Offset = 11
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 4: Inicio = 62, Offset = 11
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 5: Inicio = 73, Offset = 13
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Instruccion 6: Inicio = 86, Offset = 4
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): 
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Elimine el proceso de la lista de exec
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): El proceso no estaba para borrar
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): La cantidad de procesos actuales es: 0
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Memory leak: se perdieron 70 bytes
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Ya le avise a memoria que borre el proceso
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Ya termine toda la operacion de borrado
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Settee el proceso actual de la CPU en 0
+
+[ERROR] 12:55:25:567 Kernel/(5931:5931): Selectserver: socket 7 hung up
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): El proceso ya ha sido finalizado
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Hay 1 cpus conectadas
+
+[INFO] 12:55:25:567 Kernel/(5931:5931): Hay 0 consolas conectadas
+
+
+[ERROR] 12:58:58:161 Kernel/(5931:5931): Selectserver: socket 6 hung up
+
+[INFO] 12:58:58:161 Kernel/(5931:5931): Se desconecto la CPU 6, que no estaba ejecutando ningun proceso
+
+[INFO] 12:58:58:161 Kernel/(5931:5931): Hay 0 cpus conectadas
+
+[INFO] 12:58:58:161 Kernel/(5931:5931): Hay 0 consolas conectadas
+
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): 
+
+//////////////////////
+
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 12:59:23:266 Kernel/(6239:6239): Puerto Programas: 9034
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Puerto CPUs: 9034
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): IP Memoria: 127.0.0.1
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Puerto Memoria: 5003
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): IP FS: 127.0.0.1
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Puerto FS: 5009
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Quantum: 3
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Quantum Sleep: 500
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Algoritmo: FIFO
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Grado Multiprog: 2
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Semaforo SEM1 = 0
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Semaforo SEM2 = 0
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Semaforo SEM3 = 5
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Variable Global 0: !Global
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Variable Global 1: !UnaVar
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Variable Global 2: !tiempo3
+
+[INFO] 12:59:23:266 Kernel/(6239:6239): Tamaño del Stack: 1
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Variables Compartidas:
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Variable Global, valor = 0
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Variable UnaVar, valor = 0
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Variable tiempo3, valor = 0
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Semaforo SEM1, valor = 0
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Semaforo SEM2, valor = 0
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Semaforo SEM3, valor = 5
+
+[ERROR] 12:59:23:267 Kernel/(6239:6239): Error - Client: connect Connection refused
+
+[ERROR] 12:59:23:267 Kernel/(6239:6239): Client: failed to connect
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Conectado con Memoria
+
+[INFO] 12:59:23:267 Kernel/(6239:6239): Tamaño de pagina = 512
+
+[INFO] 12:59:35:659 Kernel/(6239:6239): Se recibio: 1
+
+[INFO] 12:59:35:659 Kernel/(6239:6239): Es una CPU
+
+[INFO] 12:59:35:659 Kernel/(6239:6239): Hay 1 cpus conectadas
+
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Se recibio: 1
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Es una Consola
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Hay 1 consolas conectadas
+
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Se recibio: 2
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): El script mide: 89 
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): instruccion_inicio = 0
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): instrucciones_size = 7
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instrucciones serializadas: 
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 0: Inicio = 6, Offset = 19
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 1: Inicio = 25, Offset = 13
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 2: Inicio = 38, Offset = 13
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 3: Inicio = 51, Offset = 11
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 4: Inicio = 62, Offset = 11
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 5: Inicio = 73, Offset = 13
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Instruccion 6: Inicio = 86, Offset = 4
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): etiquetas_size = 0
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): etiquetas = (null)
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): cantidad_de_funciones = 0
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): cantidad_de_etiquetas = 0
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): ***FIN DE LA METADATA***
+
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Mandamos a memoria!
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): Y esperamos!
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): El proceso 1 paso de New a Ready
+
+
+[INFO] 12:59:46:642 Kernel/(6239:6239): La cantidad de procesos actuales es: 1
+
+[INFO] 12:59:46:642 Kernel/(6239:6242): Mande Codigo: 10
+
+[INFO] 12:59:46:643 Kernel/(6239:6242): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 12:59:46:743 Kernel/(6239:6239): Se recibio: 18
+
+[INFO] 12:59:46:743 Kernel/(6239:6239): El proceso 1 necesita alocar 50 bytes
+
+[INFO] 12:59:46:743 Kernel/(6239:6239): Debemos alocar en la pagina 2
+
+[INFO] 12:59:46:782 Kernel/(6239:6239): El puntero apunta a la direccion 1029
+
+[INFO] 12:59:46:782 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): Se recibio: 18
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): El proceso 1 necesita alocar 20 bytes
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): Debemos alocar en la pagina 2
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): El puntero apunta a la direccion 1084
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:59:46:983 Kernel/(6239:6239): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:59:47:184 Kernel/(6239:6239): Se recibio: 19
+
+[INFO] 12:59:47:184 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 12:59:47:184 Kernel/(6239:6239): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:59:47:184 Kernel/(6239:6239): El espacio ha sido liberado!
+
+[INFO] 12:59:47:385 Kernel/(6239:6239): Se recibio: 19
+
+[INFO] 12:59:47:385 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 12:59:47:385 Kernel/(6239:6239): El espacio ha sido liberado!
+
+[INFO] 12:59:47:485 Kernel/(6239:6239): Se recibio: 18
+
+[INFO] 12:59:47:485 Kernel/(6239:6239): El proceso 1 necesita alocar 70 bytes
+
+[INFO] 12:59:47:485 Kernel/(6239:6239): Debemos alocar en la pagina 2
+
+[INFO] 12:59:47:485 Kernel/(6239:6239): El puntero apunta a la direccion 1029
+
+[INFO] 12:59:47:485 Kernel/(6239:6239): Puntero 0, pagina: 2, direccion: 1029, espacio: 70
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Se recibio: 10
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): 
+PID: 1
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): page_counter: 2
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): direccion_inicio_codigo: 512
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): program_counter: 7
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): cantidad_de_instrucciones: 7
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): primer pagina del stack: 1
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): stack pointer: 0
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Stack size: 1
+
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 0: Inicio = 6, Offset = 19
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 1: Inicio = 25, Offset = 13
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 2: Inicio = 38, Offset = 13
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 3: Inicio = 51, Offset = 11
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 4: Inicio = 62, Offset = 11
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 5: Inicio = 73, Offset = 13
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Instruccion 6: Inicio = 86, Offset = 4
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): 
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Elimine el proceso de la lista de exec
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): El proceso no estaba para borrar
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): La cantidad de procesos actuales es: 0
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Memory leak: se perdieron 70 bytes
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Ya le avise a memoria que borre el proceso
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Ya termine toda la operacion de borrado
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Settee el proceso actual de la CPU en 0
+
+[ERROR] 12:59:47:686 Kernel/(6239:6239): Selectserver: socket 7 hung up
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): El proceso ya ha sido finalizado
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Hay 1 cpus conectadas
+
+[INFO] 12:59:47:686 Kernel/(6239:6239): Hay 0 consolas conectadas
+
+
+[INFO] 13:00:12:241 Kernel/(6239:6241): ***LISTA DE PCBs***
+
+[INFO] 13:00:12:241 Kernel/(6239:6241): PID: 1
+
+[INFO] 13:00:50:129 Kernel/(6239:6241): No se ha abierto ningun archivo
+
+[INFO] 13:00:54:729 Kernel/(6239:6241): Este proceso no ha abierto ningun archivo
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): 
+
+//////////////////////
+
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 13:03:22:344 Kernel/(6603:6603): Puerto Programas: 9034
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Puerto CPUs: 9034
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): IP Memoria: 127.0.0.1
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Puerto Memoria: 5003
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): IP FS: 127.0.0.1
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Puerto FS: 5009
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Quantum: 3
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Quantum Sleep: 500
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Algoritmo: FIFO
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Grado Multiprog: 2
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM1 = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM2 = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM3 = 5
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable Global 0: !Global
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable Global 1: !UnaVar
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable Global 2: !tiempo3
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Tamaño del Stack: 1
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variables Compartidas:
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable Global, valor = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable UnaVar, valor = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Variable tiempo3, valor = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM1, valor = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM2, valor = 0
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Semaforo SEM3, valor = 5
+
+[ERROR] 13:03:22:344 Kernel/(6603:6603): Error - Client: connect Connection refused
+
+[ERROR] 13:03:22:344 Kernel/(6603:6603): Client: failed to connect
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Conectado con Memoria
+
+[INFO] 13:03:22:344 Kernel/(6603:6603): Tamaño de pagina = 512
+

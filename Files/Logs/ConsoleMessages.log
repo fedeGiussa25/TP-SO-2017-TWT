@@ -3166,3 +3166,163 @@ end
 
 [INFO] 19:14:29:249 Consola/(2783:2786): El hilo 3 ha pasado a mejor vida
 
+[INFO] 12:16:37:686 Consola/(4507:4507): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 12:16:40:219 Consola/(4507:4507): Hilo creado satisfactoriamente
+
+[INFO] 12:16:40:219 Consola/(4507:4508): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 12:16:40:233 Consola/(4507:4508): Hilo 1: Script "facil" procesado
+
+[INFO] 12:16:40:233 Consola/(4507:4508): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b
+	a = 3
+	b = 5
+	a = b + 12
+end
+
+[INFO] 12:16:40:234 Consola/(4507:4508): Hilo 1: Se esta ejecutando el programa 1
+
+[ERROR] 12:17:39:431 Consola/(4507:4508): Se terminara el hilo 1 debido a que el kernel se encuentra desconectado
+
+[INFO] 12:17:39:431 Consola/(4507:4508): Informacion sobre el programa 1:
+[INFO] 12:17:39:431 Consola/(4507:4508): 
+	La fecha de inicio del programa es: 7/7/2017  12:16:40
+[INFO] 12:17:39:431 Consola/(4507:4508): 
+	La fecha de finalizacion del programa es: 7/7/2017  12:17:39
+[INFO] 12:17:39:431 Consola/(4507:4508): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 12:17:39:431 Consola/(4507:4508): 
+	El tiempo total de ejecucion del programa en segundos es: 59
+
+[INFO] 12:17:39:431 Consola/(4507:4508): El hilo 1 ha pasado a mejor vida
+
+[INFO] 12:45:54:397 Consola/(5551:5551): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 12:45:59:84 Consola/(5551:5551): No hay hilos abiertos para mostrar
+
+[INFO] 12:46:02:500 Consola/(5551:5551): Cantidad de hilos abiertos: 0
+
+[INFO] 12:46:10:11 Consola/(5551:5551): Hilo creado satisfactoriamente
+
+[INFO] 12:46:10:11 Consola/(5551:5553): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 12:46:10:27 Consola/(5551:5553): Hilo 1: Script "for" procesado
+
+[INFO] 12:46:10:27 Consola/(5551:5553): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+variables f, i, t
+	i=0
+	f=20
+	:inicio
+	i=i+1
+	t=f-i
+	jnz t inicio
+end
+
+
+[INFO] 12:46:10:28 Consola/(5551:5553): Hilo 1: Se esta ejecutando el programa 1
+
+[INFO] 12:46:58:533 Consola/(5551:5553): Mensaje del script "for" (PID: 1): Finalizo el programa satisfactoriamente!
+
+[INFO] 12:46:58:533 Consola/(5551:5553): Informacion sobre el programa 1:
+[INFO] 12:46:58:533 Consola/(5551:5553): 
+	La fecha de inicio del programa es: 7/7/2017  12:46:10
+[INFO] 12:46:58:533 Consola/(5551:5553): 
+	La fecha de finalizacion del programa es: 7/7/2017  12:46:58
+[INFO] 12:46:58:533 Consola/(5551:5553): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 12:46:58:533 Consola/(5551:5553): 
+	El tiempo total de ejecucion del programa en segundos es: 48
+
+[INFO] 12:46:58:533 Consola/(5551:5553): El hilo 1 ha pasado a mejor vida
+
+[INFO] 12:55:06:454 Consola/(5937:5937): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 12:55:24:509 Consola/(5937:5937): Hilo creado satisfactoriamente
+
+[INFO] 12:55:24:509 Consola/(5937:5940): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 12:55:24:521 Consola/(5937:5940): Hilo 1: Script "alocar2" procesado
+
+[INFO] 12:55:24:521 Consola/(5937:5940): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b, c
+	alocar a 50
+	alocar b 20
+	liberar a
+	liberar b
+	alocar c 70
+end
+
+[INFO] 12:55:24:522 Consola/(5937:5940): Hilo 1: Se esta ejecutando el programa 1
+
+[INFO] 12:55:25:567 Consola/(5937:5940): Mensaje del script "alocar2" (PID: 1): Finalizo el programa satisfactoriamente!
+
+[INFO] 12:55:25:567 Consola/(5937:5940): Informacion sobre el programa 1:
+[INFO] 12:55:25:567 Consola/(5937:5940): 
+	La fecha de inicio del programa es: 7/7/2017  12:55:24
+[INFO] 12:55:25:567 Consola/(5937:5940): 
+	La fecha de finalizacion del programa es: 7/7/2017  12:55:25
+[INFO] 12:55:25:567 Consola/(5937:5940): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 12:55:25:567 Consola/(5937:5940): 
+	El tiempo total de ejecucion del programa en segundos es: 1
+
+[INFO] 12:55:25:567 Consola/(5937:5940): El hilo 1 ha pasado a mejor vida
+
+[INFO] 12:59:39:154 Consola/(6292:6292): 
+
+////////////////////////////////////////////////
+
+
+[INFO] 12:59:46:642 Consola/(6292:6292): Hilo creado satisfactoriamente
+
+[INFO] 12:59:46:642 Consola/(6292:6293): Hilo 1: El archivo existe y fue abierto
+
+[INFO] 12:59:46:642 Consola/(6292:6293): Hilo 1: Script "alocar2" procesado
+
+[INFO] 12:59:46:642 Consola/(6292:6293): Hilo 1:
+	 Contenido del script a enviar:
+
+begin
+	variables a, b, c
+	alocar a 50
+	alocar b 20
+	liberar a
+	liberar b
+	alocar c 70
+end
+
+[INFO] 12:59:46:642 Consola/(6292:6293): Hilo 1: Se esta ejecutando el programa 1
+
+[INFO] 12:59:47:686 Consola/(6292:6293): Mensaje del script "alocar2" (PID: 1): Finalizo el programa satisfactoriamente!
+
+[INFO] 12:59:47:686 Consola/(6292:6293): Informacion sobre el programa 1:
+[INFO] 12:59:47:686 Consola/(6292:6293): 
+	La fecha de inicio del programa es: 7/7/2017  12:59:46
+[INFO] 12:59:47:686 Consola/(6292:6293): 
+	La fecha de finalizacion del programa es: 7/7/2017  12:59:47
+[INFO] 12:59:47:686 Consola/(6292:6293): 
+	La cantidad de impresiones por pantalla es: 0
+[INFO] 12:59:47:686 Consola/(6292:6293): 
+	El tiempo total de ejecucion del programa en segundos es: 1
+
+[INFO] 12:59:47:686 Consola/(6292:6293): El hilo 1 ha pasado a mejor vida
+
