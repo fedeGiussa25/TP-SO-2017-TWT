@@ -26,6 +26,7 @@
 #include <commons/collections/list.h>
 #include "../shared_libs/PCB.h"
 #include <ctype.h>
+#include <commons/log.h>
 
 
 
@@ -61,12 +62,13 @@ PCB* nuevaPCB;
 cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
-int tamanioPagina; //Provisorio, en realidad lo deberia obtener de la memoria cuando se conectan
+int tamanioPagina;
 bool stackOverflow;
 bool programaTerminado;
 bool procesoBloqueado;
 bool procesoAbortado;
 int32_t codigo_error;
+t_log* messagesLog;
 
 /*Funciones para Implementar el PARSER (mas adelante emprolijamos y lo metemos en otro archivo)*/
 
@@ -110,7 +112,7 @@ void liberar_registro_stack(registroStack *registro){
 
 t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 {
-	printf("Definir variable: %c\n", identificador_variable);
+	//printf("Definir variable: %c\n", identificador_variable);
 	int var_pagina = nuevaPCB->primerPaginaStack; //pagina del stack donde guardo la variable
 	int var_offset = nuevaPCB->stackPointer;	   //offset dentro de esa pagina
 
@@ -125,7 +127,8 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 
 	if((nuevaPCB->stackPointer) + sizeof(int) > (nuevaPCB->tamanioStack * tamanioPagina))
 	{
-		printf("Stack Overflow al definir variable %c\n", identificador_variable);
+		//printf("Stack Overflow al definir variable %c\n", identificador_variable);
+		log_info(messagesLog, "StackOverflow al definir la variable o argumento: %c\n", identificador_variable);
 		stackOverflow=true;
 		codigo_error = -20;
 		return -1;
@@ -152,12 +155,14 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 
 	if(isdigit(identificador_variable)) //Si es un digito, es un argumento
 	{
+		log_info(messagesLog, "Definir argumento: %c en: (pagina, offset)=(%d,%d)\n", identificador_variable, var_pagina, var_offset);
 		list_add(regStack->args, new_var);
-		printf("Agregue el argumento: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+		//printf("Agregue el argumento: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
 	} else
 	{
+		log_info(messagesLog, "Definir variable: %c en: (pagina, offset)=(%d,%d)\n", identificador_variable, var_pagina, var_offset);
 		list_add(regStack->vars, new_var);
-		printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
+		//printf("Agregue la variable: %c en: (pagina, offset, size) = (%i, %i, %i)\n",identificador_variable,var_pagina,var_offset,4);
 	}
 
 	int posicionVariable = (nuevaPCB->primerPaginaStack * tamanioPagina) + (nuevaPCB->stackPointer);
@@ -170,7 +175,6 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 }
 t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 {
-	printf("Soy obtenerPosicionVariable para: %c\n", identificador_variable);
 	//Voy al contexto de ejecucion actual (ultimo registro de stack):
 	registroStack* registroActual = list_get(nuevaPCB->stack_index, nuevaPCB->stack_index->elements_count -1);
 
@@ -179,6 +183,7 @@ t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 
 	if(isdigit(identificador_variable)) //Si es un digito, es un argumento
 	{
+		log_info(messagesLog, "Obtener posicion del argumento: %c\n", identificador_variable);
 	//Recorro la lista de argumentos hasta encontrarla:
 		for(i=0;i<registroActual->args->elements_count;i++)
 		{
@@ -190,8 +195,10 @@ t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 				return posicion_variable;
 			}
 		}
+		log_error(messagesLog, "No existe el argumento: %c\n", identificador_variable);
 		} else //Si no, es una variable
 		{
+			log_info(messagesLog, "Obtener posicion de la variable: %c\n", identificador_variable);
 		//Recorro la lista de variables hasta encontrarla:
 		for(i=0;i<registroActual->vars->elements_count;i++)
 		{
@@ -203,18 +210,17 @@ t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 				return posicion_variable;
 			}
 		}
+		log_error(messagesLog, "No existe la variable: %c\n", identificador_variable);
 	}
 	return -1;
 }
 t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 {
-	//Esta primitiva devuelve el valor que hay en la direccion de memoria que recibe
-
-	printf("Soy dereferenciar para la direccion: %d\n", direccion_variable);
+	log_info(messagesLog,"Dereferenciar la direccion: %d\n", direccion_variable);
 
 	//Mandamos a memoria la solicitud de lectura:
 
-	int codigo = BUSCAR_VALOR; //Le puse 6 al codigo para solicitar leer un valor, si quieren lo cambian
+	int codigo = BUSCAR_VALOR;
 	int pag = direccion_variable / tamanioPagina;
 	int offset = direccion_variable % tamanioPagina;
 	int tamanio = sizeof(int);
@@ -235,7 +241,7 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 
 	recv(fd_memoria, &valorVariable,sizeof(int),0);
 
-	printf("La variable tiene valor %d\n", valorVariable);
+	log_info(messagesLog,"La variable fue dereferenciada, tiene valor: %d\n", valorVariable);
 
 	return valorVariable;
 }
@@ -244,11 +250,8 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 	/*El parametro direccion_variable es lo que devuelve la primitiva obtenerPosicion, que no esta hecha
 	 * por eso vale 0*/
 
-	printf("Soy asignar\n");
 	int pagina, offset, value;
 	int codigo = ASIGNAR_VALOR; //codigo 4 es solicitud escritura a memoria
-
-	printf("Tengo que asignar el valor: %d en: %d\n", valor, direccion_variable);
 
 	pagina = direccion_variable / tamanioPagina;
 	offset = direccion_variable % tamanioPagina; //el resto de la division
@@ -265,16 +268,14 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 
 	send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t),0);
 
-	printf("Envie a guardar en memoria: (pag, off, valor) = (%d,%d,%d)\n", pagina, offset, value);
+	log_info(messagesLog,"Asignar valor %d en pagina: %d offset: %d\n", value, pagina, offset);
 
 	free(buffer);
 	return;
 }
 t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 {
-	printf("Soy obtenerValorCompartida\n");
-	printf("Tengo que obtener el valor de %s\n",variable);
-
+	log_info(messagesLog,"Solicitar al Kernel el valor de la variable compartida: %s\n", variable);
 	int value;
 	int codigo = BUSCAR_VALOR;
 	int largo = strlen(variable)+1;
@@ -288,15 +289,13 @@ t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 
 	recv(fd_kernel, &value, sizeof(u_int32_t),0);
 
-	printf("La variable %s tiene valor %d\n",variable,value);
+	log_info(messagesLog,"Valor de la variable compartida %s: %d\n", variable, value);
 
 	return value;
 }
 t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_valor_variable valor)
 {
-	printf("Soy asignarValorCompartida\n");
-	printf("Tengo que asignar el valor: %d en: %s\n", valor, variable);
-
+	log_info(messagesLog,"Asignar el valor: %d en la variable compartida: %s\n", valor, variable);
 /*	int aldope;
 	recv(fd_kernel, &aldope, sizeof(u_int32_t), 0);
 	printf("El loco del kernel me tiro un: %d\n",aldope);*/
@@ -317,28 +316,28 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 }
 void twt_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta)
 {
-	printf("Soy irAlLabel para etiqueta: %s\n", t_nombre_etiqueta);
+	log_info(messagesLog,"Ir al label: %s\n", t_nombre_etiqueta);
 	t_puntero_instruccion posicionEtiqueta = metadata_buscar_etiqueta(t_nombre_etiqueta,nuevaPCB->lista_de_etiquetas,nuevaPCB->lista_de_etiquetas_length);
 	nuevaPCB->program_counter = posicionEtiqueta;
-	printf("Cambio el PC a: %d\n", posicionEtiqueta);
+	log_info(messagesLog,"Program Counter actualizado a: %d\n", posicionEtiqueta);
 
 	return;
 }
-void twt_llamarSinRetorno(t_nombre_etiqueta etiqueta)
+void twt_llamarSinRetorno(t_nombre_etiqueta etiqueta) //NO SE TIENE QUE IMPLEMENTAR
 {
-	printf("Soy llamarSinRetorno para funcion: %s\n", etiqueta);
+	/*printf("Soy llamarSinRetorno para funcion: %s\n", etiqueta);
 	registroStack* nuevoReg = malloc(sizeof(registroStack));
 	nuevoReg->args=list_create();
 	nuevoReg->vars=list_create();
 	nuevoReg->ret_pos = nuevaPCB->program_counter;
 	list_add(nuevaPCB->stack_index,nuevoReg);
 	twt_irAlLabel(etiqueta);
-	return;
+	return;*/
 
 }
 void twt_llamarConRetorno (t_nombre_etiqueta etiqueta, t_puntero donde_retornar)
 {
-	printf("Soy llamarConRetorno para funcinon: %s \n", etiqueta);
+	log_info(messagesLog,"Llamar con retorno a la funcion: %s\n", etiqueta);
 	//Crea un nuevo contexto de ejecucion
 	registroStack* nuevoReg = malloc(sizeof(registroStack));
 	nuevoReg->args=list_create();
@@ -359,28 +358,26 @@ void twt_llamarConRetorno (t_nombre_etiqueta etiqueta, t_puntero donde_retornar)
 
 void twt_finalizar (void)
 {
-	printf("Soy finalizar\n");
-
 	registroStack* registroActual = list_remove(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
 
 
 	if(list_size(nuevaPCB->stack_index)==0) //Si finalizó el main (begin en ansisop)
 	{
 		programaTerminado = true;
-		printf("Finalizo el programa\n");
+		log_info(messagesLog,"Finalizar contexto de ejecucion del main\n");
 	} else
 	{
 		nuevaPCB->program_counter = registroActual->ret_pos;
-		printf("Al finalizar la funcion, el PC vuelve a: %d\n", nuevaPCB->program_counter);
+		log_info(messagesLog,"Finalizar contexto de ejecucion de la funcion\n");
+		log_info(messagesLog,"Program Counter actualizado a: %d\n", nuevaPCB->program_counter);
 	}
 
 	liberar_registro_stack(registroActual);
-	printf("Se ha ejecutado el end\n");
 	return;
 }
 void twt_retornar(t_valor_variable retorno)
 {
-	printf("Soy retornar con este valor: %i\n", retorno);
+	log_info(messagesLog,"La funcion retorna el valor: %d\n", retorno);
 	//Obtengo registro actual:
 
 	registroStack* regActual = list_get(nuevaPCB->stack_index,nuevaPCB->stack_index->elements_count-1);
@@ -396,7 +393,7 @@ void twt_retornar(t_valor_variable retorno)
  */
 void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
-	printf("Soy wait\n");
+	log_info(messagesLog,"Proceso: %d hace wait en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
 	uint32_t codigo = WAIT;
 	int32_t valor;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
@@ -415,14 +412,14 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 
 	if(valor < 0){
 		procesoBloqueado = true;
-		printf("Upa, se bloqueo el proceso!\n");
+		log_info(messagesLog,"El proceso: %d se bloqueo al hacer wait en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
 	}
 
 	return;
 }
 void twt_signal (t_nombre_semaforo identificador_semaforo)
 {
-	printf("Soy signal\n");
+	log_info(messagesLog,"Proceso: %d hace signal en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
 
 	uint32_t codigo = SIGNAL;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
@@ -439,7 +436,7 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 }
 t_puntero twt_reservar (t_valor_variable espacio)
 {
-	printf("Soy reservar memoria\n");
+	log_info(messagesLog,"Proceso: %d solicita reservar %d bytes en heap\n", nuevaPCB->pid, espacio);
 	uint32_t codigo = RESERVAR_MEMORIA;
 	int32_t puntero;
 	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(int));
@@ -452,13 +449,14 @@ t_puntero twt_reservar (t_valor_variable espacio)
 	if(puntero < 0){
 		procesoAbortado=true;
 		codigo_error = puntero;
+		log_error(messagesLog,"Proceso: %d abortado, no se pudo reservar el espacio en heap\n", nuevaPCB->pid, espacio);
 	}
 
 	return puntero;
 }
 void twt_liberar(t_puntero puntero)
 {
-	printf("Soy liberar memoria\n");
+	log_info(messagesLog,"Proceso: %d libera memoria\n", nuevaPCB->pid);
 	uint32_t resp, codigo = LIBERAR_MEMORIA;
 	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(u_int32_t));
 	memcpy(buffer, &codigo, sizeof(uint32_t));
@@ -469,13 +467,14 @@ void twt_liberar(t_puntero puntero)
 
 	if(resp < 0){
 		procesoAbortado=true;
+		log_error(messagesLog,"Proceso: %d abortado al intentar liberar\n", nuevaPCB->pid);
 	}
 
 	return;
 }
 t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 {
-	printf("Soy abrir archivo con el path: %s\n", direccion);
+	log_info(messagesLog,"Abrir archivo: %s\n", direccion);
 	uint32_t codigo = ABRIR_ARCHIVO;
 	uint32_t path_length = strlen(direccion)+1;
 	void* buffer = malloc(sizeof(uint32_t)*3 + path_length + sizeof(bool)*3);
@@ -496,13 +495,14 @@ t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 
 	if(fd_archivo < 0){
 		procesoAbortado=true;
+		log_error(messagesLog,"Proceso: %d abortado al intentar abrir el archivo: %s\n", nuevaPCB->pid, direccion);
 	}
 
 	return fd_archivo;
 }
 void twt_borrar (t_descriptor_archivo direccion)
 {
-	printf("Soy borrar para el archivo:%d\n", direccion);
+	log_info(messagesLog,"Borrar archivo: %s\n", direccion);
 	uint32_t fd_a_borrar = direccion;
 	uint32_t codigo = BORRAR_ARCHIVO;
 	uint32_t resp;
@@ -515,6 +515,7 @@ void twt_borrar (t_descriptor_archivo direccion)
 
 	if(resp < 0){
 		procesoAbortado=true;
+		log_error(messagesLog,"Proceso: %d abortado al intentar borrar el archivo: %s\n", nuevaPCB->pid, direccion);
 	}
 
 	free(buffer);
@@ -522,7 +523,7 @@ void twt_borrar (t_descriptor_archivo direccion)
 }
 void twt_cerrar (t_descriptor_archivo descriptor_archivo)
 {
-	printf("Soy cerrar archivo: %d\n", descriptor_archivo);
+	log_info(messagesLog,"Cerrar archivo, file descriptor: %d\n", descriptor_archivo);
 	uint32_t codigo = CERRAR_ARCHIVO;
 	uint32_t fd_a_cerrar = descriptor_archivo;
 	uint32_t resp;
@@ -536,14 +537,14 @@ void twt_cerrar (t_descriptor_archivo descriptor_archivo)
 
 	if(resp < 0){
 		procesoAbortado=true;
-		printf("No se pudo cerrar, respuesta obtenida: %d\n", resp);
+		log_error(messagesLog,"Proceso: %d abortado al intentar cerrar el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	}
 	free(buffer);
 	return;
 }
 void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable posicion)
 {
-	printf("Soy moverCursor para el archivo: %d a posicion: %d\n", descriptor_archivo, posicion);
+	log_info(messagesLog,"Mover el cursor en el archivo con: %d a posicion: %d\n", descriptor_archivo, posicion);
 	uint32_t codigo = MOVER_CURSOR;
 	uint32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*4);
@@ -557,6 +558,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 
 	if(resp < 0){
 		procesoAbortado=true;
+		log_error(messagesLog,"Proceso: %d abortado al intentar mover el cursor en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	}
 	free(buffer);
 	return;
@@ -564,7 +566,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t_valor_variable tamanio)
 {
 	memset(informacion+tamanio, '\0', 1);
-	printf("Soy escribir en archivo: %d la informacion: %s con tamanio: %d\n", descriptor_archivo, (char*)informacion, tamanio);
+	log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
 	int desc_salida=descriptor_archivo;
 	uint32_t resp;
 	if(desc_salida==0)
@@ -584,14 +586,14 @@ void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t
 
 	if(resp < 0){
 		procesoAbortado=true;
-		printf("No se pudo escribir, respuesta obtenida: %d\n", resp);
+		log_error(messagesLog,"Proceso: %d abortado al intentar escribir en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	}
 	free(buffer);
 	return;
 }
 void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t_valor_variable tamanio)
 {
-	printf("Soy leer el archivo: %d\n", descriptor_archivo);
+	log_info(messagesLog,"Leer archivo, file decriptor: %d\n", descriptor_archivo);
 	uint32_t codigo = LEER_ARCHIVO;
 	uint32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*4);
@@ -606,7 +608,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 
 	if(resp < 0){
 		procesoAbortado=true;
-		printf("No se pudo leer, respuesta obtenida: %d\n", resp);
+		log_error(messagesLog,"Proceso: %d abortado al intentar leer en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	} else{
 	recibir(fd_kernel, &informacion_leida, tamanio);
 	//twt_asignar(informacion, informacion_leida);     //Voy a preguntar bien si esto es asi
@@ -664,11 +666,13 @@ int get_fd_server(char* ip, char* puerto){
 	for(p = servinfo; p != NULL; p = p->ai_next) {
 			if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 				perror("client: socket");
+				log_error(messagesLog, "client: socket\n");
 				continue;
 				}
 				if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 					close(sockfd);
 					perror("client: connect");
+					log_error(messagesLog, "client: connect\n");
 					continue;
 					}
 			break;
@@ -820,6 +824,10 @@ int main(int argc, char **argv) {
 	printf("IP Memoria: %s\n",data_config.ip_memoria);
 	printf("Puerto Memoria: %s\n",data_config.puerto_memoria);
 
+	//Creacion del archivo de log
+
+	messagesLog = log_create("../../Files/Logs/CPUMessages.log", "CPU", false, LOG_LEVEL_INFO);
+
 	// CONEXION A KERNEL
 
 
@@ -847,12 +855,16 @@ int main(int argc, char **argv) {
 
 	while(1)
 	{
+		log_info(messagesLog, "Esperando proceso para ejecutar...\n");
 		recv(fd_kernel, &quantum, sizeof(int32_t), 0);
 		recv(fd_kernel, &quantum_sleep, sizeof(uint32_t), 0);
 		recv(fd_kernel, &codigo, sizeof(uint32_t),0);
-		printf("Se recibio codigo: %d\n", codigo); //Cuando CPU reciba codigos diferentes a un PCB, recibimos dependiendo el codigo
+		printf("Se recibio codigo: %d\n", codigo);
+		log_info(messagesLog, "Se recibio codigo: %d\n", codigo);
 		nuevaPCB = recibirPCB(fd_kernel);
 		printf("RECIBI PCB\n");
+		log_info(messagesLog, "Se recibio un PCB\n");
+
 		print_PCB(nuevaPCB);
 		stackOverflow = false;
 		programaTerminado = false;
@@ -866,17 +878,20 @@ int main(int argc, char **argv) {
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
+				log_info(messagesLog, "Instruccion: %s\n", instruccion);
 				analizadorLinea(instruccion, &funciones, &fcs_kernel);
 				free(instruccion);
 			}
 			if(programaTerminado == true){
 				codigo = 10;
 				send_PCB(fd_kernel, nuevaPCB, codigo);
+				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 			}
 			else{
 				codigo = 25;
 				enviar(fd_kernel, &codigo_error, sizeof(int32_t));
 				send_PCB(fd_kernel, nuevaPCB, codigo);
+				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 			}
 		}
 		else{
@@ -885,6 +900,7 @@ int main(int argc, char **argv) {
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
+				log_info(messagesLog, "Instruccion: %s\n", instruccion);
 				analizadorLinea(instruccion, &funciones, &fcs_kernel);
 				free(instruccion);
 				quantum --;
@@ -892,14 +908,17 @@ int main(int argc, char **argv) {
 			if((programaTerminado == true) || (stackOverflow==true) || (procesoBloqueado == true)){
 				codigo = 10;
 				send_PCB(fd_kernel, nuevaPCB, codigo);
+				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 			}
 			if((quantum == 0) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false)){
 				codigo = 13;
 				send_PCB(fd_kernel, nuevaPCB, codigo);
+				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 			}
 		}
 	}
 
+	log_destroy(messagesLog);
 	close(fd_kernel);
 	close(fd_memoria);
 	free(cfgPath);

@@ -1,0 +1,48 @@
+[INFO] 21:11:37:398 CPU/(4737:4737): Esperando proceso para ejecutar...
+
+[INFO] 21:11:42:920 CPU/(4737:4737): Se recibio codigo: 10
+
+[INFO] 21:11:42:920 CPU/(4737:4737): Se recibio un PCB
+
+[INFO] 21:11:43:21 CPU/(4737:4737): Instruccion: 	variables a, b
+
+[INFO] 21:11:43:21 CPU/(4737:4737): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 21:11:43:21 CPU/(4737:4737): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 21:11:43:22 CPU/(4737:4737): Instruccion: 	a = 3
+
+[INFO] 21:11:43:22 CPU/(4737:4737): Obtener posicion de la variable: a
+
+[INFO] 21:11:43:22 CPU/(4737:4737): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 21:11:43:122 CPU/(4737:4737): Instruccion: 	b = 5
+
+[INFO] 21:11:43:122 CPU/(4737:4737): Obtener posicion de la variable: b
+
+[INFO] 21:11:43:122 CPU/(4737:4737): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 21:11:43:222 CPU/(4737:4737): Instruccion: 	a = b + 12
+
+[INFO] 21:11:43:223 CPU/(4737:4737): Obtener posicion de la variable: b
+
+[INFO] 21:11:43:223 CPU/(4737:4737): Dereferenciar la direccion: 516
+
+[INFO] 21:11:43:223 CPU/(4737:4737): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 21:11:43:223 CPU/(4737:4737): Obtener posicion de la variable: a
+
+[INFO] 21:11:43:223 CPU/(4737:4737): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 21:11:43:323 CPU/(4737:4737): Instruccion: end
+
+[INFO] 21:11:43:323 CPU/(4737:4737): Finalizar contexto de ejecucion del main
+
+[INFO] 21:11:43:323 CPU/(4737:4737): Proceso 1 terminado correctamente
+
+[INFO] 21:11:43:323 CPU/(4737:4737): Esperando proceso para ejecutar...
+
+[INFO] 21:14:37:345 CPU/(4737:4737): Se recibio codigo: 10
+
+[INFO] 21:14:37:345 CPU/(4737:4737): Se recibio un PCB
+
