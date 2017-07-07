@@ -177,3 +177,2834 @@
 [INFO] 18:46:01:730 Kernel/(8314:8314): Hay 0 consolas conectadas
 
 
+[INFO] 18:57:19:55 Kernel/(7874:7874): 
+
+//////////////////////
+
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 18:57:19:56 Kernel/(7874:7874): Puerto Programas: 9034
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Puerto CPUs: 9034
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): IP Memoria: 127.0.0.1
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Puerto Memoria: 5003
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): IP FS: 127.0.0.1
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Puerto FS: 5009
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Quantum: 1
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Quantum Sleep: 500
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Algoritmo: RR
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Grado Multiprog: 10
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Semaforo SEM1 = 0
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Semaforo SEM2 = 0
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Semaforo SEM3 = 5
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Variable Global 0: !Global
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Variable Global 1: !UnaVar
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Variable Global 2: !tiempo3
+
+[INFO] 18:57:19:56 Kernel/(7874:7874): Tamaño del Stack: 1
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Variables Compartidas:
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Variable Global, valor = 0
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Variable UnaVar, valor = 0
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Variable tiempo3, valor = 0
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Semaforo SEM1, valor = 0
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Semaforo SEM2, valor = 0
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Semaforo SEM3, valor = 5
+
+[ERROR] 18:57:19:57 Kernel/(7874:7874): Error - Client: connect Connection refused
+
+[ERROR] 18:57:19:57 Kernel/(7874:7874): Client: failed to connect
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Conectado con Memoria
+
+[INFO] 18:57:19:57 Kernel/(7874:7874): Tamaño de pagina = 512
+
+[INFO] 18:58:54:631 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:58:54:631 Kernel/(7874:7874): Es una CPU
+
+[INFO] 18:58:54:631 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Es una Consola
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Hay 1 consolas conectadas
+
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Se recibio: 2
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): El script mide: 51 
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): instruccion_inicio = 0
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): instrucciones_size = 5
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instrucciones serializadas: 
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instruccion 1: Inicio = 22, Offset = 7
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instruccion 2: Inicio = 29, Offset = 7
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instruccion 3: Inicio = 36, Offset = 12
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Instruccion 4: Inicio = 48, Offset = 4
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): etiquetas_size = 0
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): etiquetas = (null)
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): cantidad_de_funciones = 0
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): cantidad_de_etiquetas = 0
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): ***FIN DE LA METADATA***
+
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Mandamos a memoria!
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): Y esperamos!
+
+[INFO] 18:59:03:863 Kernel/(7874:7874): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 18:59:03:864 Kernel/(7874:7874): El proceso 1 paso de New a Ready
+
+
+[INFO] 18:59:03:864 Kernel/(7874:7874): La cantidad de procesos actuales es: 1
+
+[INFO] 18:59:03:865 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:03:871 Kernel/(7874:7877): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 18:59:04:281 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:04:283 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:04:285 Kernel/(7874:7877): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 18:59:04:411 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:04:416 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:04:417 Kernel/(7874:7877): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 18:59:04:609 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:04:609 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:04:610 Kernel/(7874:7877): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 18:59:04:631 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:04:631 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:04:631 Kernel/(7874:7877): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 18:59:04:861 Kernel/(7874:7874): Se recibio: 10
+
+[INFO] 18:59:04:863 Kernel/(7874:7874): Elimine el proceso de la lista de exec
+
+[INFO] 18:59:04:863 Kernel/(7874:7874): El proceso no estaba para borrar
+
+[INFO] 18:59:04:863 Kernel/(7874:7874): La cantidad de procesos actuales es: 0
+
+[INFO] 18:59:04:863 Kernel/(7874:7874): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 18:59:04:863 Kernel/(7874:7874): No hubo Memory leaks, bien ahi!
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): Ya le avise a memoria que borre el proceso
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): Ya termine toda la operacion de borrado
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): Settee el proceso actual de la CPU en 0
+
+[ERROR] 18:59:04:864 Kernel/(7874:7874): Selectserver: socket 7 hung up
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): El proceso ya ha sido finalizado
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+[INFO] 18:59:04:864 Kernel/(7874:7874): Hay 0 consolas conectadas
+
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Es una Consola
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Hay 1 consolas conectadas
+
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Se recibio: 2
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): El script mide: 76 
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): instruccion_inicio = 0
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): instrucciones_size = 7
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instrucciones serializadas: 
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 0: Inicio = 6, Offset = 18
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 1: Inicio = 24, Offset = 5
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 2: Inicio = 29, Offset = 6
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 3: Inicio = 44, Offset = 7
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 4: Inicio = 51, Offset = 7
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 5: Inicio = 58, Offset = 14
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Instruccion 6: Inicio = 72, Offset = 4
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): etiquetas_size = 11
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): etiquetas = inicio
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): cantidad_de_funciones = 0
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): cantidad_de_etiquetas = 1
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): ***FIN DE LA METADATA***
+
+
+[INFO] 18:59:08:806 Kernel/(7874:7874): Mandamos a memoria!
+
+[INFO] 18:59:08:807 Kernel/(7874:7874): Y esperamos!
+
+[INFO] 18:59:08:807 Kernel/(7874:7874): El proceso PID 2 se ha guardado en memoria 
+
+[INFO] 18:59:08:807 Kernel/(7874:7874): El proceso 2 paso de New a Ready
+
+
+[INFO] 18:59:08:807 Kernel/(7874:7874): La cantidad de procesos actuales es: 1
+
+[INFO] 18:59:08:807 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:08:809 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:08:969 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:08:996 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:08:999 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:4 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:5 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:5 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:133 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:143 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:144 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:334 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:360 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:361 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:415 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:415 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:416 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:581 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:584 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:587 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:589 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:590 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:598 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:703 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:706 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:707 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:830 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:830 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:838 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:852 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:852 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:852 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:09:954 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:09:955 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:09:955 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:115 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:117 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:122 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:144 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:147 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:147 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:254 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:258 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:258 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:445 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:446 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:450 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:461 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:465 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:465 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:593 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:595 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:598 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:693 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:722 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:724 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:757 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:758 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:758 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:10:903 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:10:903 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:10:903 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:19 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:20 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:23 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:25 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:25 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:25 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:150 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:152 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:156 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:289 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:291 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:295 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:329 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:343 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:344 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:441 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:441 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:441 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:514 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:516 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:520 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:679 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:682 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:682 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:768 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:770 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:771 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:867 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:868 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:869 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:11:883 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:11:884 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:11:884 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:22 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:43 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:44 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:185 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:186 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:187 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:198 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:200 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:200 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:301 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:308 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:311 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:417 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:417 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:421 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:444 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:445 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:446 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:565 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:567 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:569 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:727 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:729 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:732 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:739 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:739 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:739 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:849 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:858 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:858 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:950 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:952 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:955 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:965 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:966 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:966 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:130 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:133 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:136 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:174 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:191 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:192 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:318 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:318 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:318 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:403 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:407 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:407 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:623 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:651 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:654 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:664 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:665 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:665 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:853 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:858 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:864 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:874 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:875 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:12:875 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:12:990 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:12:992 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:14 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:85 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:86 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:96 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:183 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:211 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:215 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:215 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:215 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:215 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:320 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:320 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:320 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:451 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:452 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:452 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:464 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:465 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:465 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:589 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:590 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:592 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:706 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:709 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:709 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:728 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:729 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:729 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:848 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:848 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:849 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:937 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:13:938 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:13:939 Kernel/(7874:7877): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): Se recibio: 10
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): Elimine el proceso de la lista de exec
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): El proceso no estaba para borrar
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): La cantidad de procesos actuales es: 0
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): No hubo Memory leaks, bien ahi!
+
+[INFO] 18:59:13:951 Kernel/(7874:7874): Ya le avise a memoria que borre el proceso
+
+[INFO] 18:59:13:952 Kernel/(7874:7874): Ya termine toda la operacion de borrado
+
+[INFO] 18:59:13:952 Kernel/(7874:7874): Settee el proceso actual de la CPU en 0
+
+[ERROR] 18:59:13:952 Kernel/(7874:7874): Selectserver: socket 7 hung up
+
+[INFO] 18:59:13:952 Kernel/(7874:7874): El proceso ya ha sido finalizado
+
+[INFO] 18:59:13:952 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+[INFO] 18:59:13:952 Kernel/(7874:7874): Hay 0 consolas conectadas
+
+
+[INFO] 18:59:20:714 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Es una Consola
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Hay 1 consolas conectadas
+
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Se recibio: 2
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): El script mide: 106 
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): instruccion_inicio = 0
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): instrucciones_size = 9
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instrucciones serializadas: 
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 0: Inicio = 6, Offset = 22
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 1: Inicio = 28, Offset = 13
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 2: Inicio = 41, Offset = 8
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 3: Inicio = 49, Offset = 13
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 4: Inicio = 62, Offset = 8
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 5: Inicio = 70, Offset = 11
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 6: Inicio = 81, Offset = 14
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 7: Inicio = 95, Offset = 8
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Instruccion 8: Inicio = 103, Offset = 4
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): etiquetas_size = 0
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): etiquetas = (null)
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): cantidad_de_funciones = 0
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): cantidad_de_etiquetas = 0
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): ***FIN DE LA METADATA***
+
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Mandamos a memoria!
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): Y esperamos!
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): El proceso PID 3 se ha guardado en memoria 
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): El proceso 3 paso de New a Ready
+
+
+[INFO] 18:59:20:715 Kernel/(7874:7874): La cantidad de procesos actuales es: 1
+
+[INFO] 18:59:20:715 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:20:716 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:20:859 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:20:863 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:20:866 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:20:942 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:20:942 Kernel/(7874:7874): El proceso 3 necesita alocar 50 bytes
+
+[INFO] 18:59:20:942 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:21:4 Kernel/(7874:7874): El puntero apunta a la direccion 1029
+
+[INFO] 18:59:21:4 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:21:23 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:21:29 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:21:29 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:21:318 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:21:363 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:21:379 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:21:497 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:21:497 Kernel/(7874:7874): El proceso 3 necesita alocar 20 bytes
+
+[INFO] 18:59:21:497 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:21:497 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:21:497 Kernel/(7874:7874): El puntero apunta a la direccion 1084
+
+[INFO] 18:59:21:498 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:21:498 Kernel/(7874:7874): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:21:586 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:21:599 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:21:601 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:21:831 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:21:834 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:21:844 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Se recibio: 7
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): CPU pide: Wait en semaforo: SEM1
+
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Variables Compartidas:
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Variable Global, valor = 0
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Variable UnaVar, valor = 0
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Variable tiempo3, valor = 0
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Semaforo SEM2, valor = 0
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Semaforo SEM3, valor = 5
+
+[INFO] 18:59:22:56 Kernel/(7874:7874): Semaforo SEM1, valor = -1
+
+[INFO] 18:59:22:62 Kernel/(7874:7874): check 1
+
+[INFO] 18:59:22:62 Kernel/(7874:7874): check 2
+
+[INFO] 18:59:22:62 Kernel/(7874:7874): check 3
+
+[INFO] 18:59:22:62 Kernel/(7874:7874): El proceso 3 paso de Exec a Wait
+
+[INFO] 18:59:22:62 Kernel/(7874:7874): Termino todo el envio
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Es una Consola
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Hay 2 consolas conectadas
+
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Se recibio: 2
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): El script mide: 64 
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): instruccion_inicio = 0
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): instrucciones_size = 6
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instrucciones serializadas: 
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 1: Inicio = 22, Offset = 13
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 2: Inicio = 35, Offset = 7
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 3: Inicio = 42, Offset = 7
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 4: Inicio = 49, Offset = 12
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Instruccion 5: Inicio = 61, Offset = 4
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): etiquetas_size = 0
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): etiquetas = (null)
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): cantidad_de_funciones = 0
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): cantidad_de_etiquetas = 0
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): ***FIN DE LA METADATA***
+
+
+[INFO] 18:59:25:522 Kernel/(7874:7874): Mandamos a memoria!
+
+[INFO] 18:59:25:523 Kernel/(7874:7874): Y esperamos!
+
+[INFO] 18:59:25:523 Kernel/(7874:7874): El proceso PID 4 se ha guardado en memoria 
+
+[INFO] 18:59:25:523 Kernel/(7874:7874): El proceso 4 paso de New a Ready
+
+
+[INFO] 18:59:25:523 Kernel/(7874:7874): La cantidad de procesos actuales es: 2
+
+[INFO] 18:59:25:523 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:25:523 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:25:681 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:25:716 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Se recibio: 8
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): CPU pide: Signal en semaforo: SEM1 
+
+
+[INFO] 18:59:25:737 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): El proceso 3 paso de Wait a Ready
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Variables Compartidas:
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Variable Global, valor = 0
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Variable UnaVar, valor = 0
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Variable tiempo3, valor = 0
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Semaforo SEM2, valor = 0
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Semaforo SEM3, valor = 5
+
+[INFO] 18:59:25:737 Kernel/(7874:7874): Semaforo SEM1, valor = 0
+
+[INFO] 18:59:25:792 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:25:792 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:25:792 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:25:833 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:25:833 Kernel/(7874:7874): El proceso 3 necesita alocar 430 bytes
+
+[INFO] 18:59:25:833 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:25:833 Kernel/(7874:7874): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:25:833 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:25:834 Kernel/(7874:7874): El puntero apunta a la direccion 1541
+
+[INFO] 18:59:25:834 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:25:834 Kernel/(7874:7874): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:25:834 Kernel/(7874:7874): Puntero 2, pagina: 3, direccion: 1541, espacio: 430
+
+[INFO] 18:59:25:840 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:25:842 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:25:842 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:58 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:26:62 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:26:64 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:291 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:26:294 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:26:295 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:454 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:26:458 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:26:459 Kernel/(7874:7877): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:597 Kernel/(7874:7874): Se recibio: 10
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Elimine el proceso de la lista de exec
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): El proceso no estaba para borrar
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): La cantidad de procesos actuales es: 1
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Memory leak: se perdieron 500 bytes
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Ya le avise a memoria que borre el proceso
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Ya termine toda la operacion de borrado
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Settee el proceso actual de la CPU en 0
+
+[ERROR] 18:59:26:599 Kernel/(7874:7874): Selectserver: socket 7 hung up
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): El proceso ya ha sido finalizado
+
+[INFO] 18:59:26:599 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+[INFO] 18:59:26:600 Kernel/(7874:7874): Hay 1 consolas conectadas
+
+
+[INFO] 18:59:26:600 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:26:605 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:609 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:26:611 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:26:613 Kernel/(7874:7877): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 18:59:26:710 Kernel/(7874:7874): Se recibio: 10
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Elimine el proceso de la lista de exec
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): El proceso no estaba para borrar
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): La cantidad de procesos actuales es: 0
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): No hubo Memory leaks, bien ahi!
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Ya le avise a memoria que borre el proceso
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Ya termine toda la operacion de borrado
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Settee el proceso actual de la CPU en 0
+
+[ERROR] 18:59:26:711 Kernel/(7874:7874): Selectserver: socket 8 hung up
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): El proceso ya ha sido finalizado
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+[INFO] 18:59:26:711 Kernel/(7874:7874): Hay 0 consolas conectadas
+
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): Se recibio: 1
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): Es una Consola
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): Hay 1 consolas conectadas
+
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): Se recibio: 2
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 18:59:31:465 Kernel/(7874:7874): El script mide: 89 
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): instruccion_inicio = 0
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): instrucciones_size = 7
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instrucciones serializadas: 
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 0: Inicio = 6, Offset = 19
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 1: Inicio = 25, Offset = 13
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 2: Inicio = 38, Offset = 13
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 3: Inicio = 51, Offset = 11
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 4: Inicio = 62, Offset = 11
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 5: Inicio = 73, Offset = 13
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Instruccion 6: Inicio = 86, Offset = 4
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): etiquetas_size = 0
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): etiquetas = (null)
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): cantidad_de_funciones = 0
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): cantidad_de_etiquetas = 0
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): ***FIN DE LA METADATA***
+
+
+[INFO] 18:59:31:466 Kernel/(7874:7874): Mandamos a memoria!
+
+[INFO] 18:59:31:468 Kernel/(7874:7874): Y esperamos!
+
+[INFO] 18:59:31:468 Kernel/(7874:7874): El proceso PID 5 se ha guardado en memoria 
+
+[INFO] 18:59:31:468 Kernel/(7874:7874): El proceso 5 paso de New a Ready
+
+
+[INFO] 18:59:31:468 Kernel/(7874:7874): La cantidad de procesos actuales es: 1
+
+[INFO] 18:59:31:469 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:31:470 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:31:645 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:31:645 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:31:645 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:31:653 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:31:653 Kernel/(7874:7874): El proceso 5 necesita alocar 50 bytes
+
+[INFO] 18:59:31:653 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:31:761 Kernel/(7874:7874): El puntero apunta a la direccion 1029
+
+[INFO] 18:59:31:761 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:31:802 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:31:803 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:31:803 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:32:15 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:32:15 Kernel/(7874:7874): El proceso 5 necesita alocar 20 bytes
+
+[INFO] 18:59:32:15 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:32:15 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:32:18 Kernel/(7874:7874): El puntero apunta a la direccion 1084
+
+[INFO] 18:59:32:18 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:32:18 Kernel/(7874:7874): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:32:23 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:32:23 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:32:23 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:32:266 Kernel/(7874:7874): Se recibio: 19
+
+[INFO] 18:59:32:266 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 18:59:32:266 Kernel/(7874:7874): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:32:267 Kernel/(7874:7874): El espacio ha sido liberado!
+
+[INFO] 18:59:32:268 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:32:268 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:32:268 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:32:551 Kernel/(7874:7874): Se recibio: 19
+
+[INFO] 18:59:32:551 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 18:59:32:553 Kernel/(7874:7874): El espacio ha sido liberado!
+
+[INFO] 18:59:32:555 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:32:558 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:32:558 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:32:734 Kernel/(7874:7874): Se recibio: 18
+
+[INFO] 18:59:32:734 Kernel/(7874:7874): El proceso 5 necesita alocar 70 bytes
+
+[INFO] 18:59:32:734 Kernel/(7874:7874): Debemos alocar en la pagina 2
+
+[INFO] 18:59:32:734 Kernel/(7874:7874): El puntero apunta a la direccion 1029
+
+[INFO] 18:59:32:734 Kernel/(7874:7874): Puntero 0, pagina: 2, direccion: 1029, espacio: 70
+
+[INFO] 18:59:32:735 Kernel/(7874:7874): Se recibio: 13
+
+[INFO] 18:59:32:742 Kernel/(7874:7877): Mande Codigo: 10
+
+[INFO] 18:59:32:742 Kernel/(7874:7877): El proceso 5 ha pasado de Ready a Exec
+
+[INFO] 18:59:33:20 Kernel/(7874:7874): Se recibio: 10
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Elimine el proceso de la lista de exec
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): El proceso no estaba para borrar
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): La cantidad de procesos actuales es: 0
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Memory leak: se perdieron 70 bytes
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Ya le avise a memoria que borre el proceso
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Ya termine toda la operacion de borrado
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Settee el proceso actual de la CPU en 0
+
+[ERROR] 18:59:33:22 Kernel/(7874:7874): Selectserver: socket 7 hung up
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): El proceso ya ha sido finalizado
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Hay 1 cpus conectadas
+
+[INFO] 18:59:33:22 Kernel/(7874:7874): Hay 0 consolas conectadas
+
+
+[INFO] 19:06:36:293 Kernel/(8330:8330): 
+
+//////////////////////
+
+
+[INFO] 19:06:36:293 Kernel/(8330:8330): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 19:06:36:294 Kernel/(8330:8330): Puerto Programas: 9034
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Puerto CPUs: 9034
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): IP Memoria: 127.0.0.1
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Puerto Memoria: 5003
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): IP FS: 127.0.0.1
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Puerto FS: 5009
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Quantum: 1
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Quantum Sleep: 500
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Algoritmo: RR
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Grado Multiprog: 10
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM1 = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM2 = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM3 = 5
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable Global 0: !Global
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable Global 1: !UnaVar
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable Global 2: !tiempo3
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Tamaño del Stack: 1
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variables Compartidas:
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable Global, valor = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable UnaVar, valor = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Variable tiempo3, valor = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM1, valor = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM2, valor = 0
+
+[INFO] 19:06:36:294 Kernel/(8330:8330): Semaforo SEM3, valor = 5
+
+[ERROR] 19:06:36:294 Kernel/(8330:8330): Error - Client: connect Connection refused
+
+[ERROR] 19:06:36:294 Kernel/(8330:8330): Client: failed to connect
+
+[INFO] 19:06:36:295 Kernel/(8330:8330): Conectado con Memoria
+
+[INFO] 19:06:36:295 Kernel/(8330:8330): Tamaño de pagina = 512
+
+[INFO] 19:06:47:40 Kernel/(8330:8330): Se recibio: 1
+
+[INFO] 19:06:47:40 Kernel/(8330:8330): Es una CPU
+
+[INFO] 19:06:47:40 Kernel/(8330:8330): Hay 1 cpus conectadas
+
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Se recibio: 1
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Es una Consola
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Hay 1 consolas conectadas
+
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Se recibio: 2
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): El script mide: 51 
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): instruccion_inicio = 0
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): instrucciones_size = 5
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instrucciones serializadas: 
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instruccion 1: Inicio = 22, Offset = 7
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instruccion 2: Inicio = 29, Offset = 7
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instruccion 3: Inicio = 36, Offset = 12
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Instruccion 4: Inicio = 48, Offset = 4
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): etiquetas_size = 0
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): etiquetas = (null)
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): cantidad_de_funciones = 0
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): cantidad_de_etiquetas = 0
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): ***FIN DE LA METADATA***
+
+
+[INFO] 19:06:56:652 Kernel/(8330:8330): Mandamos a memoria!
+
+[INFO] 19:06:56:653 Kernel/(8330:8330): Y esperamos!
+
+[INFO] 19:06:56:653 Kernel/(8330:8330): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 19:06:56:653 Kernel/(8330:8330): El proceso 1 paso de New a Ready
+
+
+[INFO] 19:06:56:653 Kernel/(8330:8330): La cantidad de procesos actuales es: 1
+
+[INFO] 19:06:56:654 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:06:56:654 Kernel/(8330:8333): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:06:56:817 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:06:56:819 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:06:56:819 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:06:56:824 Kernel/(8330:8333): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:06:56:824 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:06:56:824 Kernel/(8330:8333): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:06:56:934 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:06:56:941 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:06:56:942 Kernel/(8330:8333): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:06:57:81 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:06:57:83 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:06:57:84 Kernel/(8330:8333): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:06:57:138 Kernel/(8330:8330): Se recibio: 10
+
+[INFO] 19:06:57:180 Kernel/(8330:8330): Elimine el proceso de la lista de exec
+
+[INFO] 19:06:57:181 Kernel/(8330:8330): El proceso no estaba para borrar
+
+[INFO] 19:06:57:181 Kernel/(8330:8330): La cantidad de procesos actuales es: 0
+
+[INFO] 19:06:57:186 Kernel/(8330:8330): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:06:57:186 Kernel/(8330:8330): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): Ya termine toda la operacion de borrado
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:06:57:198 Kernel/(8330:8330): Selectserver: socket 7 hung up
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): El proceso ya ha sido finalizado
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): Hay 1 cpus conectadas
+
+[INFO] 19:06:57:198 Kernel/(8330:8330): Hay 0 consolas conectadas
+
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Se recibio: 1
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Es una Consola
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Hay 1 consolas conectadas
+
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Se recibio: 2
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): El script mide: 106 
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): instruccion_inicio = 0
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): instrucciones_size = 9
+
+[INFO] 19:07:02:527 Kernel/(8330:8330): Instrucciones serializadas: 
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 0: Inicio = 6, Offset = 22
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 1: Inicio = 28, Offset = 13
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 2: Inicio = 41, Offset = 8
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 3: Inicio = 49, Offset = 13
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 4: Inicio = 62, Offset = 8
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 5: Inicio = 70, Offset = 11
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 6: Inicio = 81, Offset = 14
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 7: Inicio = 95, Offset = 8
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Instruccion 8: Inicio = 103, Offset = 4
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): etiquetas_size = 0
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): etiquetas = (null)
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): cantidad_de_funciones = 0
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): cantidad_de_etiquetas = 0
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): ***FIN DE LA METADATA***
+
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Mandamos a memoria!
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): Y esperamos!
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): El proceso PID 2 se ha guardado en memoria 
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): El proceso 2 paso de New a Ready
+
+
+[INFO] 19:07:02:528 Kernel/(8330:8330): La cantidad de procesos actuales es: 1
+
+[INFO] 19:07:02:528 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:02:528 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:02:663 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:02:666 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:02:703 Kernel/(8330:8330): Se recibio: 18
+
+[INFO] 19:07:02:703 Kernel/(8330:8330): El proceso 2 necesita alocar 50 bytes
+
+[INFO] 19:07:02:703 Kernel/(8330:8330): Debemos alocar en la pagina 2
+
+[INFO] 19:07:02:703 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:02:748 Kernel/(8330:8330): El puntero apunta a la direccion 1029
+
+[INFO] 19:07:02:748 Kernel/(8330:8330): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:07:02:751 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:02:754 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:02:754 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:02:997 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:03:7 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:03:7 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Se recibio: 18
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): El proceso 2 necesita alocar 20 bytes
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Debemos alocar en la pagina 2
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): El puntero apunta a la direccion 1084
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:07:03:213 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:03:225 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:03:226 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:03:534 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:03:540 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:03:540 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Se recibio: 7
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): CPU pide: Wait en semaforo: SEM1
+
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Variables Compartidas:
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Variable Global, valor = 0
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Variable UnaVar, valor = 0
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Variable tiempo3, valor = 0
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Semaforo SEM2, valor = 0
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Semaforo SEM3, valor = 5
+
+[INFO] 19:07:03:745 Kernel/(8330:8330): Semaforo SEM1, valor = -1
+
+[INFO] 19:07:03:747 Kernel/(8330:8330): check 1
+
+[INFO] 19:07:03:747 Kernel/(8330:8330): check 2
+
+[INFO] 19:07:03:747 Kernel/(8330:8330): check 3
+
+[INFO] 19:07:03:747 Kernel/(8330:8330): El proceso 2 paso de Exec a Wait
+
+[INFO] 19:07:03:747 Kernel/(8330:8330): Termino todo el envio
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Se recibio: 1
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Es una Consola
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Hay 2 consolas conectadas
+
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Se recibio: 2
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): El script mide: 64 
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): instruccion_inicio = 0
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): instrucciones_size = 6
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instrucciones serializadas: 
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 1: Inicio = 22, Offset = 13
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 2: Inicio = 35, Offset = 7
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 3: Inicio = 42, Offset = 7
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 4: Inicio = 49, Offset = 12
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Instruccion 5: Inicio = 61, Offset = 4
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): etiquetas_size = 0
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): etiquetas = (null)
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): cantidad_de_funciones = 0
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): cantidad_de_etiquetas = 0
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): ***FIN DE LA METADATA***
+
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Mandamos a memoria!
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): Y esperamos!
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): El proceso PID 3 se ha guardado en memoria 
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): El proceso 3 paso de New a Ready
+
+
+[INFO] 19:07:06:308 Kernel/(8330:8330): La cantidad de procesos actuales es: 2
+
+[INFO] 19:07:06:309 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:309 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:06:451 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Se recibio: 8
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): CPU pide: Signal en semaforo: SEM1 
+
+
+[INFO] 19:07:06:451 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): El proceso 2 paso de Wait a Ready
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Variables Compartidas:
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Variable Global, valor = 0
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Variable UnaVar, valor = 0
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Variable tiempo3, valor = 0
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Semaforo SEM2, valor = 0
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Semaforo SEM3, valor = 5
+
+[INFO] 19:07:06:451 Kernel/(8330:8330): Semaforo SEM1, valor = 0
+
+[INFO] 19:07:06:512 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:06:512 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:512 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:06:575 Kernel/(8330:8330): Se recibio: 18
+
+[INFO] 19:07:06:575 Kernel/(8330:8330): El proceso 2 necesita alocar 430 bytes
+
+[INFO] 19:07:06:575 Kernel/(8330:8330): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:07:06:575 Kernel/(8330:8330): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:07:06:575 Kernel/(8330:8330): Debemos alocar en la pagina 2
+
+[INFO] 19:07:06:577 Kernel/(8330:8330): El puntero apunta a la direccion 1541
+
+[INFO] 19:07:06:577 Kernel/(8330:8330): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:07:06:577 Kernel/(8330:8330): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:07:06:577 Kernel/(8330:8330): Puntero 2, pagina: 3, direccion: 1541, espacio: 430
+
+[INFO] 19:07:06:577 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:06:579 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:580 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:06:752 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:06:752 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:752 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:06:915 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:06:915 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:06:918 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:07:122 Kernel/(8330:8330): Se recibio: 13
+
+[INFO] 19:07:07:123 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:07:123 Kernel/(8330:8333): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:07:07:323 Kernel/(8330:8330): Se recibio: 10
+
+[INFO] 19:07:07:324 Kernel/(8330:8330): Elimine el proceso de la lista de exec
+
+[INFO] 19:07:07:324 Kernel/(8330:8330): El proceso no estaba para borrar
+
+[INFO] 19:07:07:325 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:07:325 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:07:325 Kernel/(8330:8330): La cantidad de procesos actuales es: 1
+
+[INFO] 19:07:07:325 Kernel/(8330:8330): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:07:07:326 Kernel/(8330:8330): Memory leak: se perdieron 500 bytes
+
+[INFO] 19:07:07:326 Kernel/(8330:8330): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:07:07:326 Kernel/(8330:8330): Ya termine toda la operacion de borrado
+
+[INFO] 19:07:07:326 Kernel/(8330:8330): Settee el proceso actual de la CPU en 0
+
+[INFO] 19:07:07:326 Kernel/(8330:8330): Se recibio: 13
+
+[ERROR] 19:07:07:328 Kernel/(8330:8330): Selectserver: socket 7 hung up
+
+[INFO] 19:07:07:328 Kernel/(8330:8330): El proceso ya ha sido finalizado
+
+[INFO] 19:07:07:328 Kernel/(8330:8330): Hay 1 cpus conectadas
+
+[INFO] 19:07:07:328 Kernel/(8330:8330): Hay 1 consolas conectadas
+
+
+[INFO] 19:07:07:328 Kernel/(8330:8333): Mande Codigo: 10
+
+[INFO] 19:07:07:328 Kernel/(8330:8333): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): Se recibio: 10
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): Elimine el proceso de la lista de exec
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): El proceso no estaba para borrar
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): La cantidad de procesos actuales es: 0
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:07:07:464 Kernel/(8330:8330): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:07:07:465 Kernel/(8330:8330): Ya termine toda la operacion de borrado
+
+[INFO] 19:07:07:465 Kernel/(8330:8330): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:07:07:465 Kernel/(8330:8330): Selectserver: socket 8 hung up
+
+[INFO] 19:07:07:465 Kernel/(8330:8330): El proceso ya ha sido finalizado
+
+[INFO] 19:07:07:465 Kernel/(8330:8330): Hay 1 cpus conectadas
+
+[INFO] 19:07:07:465 Kernel/(8330:8330): Hay 0 consolas conectadas
+
+
+[ERROR] 19:07:15:330 Kernel/(8330:8330): Selectserver: socket 6 hung up
+
+[INFO] 19:07:15:330 Kernel/(8330:8330): Se desconecto la CPU 6, que no estaba ejecutando ningun proceso
+
+[INFO] 19:07:15:330 Kernel/(8330:8330): Hay 0 cpus conectadas
+
+[INFO] 19:07:15:330 Kernel/(8330:8330): Hay 0 consolas conectadas
+
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): 
+
+//////////////////////
+
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 19:09:29:159 Kernel/(8538:8538): Puerto Programas: 9034
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Puerto CPUs: 9034
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): IP Memoria: 127.0.0.1
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Puerto Memoria: 5003
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): IP FS: 127.0.0.1
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Puerto FS: 5009
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Quantum: 1
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Quantum Sleep: 500
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Algoritmo: RR
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Grado Multiprog: 10
+
+[INFO] 19:09:29:159 Kernel/(8538:8538): Semaforo SEM1 = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Semaforo SEM2 = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Semaforo SEM3 = 5
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable Global 0: !Global
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable Global 1: !UnaVar
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable Global 2: !tiempo3
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Tamaño del Stack: 1
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variables Compartidas:
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable Global, valor = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable UnaVar, valor = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Variable tiempo3, valor = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Semaforo SEM1, valor = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Semaforo SEM2, valor = 0
+
+[INFO] 19:09:29:161 Kernel/(8538:8538): Semaforo SEM3, valor = 5
+
+[ERROR] 19:09:29:166 Kernel/(8538:8538): Error - Client: connect Connection refused
+
+[ERROR] 19:09:29:166 Kernel/(8538:8538): Client: failed to connect
+
+[INFO] 19:09:29:167 Kernel/(8538:8538): Conectado con Memoria
+
+[INFO] 19:09:29:167 Kernel/(8538:8538): Tamaño de pagina = 512
+
+[INFO] 19:09:31:391 Kernel/(8538:8538): Se recibio: 1
+
+[INFO] 19:09:31:391 Kernel/(8538:8538): Es una CPU
+
+[INFO] 19:09:31:391 Kernel/(8538:8538): Hay 1 cpus conectadas
+
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): Se recibio: 1
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): Es una Consola
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): Hay 1 consolas conectadas
+
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): Se recibio: 2
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:09:40:512 Kernel/(8538:8538): El script mide: 106 
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): instruccion_inicio = 0
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): instrucciones_size = 9
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instrucciones serializadas: 
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 0: Inicio = 6, Offset = 22
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 1: Inicio = 28, Offset = 13
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 2: Inicio = 41, Offset = 8
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 3: Inicio = 49, Offset = 13
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 4: Inicio = 62, Offset = 8
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 5: Inicio = 70, Offset = 11
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 6: Inicio = 81, Offset = 14
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 7: Inicio = 95, Offset = 8
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Instruccion 8: Inicio = 103, Offset = 4
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): etiquetas_size = 0
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): etiquetas = (null)
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): cantidad_de_funciones = 0
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): cantidad_de_etiquetas = 0
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): ***FIN DE LA METADATA***
+
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Mandamos a memoria!
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): Y esperamos!
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): El proceso 1 paso de New a Ready
+
+
+[INFO] 19:09:40:513 Kernel/(8538:8538): La cantidad de procesos actuales es: 1
+
+[INFO] 19:09:40:513 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:40:514 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:40:634 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:40:638 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:40:638 Kernel/(8538:8538): Se recibio: 18
+
+[INFO] 19:09:40:638 Kernel/(8538:8538): El proceso 1 necesita alocar 50 bytes
+
+[INFO] 19:09:40:638 Kernel/(8538:8538): Debemos alocar en la pagina 2
+
+[INFO] 19:09:40:638 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:40:678 Kernel/(8538:8538): El puntero apunta a la direccion 1029
+
+[INFO] 19:09:40:678 Kernel/(8538:8538): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:09:40:678 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:40:681 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:40:681 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:40:893 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:40:896 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:40:897 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): Se recibio: 18
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): El proceso 1 necesita alocar 20 bytes
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): Debemos alocar en la pagina 2
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): El puntero apunta a la direccion 1084
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:09:41:114 Kernel/(8538:8538): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:09:41:115 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:41:116 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:41:116 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:41:426 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:41:430 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:41:431 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Se recibio: 7
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): CPU pide: Wait en semaforo: SEM1
+
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Variables Compartidas:
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Variable Global, valor = 0
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Variable UnaVar, valor = 0
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Variable tiempo3, valor = 0
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Semaforo SEM2, valor = 0
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Semaforo SEM3, valor = 5
+
+[INFO] 19:09:41:647 Kernel/(8538:8538): Semaforo SEM1, valor = -1
+
+[INFO] 19:09:41:651 Kernel/(8538:8538): check 1
+
+[INFO] 19:09:41:651 Kernel/(8538:8538): check 2
+
+[INFO] 19:09:41:651 Kernel/(8538:8538): check 3
+
+[INFO] 19:09:41:651 Kernel/(8538:8538): El proceso 1 paso de Exec a Wait
+
+[INFO] 19:09:41:651 Kernel/(8538:8538): Termino todo el envio
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Se recibio: 1
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Es una Consola
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Hay 2 consolas conectadas
+
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Se recibio: 2
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): El script mide: 64 
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): instruccion_inicio = 0
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): instrucciones_size = 6
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instrucciones serializadas: 
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 1: Inicio = 22, Offset = 13
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 2: Inicio = 35, Offset = 7
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 3: Inicio = 42, Offset = 7
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 4: Inicio = 49, Offset = 12
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Instruccion 5: Inicio = 61, Offset = 4
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): etiquetas_size = 0
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): etiquetas = (null)
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): cantidad_de_funciones = 0
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): cantidad_de_etiquetas = 0
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): ***FIN DE LA METADATA***
+
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Mandamos a memoria!
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): Y esperamos!
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): El proceso PID 2 se ha guardado en memoria 
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): El proceso 2 paso de New a Ready
+
+
+[INFO] 19:09:45:358 Kernel/(8538:8538): La cantidad de procesos actuales es: 2
+
+[INFO] 19:09:45:358 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:359 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:45:502 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:45:518 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Se recibio: 8
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): CPU pide: Signal en semaforo: SEM1 
+
+
+[INFO] 19:09:45:519 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): El proceso 1 paso de Wait a Ready
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Variables Compartidas:
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Variable Global, valor = 0
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Variable UnaVar, valor = 0
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Variable tiempo3, valor = 0
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Semaforo SEM2, valor = 0
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Semaforo SEM3, valor = 5
+
+[INFO] 19:09:45:519 Kernel/(8538:8538): Semaforo SEM1, valor = 0
+
+[INFO] 19:09:45:559 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:45:561 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:561 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Se recibio: 18
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): El proceso 1 necesita alocar 430 bytes
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Debemos alocar en la pagina 2
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): El puntero apunta a la direccion 1541
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Puntero 2, pagina: 3, direccion: 1541, espacio: 430
+
+[INFO] 19:09:45:604 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:45:627 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:627 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:45:708 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:45:709 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:710 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:45:935 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:45:938 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:45:938 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:46:57 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:46:66 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:46:66 Kernel/(8538:8541): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:09:46:287 Kernel/(8538:8538): Se recibio: 10
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): Elimine el proceso de la lista de exec
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): El proceso no estaba para borrar
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): La cantidad de procesos actuales es: 1
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): Memory leak: se perdieron 500 bytes
+
+[INFO] 19:09:46:289 Kernel/(8538:8538): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:09:46:290 Kernel/(8538:8538): Ya termine toda la operacion de borrado
+
+[INFO] 19:09:46:290 Kernel/(8538:8538): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:09:46:290 Kernel/(8538:8538): Selectserver: socket 7 hung up
+
+[INFO] 19:09:46:290 Kernel/(8538:8538): El proceso ya ha sido finalizado
+
+[INFO] 19:09:46:290 Kernel/(8538:8538): Hay 1 cpus conectadas
+
+[INFO] 19:09:46:291 Kernel/(8538:8538): Hay 1 consolas conectadas
+
+
+[INFO] 19:09:46:291 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:46:292 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:46:294 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:46:305 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:46:305 Kernel/(8538:8541): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:09:46:524 Kernel/(8538:8538): Se recibio: 10
+
+[INFO] 19:09:46:525 Kernel/(8538:8538): Elimine el proceso de la lista de exec
+
+[INFO] 19:09:46:525 Kernel/(8538:8538): El proceso no estaba para borrar
+
+[INFO] 19:09:46:525 Kernel/(8538:8538): La cantidad de procesos actuales es: 0
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): Ya termine toda la operacion de borrado
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:09:46:526 Kernel/(8538:8538): Selectserver: socket 8 hung up
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): El proceso ya ha sido finalizado
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): Hay 1 cpus conectadas
+
+[INFO] 19:09:46:526 Kernel/(8538:8538): Hay 0 consolas conectadas
+
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Se recibio: 1
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Es una Consola
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Hay 1 consolas conectadas
+
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Se recibio: 2
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): El script mide: 62 
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): instruccion_inicio = 0
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): instrucciones_size = 6
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instrucciones serializadas: 
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 1: Inicio = 22, Offset = 11
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 2: Inicio = 33, Offset = 7
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 3: Inicio = 40, Offset = 7
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 4: Inicio = 47, Offset = 12
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): Instruccion 5: Inicio = 59, Offset = 4
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): etiquetas_size = 0
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): etiquetas = (null)
+
+[INFO] 19:09:49:215 Kernel/(8538:8538): cantidad_de_funciones = 0
+
+[INFO] 19:09:49:216 Kernel/(8538:8538): cantidad_de_etiquetas = 0
+
+[INFO] 19:09:49:216 Kernel/(8538:8538): ***FIN DE LA METADATA***
+
+
+[INFO] 19:09:49:216 Kernel/(8538:8538): Mandamos a memoria!
+
+[INFO] 19:09:49:219 Kernel/(8538:8538): Y esperamos!
+
+[INFO] 19:09:49:219 Kernel/(8538:8538): El proceso PID 3 se ha guardado en memoria 
+
+[INFO] 19:09:49:219 Kernel/(8538:8538): El proceso 3 paso de New a Ready
+
+
+[INFO] 19:09:49:219 Kernel/(8538:8538): La cantidad de procesos actuales es: 1
+
+[INFO] 19:09:49:219 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:49:219 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:49:320 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:49:322 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Se recibio: 7
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): CPU pide: Wait en semaforo: SEM1
+
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Variables Compartidas:
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Variable Global, valor = 0
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Variable UnaVar, valor = 0
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Variable tiempo3, valor = 0
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Semaforo SEM2, valor = 0
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Semaforo SEM3, valor = 5
+
+[INFO] 19:09:49:322 Kernel/(8538:8538): Semaforo SEM1, valor = -1
+
+[INFO] 19:09:49:344 Kernel/(8538:8538): check 1
+
+[INFO] 19:09:49:344 Kernel/(8538:8538): check 2
+
+[INFO] 19:09:49:344 Kernel/(8538:8538): check 3
+
+[INFO] 19:09:49:344 Kernel/(8538:8538): El proceso 3 paso de Exec a Wait
+
+[INFO] 19:09:49:344 Kernel/(8538:8538): Termino todo el envio
+
+[INFO] 19:09:49:344 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): Se recibio: 1
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): Es una Consola
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): Hay 2 consolas conectadas
+
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): Se recibio: 2
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:09:53:368 Kernel/(8538:8538): El script mide: 64 
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): instruccion_inicio = 0
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): instrucciones_size = 6
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instrucciones serializadas: 
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 1: Inicio = 22, Offset = 13
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 2: Inicio = 35, Offset = 7
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 3: Inicio = 42, Offset = 7
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 4: Inicio = 49, Offset = 12
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Instruccion 5: Inicio = 61, Offset = 4
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): etiquetas_size = 0
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): etiquetas = (null)
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): cantidad_de_funciones = 0
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): cantidad_de_etiquetas = 0
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): ***FIN DE LA METADATA***
+
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Mandamos a memoria!
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): Y esperamos!
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): El proceso PID 4 se ha guardado en memoria 
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): El proceso 4 paso de New a Ready
+
+
+[INFO] 19:09:53:369 Kernel/(8538:8538): La cantidad de procesos actuales es: 2
+
+[INFO] 19:09:53:369 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:369 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:646 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:648 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Se recibio: 8
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): CPU pide: Signal en semaforo: SEM1 
+
+
+[INFO] 19:09:53:649 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): El proceso 3 paso de Wait a Ready
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Variables Compartidas:
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Variable Global, valor = 0
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Variable UnaVar, valor = 0
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Variable tiempo3, valor = 0
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Semaforo SEM2, valor = 0
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Semaforo SEM3, valor = 5
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Semaforo SEM1, valor = 0
+
+[INFO] 19:09:53:649 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:650 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:651 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:692 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:696 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:696 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:814 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:814 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:814 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:896 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:902 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:903 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:53:997 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:53:999 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:53:1 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:54:173 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:54:173 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:54:173 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:54:226 Kernel/(8538:8538): Se recibio: 13
+
+[INFO] 19:09:54:228 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:54:228 Kernel/(8538:8541): El proceso 3 ha pasado de Ready a Exec
+
+[INFO] 19:09:54:377 Kernel/(8538:8538): Se recibio: 10
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Elimine el proceso de la lista de exec
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): El proceso no estaba para borrar
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): La cantidad de procesos actuales es: 1
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Ya termine toda la operacion de borrado
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:09:54:379 Kernel/(8538:8538): Selectserver: socket 7 hung up
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): El proceso ya ha sido finalizado
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Hay 1 cpus conectadas
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Hay 1 consolas conectadas
+
+
+[INFO] 19:09:54:379 Kernel/(8538:8541): Mande Codigo: 10
+
+[INFO] 19:09:54:379 Kernel/(8538:8538): Se recibio: 10
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Elimine el proceso de la lista de exec
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): El proceso no estaba para borrar
+
+[INFO] 19:09:54:380 Kernel/(8538:8541): El proceso 4 ha pasado de Ready a Exec
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): La cantidad de procesos actuales es: 0
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Ya termine toda la operacion de borrado
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:09:54:380 Kernel/(8538:8538): Selectserver: socket 8 hung up
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): El proceso ya ha sido finalizado
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Hay 1 cpus conectadas
+
+[INFO] 19:09:54:380 Kernel/(8538:8538): Hay 0 consolas conectadas
+
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): 
+
+//////////////////////
+
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): ***INFORMACION DEL ARCHIVO DE CONFIG***
+[INFO] 19:11:56:73 Kernel/(8741:8741): Puerto Programas: 9034
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Puerto CPUs: 9034
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): IP Memoria: 127.0.0.1
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Puerto Memoria: 5003
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): IP FS: 127.0.0.1
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Puerto FS: 5009
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Quantum: 1
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Quantum Sleep: 500
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Algoritmo: RR
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Grado Multiprog: 10
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM1 = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM2 = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM3 = 5
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable Global 0: !Global
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable Global 1: !UnaVar
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable Global 2: !tiempo3
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Tamaño del Stack: 1
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variables Compartidas:
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable Global, valor = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable UnaVar, valor = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Variable tiempo3, valor = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM1, valor = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM2, valor = 0
+
+[INFO] 19:11:56:73 Kernel/(8741:8741): Semaforo SEM3, valor = 5
+
+[ERROR] 19:11:56:74 Kernel/(8741:8741): Error - Client: connect Connection refused
+
+[ERROR] 19:11:56:74 Kernel/(8741:8741): Client: failed to connect
+
+[INFO] 19:11:56:75 Kernel/(8741:8741): Conectado con Memoria
+
+[INFO] 19:11:56:75 Kernel/(8741:8741): Tamaño de pagina = 512
+
+[INFO] 19:12:01:671 Kernel/(8741:8741): Se recibio: 1
+
+[INFO] 19:12:01:671 Kernel/(8741:8741): Es una CPU
+
+[INFO] 19:12:01:671 Kernel/(8741:8741): Hay 1 cpus conectadas
+
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Se recibio: 1
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Es una Consola
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Hay 1 consolas conectadas
+
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Se recibio: 2
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): El script mide: 106 
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): instruccion_inicio = 0
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): instrucciones_size = 9
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instrucciones serializadas: 
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 0: Inicio = 6, Offset = 22
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 1: Inicio = 28, Offset = 13
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 2: Inicio = 41, Offset = 8
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 3: Inicio = 49, Offset = 13
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 4: Inicio = 62, Offset = 8
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 5: Inicio = 70, Offset = 11
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 6: Inicio = 81, Offset = 14
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 7: Inicio = 95, Offset = 8
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Instruccion 8: Inicio = 103, Offset = 4
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): etiquetas_size = 0
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): etiquetas = (null)
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): cantidad_de_funciones = 0
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): cantidad_de_etiquetas = 0
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): ***FIN DE LA METADATA***
+
+
+[INFO] 19:12:04:905 Kernel/(8741:8741): Mandamos a memoria!
+
+[INFO] 19:12:04:906 Kernel/(8741:8741): Y esperamos!
+
+[INFO] 19:12:04:906 Kernel/(8741:8741): El proceso PID 1 se ha guardado en memoria 
+
+[INFO] 19:12:04:906 Kernel/(8741:8741): El proceso 1 paso de New a Ready
+
+
+[INFO] 19:12:04:906 Kernel/(8741:8741): La cantidad de procesos actuales es: 1
+
+[INFO] 19:12:04:906 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:04:908 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:05:60 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:05:73 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:05:73 Kernel/(8741:8741): Se recibio: 18
+
+[INFO] 19:12:05:73 Kernel/(8741:8741): El proceso 1 necesita alocar 50 bytes
+
+[INFO] 19:12:05:74 Kernel/(8741:8741): Debemos alocar en la pagina 2
+
+[INFO] 19:12:05:74 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:05:151 Kernel/(8741:8741): El puntero apunta a la direccion 1029
+
+[INFO] 19:12:05:151 Kernel/(8741:8741): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:12:05:151 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:05:152 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:05:152 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:05:363 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:05:366 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:05:368 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:05:590 Kernel/(8741:8741): Se recibio: 18
+
+[INFO] 19:12:05:590 Kernel/(8741:8741): El proceso 1 necesita alocar 20 bytes
+
+[INFO] 19:12:05:590 Kernel/(8741:8741): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:12:05:590 Kernel/(8741:8741): Debemos alocar en la pagina 2
+
+[INFO] 19:12:05:590 Kernel/(8741:8741): El puntero apunta a la direccion 1084
+
+[INFO] 19:12:05:591 Kernel/(8741:8741): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:12:05:591 Kernel/(8741:8741): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:12:05:591 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:05:594 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:05:594 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:05:901 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:05:904 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:05:904 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Se recibio: 7
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): CPU pide: Wait en semaforo: SEM1
+
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Variables Compartidas:
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Variable Global, valor = 0
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Variable UnaVar, valor = 0
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Variable tiempo3, valor = 0
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Semaforo SEM2, valor = 0
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Semaforo SEM3, valor = 5
+
+[INFO] 19:12:06:107 Kernel/(8741:8741): Semaforo SEM1, valor = -1
+
+[INFO] 19:12:06:111 Kernel/(8741:8741): check 1
+
+[INFO] 19:12:06:111 Kernel/(8741:8741): check 2
+
+[INFO] 19:12:06:111 Kernel/(8741:8741): check 3
+
+[INFO] 19:12:06:111 Kernel/(8741:8741): El proceso 1 paso de Exec a Wait
+
+[INFO] 19:12:06:111 Kernel/(8741:8741): Termino todo el envio
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): Se recibio: 1
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): Es una Consola
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): Hay 2 consolas conectadas
+
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): Se recibio: 2
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): Ding, dong, bing, bong! Me llego un script!
+
+[INFO] 19:12:32:126 Kernel/(8741:8741): El script mide: 64 
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): 
+
+***INFORMACION DE METADATA***
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): instruccion_inicio = 0
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): instrucciones_size = 6
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instrucciones serializadas: 
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 0: Inicio = 6, Offset = 16
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 1: Inicio = 22, Offset = 13
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 2: Inicio = 35, Offset = 7
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 3: Inicio = 42, Offset = 7
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 4: Inicio = 49, Offset = 12
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Instruccion 5: Inicio = 61, Offset = 4
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): etiquetas_size = 0
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): etiquetas = (null)
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): cantidad_de_funciones = 0
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): cantidad_de_etiquetas = 0
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): ***FIN DE LA METADATA***
+
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Mandamos a memoria!
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): Y esperamos!
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): El proceso PID 2 se ha guardado en memoria 
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): El proceso 2 paso de New a Ready
+
+
+[INFO] 19:12:32:127 Kernel/(8741:8741): La cantidad de procesos actuales es: 2
+
+[INFO] 19:12:32:127 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:127 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:266 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:267 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Se recibio: 8
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): CPU pide: Signal en semaforo: SEM1 
+
+
+[INFO] 19:12:32:267 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): El proceso 1 paso de Wait a Ready
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Variables Compartidas:
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Variable Global, valor = 0
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Variable UnaVar, valor = 0
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Variable tiempo3, valor = 0
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Semaforo SEM2, valor = 0
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Semaforo SEM3, valor = 5
+
+[INFO] 19:12:32:267 Kernel/(8741:8741): Semaforo SEM1, valor = 0
+
+[INFO] 19:12:32:392 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:436 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:436 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Se recibio: 18
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): El proceso 1 necesita alocar 430 bytes
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Debemos alocar en la pagina 2
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): El puntero apunta a la direccion 1541
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Puntero 0, pagina: 2, direccion: 1029, espacio: 50
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Puntero 1, pagina: 2, direccion: 1084, espacio: 20
+
+[INFO] 19:12:32:474 Kernel/(8741:8741): Puntero 2, pagina: 3, direccion: 1541, espacio: 430
+
+[INFO] 19:12:32:475 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:475 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:475 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:583 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:583 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:583 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:831 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:836 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:836 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:32:932 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:32:980 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:32:981 Kernel/(8741:8744): El proceso 1 ha pasado de Ready a Exec
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): Se recibio: 10
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): Elimine el proceso de la lista de exec
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): El proceso no estaba para borrar
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): La cantidad de procesos actuales es: 1
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): Memory leak: se perdieron 500 bytes
+
+[INFO] 19:12:33:164 Kernel/(8741:8741): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): Ya termine toda la operacion de borrado
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:12:33:165 Kernel/(8741:8741): Selectserver: socket 7 hung up
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): El proceso ya ha sido finalizado
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): Hay 1 cpus conectadas
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): Hay 1 consolas conectadas
+
+
+[INFO] 19:12:33:165 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:33:165 Kernel/(8741:8741): Se recibio: 13
+
+[INFO] 19:12:33:166 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:33:166 Kernel/(8741:8744): Mande Codigo: 10
+
+[INFO] 19:12:33:166 Kernel/(8741:8744): El proceso 2 ha pasado de Ready a Exec
+
+[INFO] 19:12:33:276 Kernel/(8741:8741): Se recibio: 10
+
+[INFO] 19:12:33:377 Kernel/(8741:8741): Elimine el proceso de la lista de exec
+
+[INFO] 19:12:33:379 Kernel/(8741:8741): El proceso no estaba para borrar
+
+[INFO] 19:12:33:379 Kernel/(8741:8741): La cantidad de procesos actuales es: 0
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): El proceso ha sido finalizado con Exit Code: 0
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): No hubo Memory leaks, bien ahi!
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): Ya le avise a memoria que borre el proceso
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): Ya termine toda la operacion de borrado
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): Settee el proceso actual de la CPU en 0
+
+[ERROR] 19:12:33:380 Kernel/(8741:8741): Selectserver: socket 8 hung up
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): El proceso ya ha sido finalizado
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): Hay 1 cpus conectadas
+
+[INFO] 19:12:33:380 Kernel/(8741:8741): Hay 0 consolas conectadas
+
+

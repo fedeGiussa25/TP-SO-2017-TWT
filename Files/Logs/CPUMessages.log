@@ -1,0 +1,2794 @@
+[INFO] 18:58:54:991 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:03:867 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:03:950 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:04:133 CPU/(7879:7879): Instruccion: 	variables a, b
+
+[INFO] 18:59:04:201 CPU/(7879:7879): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 18:59:04:206 CPU/(7879:7879): Definir variable: b en: (pagina, offset)=(1,4)
+
+[ERROR] 18:59:04:280 CPU/(7879:7879): Terminacion fallida del proceso: 1
+
+[INFO] 18:59:04:281 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:04:284 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:04:315 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:04:373 CPU/(7879:7879): Instruccion: 	a = 3
+
+[INFO] 18:59:04:405 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:04:410 CPU/(7879:7879): Asignar valor 3 en pagina: 1 offset: 0
+
+[ERROR] 18:59:04:411 CPU/(7879:7879): Terminacion fallida del proceso: 1
+
+[INFO] 18:59:04:411 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:04:417 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:04:419 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:04:509 CPU/(7879:7879): Instruccion: 	b = 5
+
+[INFO] 18:59:04:510 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:04:511 CPU/(7879:7879): Asignar valor 5 en pagina: 1 offset: 4
+
+[ERROR] 18:59:04:608 CPU/(7879:7879): Terminacion fallida del proceso: 1
+
+[INFO] 18:59:04:609 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:04:610 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:04:610 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:04:613 CPU/(7879:7879): Instruccion: 	a = b + 12
+
+[INFO] 18:59:04:615 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:04:616 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:04:623 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:04:624 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:04:626 CPU/(7879:7879): Asignar valor 17 en pagina: 1 offset: 0
+
+[ERROR] 18:59:04:631 CPU/(7879:7879): Terminacion fallida del proceso: 1
+
+[INFO] 18:59:04:631 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:04:689 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:04:690 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:04:809 CPU/(7879:7879): Instruccion: end
+
+[INFO] 18:59:04:824 CPU/(7879:7879): Finalizar contexto de ejecucion del main
+
+[INFO] 18:59:04:861 CPU/(7879:7879): Proceso 1 terminado correctamente
+
+[INFO] 18:59:04:861 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:08:807 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:08:808 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:08:967 CPU/(7879:7879): Instruccion: variables f, i, t
+
+[INFO] 18:59:08:967 CPU/(7879:7879): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 18:59:08:968 CPU/(7879:7879): Definir variable: i en: (pagina, offset)=(1,4)
+
+[INFO] 18:59:08:968 CPU/(7879:7879): Definir variable: t en: (pagina, offset)=(1,8)
+
+[ERROR] 18:59:08:968 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:08:969 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:08:996 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:08:997 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:08:998 CPU/(7879:7879): Instruccion: 	i=0
+
+[INFO] 18:59:08:999 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:08:999 CPU/(7879:7879): Asignar valor 0 en pagina: 1 offset: 4
+
+[ERROR] 18:59:08:0 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:08:12 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:43 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:43 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:130 CPU/(7879:7879): Instruccion: 	f=20
+
+[INFO] 18:59:09:130 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:09:132 CPU/(7879:7879): Asignar valor 20 en pagina: 1 offset: 0
+
+[ERROR] 18:59:09:133 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:133 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:143 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:144 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:271 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:09:272 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:272 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:272 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 0
+
+[INFO] 18:59:09:273 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:273 CPU/(7879:7879): Asignar valor 1 en pagina: 1 offset: 4
+
+[ERROR] 18:59:09:273 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:274 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:360 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:360 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:375 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:09:375 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:09:376 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:09:376 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:09:377 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:377 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:391 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 18:59:09:395 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:09:396 CPU/(7879:7879): Asignar valor 19 en pagina: 1 offset: 8
+
+[ERROR] 18:59:09:397 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:397 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:454 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:455 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:522 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:09:544 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:09:544 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:09:545 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 18:59:09:546 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:09:556 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:09:564 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:564 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:584 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:584 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:585 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:09:585 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:585 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:586 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 18:59:09:586 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:586 CPU/(7879:7879): Asignar valor 2 en pagina: 1 offset: 4
+
+[ERROR] 18:59:09:587 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:587 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:630 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:632 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:692 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:09:692 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:09:694 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:09:695 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:09:695 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:695 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:701 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 18:59:09:701 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:09:702 CPU/(7879:7879): Asignar valor 18 en pagina: 1 offset: 8
+
+[ERROR] 18:59:09:703 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:703 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:706 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:707 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:802 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:09:803 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:09:803 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:09:803 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 18:59:09:803 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:09:804 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:09:804 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:804 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:847 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:848 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:849 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:09:850 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:850 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:850 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 18:59:09:850 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:851 CPU/(7879:7879): Asignar valor 3 en pagina: 1 offset: 4
+
+[ERROR] 18:59:09:851 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:851 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:917 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:917 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:09:952 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:09:952 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:09:952 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:09:953 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:09:953 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:09:953 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:09:953 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 18:59:09:954 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:09:954 CPU/(7879:7879): Asignar valor 17 en pagina: 1 offset: 8
+
+[ERROR] 18:59:09:954 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:09:954 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:09:995 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:09:996 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:63 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:10:104 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:104 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:10:105 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 18:59:10:105 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:10:105 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:10:106 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:106 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:118 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:118 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:120 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:10:120 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:120 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:120 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 18:59:10:121 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:143 CPU/(7879:7879): Asignar valor 4 en pagina: 1 offset: 4
+
+[ERROR] 18:59:10:143 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:143 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:186 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:187 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:223 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:10:224 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:10:224 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:10:224 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:10:225 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:225 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:225 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 18:59:10:225 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:226 CPU/(7879:7879): Asignar valor 16 en pagina: 1 offset: 8
+
+[ERROR] 18:59:10:226 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:226 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:295 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:296 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:427 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:10:428 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:428 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:10:428 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 18:59:10:429 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:10:429 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:10:429 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:430 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:447 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:447 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:448 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:10:448 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:448 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:449 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 18:59:10:449 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:458 CPU/(7879:7879): Asignar valor 5 en pagina: 1 offset: 4
+
+[ERROR] 18:59:10:458 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:459 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:509 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:519 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:550 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:10:550 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:10:551 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:10:551 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:10:551 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:552 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:553 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:10:560 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:560 CPU/(7879:7879): Asignar valor 15 en pagina: 1 offset: 8
+
+[ERROR] 18:59:10:561 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:561 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:595 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:595 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:691 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:10:691 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:691 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:10:692 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 18:59:10:692 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:10:692 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:10:693 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:693 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:740 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:741 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:744 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:10:744 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:744 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:745 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:10:745 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:756 CPU/(7879:7879): Asignar valor 6 en pagina: 1 offset: 4
+
+[ERROR] 18:59:10:757 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:757 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:795 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:795 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:10:894 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:10:894 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:10:895 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:10:895 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:10:895 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:10:897 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:10:898 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 18:59:10:898 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:10:898 CPU/(7879:7879): Asignar valor 14 en pagina: 1 offset: 8
+
+[ERROR] 18:59:10:906 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:10:906 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:10:906 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:10:907 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:6 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:11:7 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:7 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:11:7 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 18:59:11:7 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:11:8 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:11:14 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:15 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:20 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:20 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:21 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:11:22 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:23 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:24 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 18:59:11:24 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:24 CPU/(7879:7879): Asignar valor 7 en pagina: 1 offset: 4
+
+[ERROR] 18:59:11:25 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:25 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:66 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:67 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:146 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:11:146 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:11:146 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:11:148 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:11:148 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:148 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:149 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 18:59:11:149 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:150 CPU/(7879:7879): Asignar valor 13 en pagina: 1 offset: 8
+
+[ERROR] 18:59:11:150 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:150 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:152 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:155 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:258 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:11:266 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:266 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:11:267 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 18:59:11:267 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:11:268 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:11:268 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:268 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:293 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:293 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:294 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:11:294 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:295 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:295 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 18:59:11:295 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:299 CPU/(7879:7879): Asignar valor 8 en pagina: 1 offset: 4
+
+[ERROR] 18:59:11:299 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:299 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:383 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:384 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:405 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:11:405 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:11:405 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:11:405 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:11:406 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:406 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:406 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 18:59:11:406 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:406 CPU/(7879:7879): Asignar valor 12 en pagina: 1 offset: 8
+
+[ERROR] 18:59:11:407 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:407 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:483 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:483 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:508 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:11:508 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:508 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:11:509 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 18:59:11:509 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:11:509 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:11:510 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:511 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:566 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:631 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:633 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:11:634 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:634 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:646 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 18:59:11:647 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:647 CPU/(7879:7879): Asignar valor 9 en pagina: 1 offset: 4
+
+[ERROR] 18:59:11:648 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:687 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:687 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:688 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:751 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:11:752 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:11:752 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:11:759 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:11:759 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:760 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:763 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 18:59:11:764 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:766 CPU/(7879:7879): Asignar valor 11 en pagina: 1 offset: 8
+
+[ERROR] 18:59:11:767 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:767 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:770 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:778 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:865 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:11:866 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:866 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:11:866 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 18:59:11:866 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:11:867 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:11:867 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:867 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:868 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:868 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:871 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:11:871 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:872 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:874 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 18:59:11:875 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:881 CPU/(7879:7879): Asignar valor 10 en pagina: 1 offset: 4
+
+[ERROR] 18:59:11:881 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:882 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:11:927 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:11:928 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:11:990 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:11:991 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:11:991 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:11:991 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:11:992 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:11:992 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:11:992 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 18:59:11:992 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:11:992 CPU/(7879:7879): Asignar valor 10 en pagina: 1 offset: 8
+
+[ERROR] 18:59:11:1 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:11:1 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:43 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:44 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:172 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:181 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:181 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:182 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 18:59:12:184 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:185 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:185 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:186 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:186 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:190 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:191 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:192 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:192 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:193 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 18:59:12:194 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:197 CPU/(7879:7879): Asignar valor 11 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:197 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:197 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:239 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:239 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:296 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:12:296 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:12:297 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:12:297 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:12:298 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:298 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:298 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 18:59:12:298 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:299 CPU/(7879:7879): Asignar valor 9 en pagina: 1 offset: 8
+
+[ERROR] 18:59:12:299 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:299 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:308 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:309 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:402 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:402 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:402 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:403 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 18:59:12:403 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:404 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:406 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:406 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:417 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:419 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:420 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:421 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:421 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:426 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 18:59:12:427 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:427 CPU/(7879:7879): Asignar valor 12 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:427 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:428 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:495 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:496 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:561 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:12:561 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:12:562 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:12:562 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:12:562 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:563 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:563 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 18:59:12:563 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:564 CPU/(7879:7879): Asignar valor 8 en pagina: 1 offset: 8
+
+[ERROR] 18:59:12:564 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:564 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:568 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:568 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:672 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:672 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:672 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:673 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 18:59:12:673 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:674 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:675 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:675 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:729 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:729 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:730 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:730 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:730 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:731 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 18:59:12:731 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:731 CPU/(7879:7879): Asignar valor 13 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:732 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:732 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:795 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:796 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:831 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:12:832 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:12:832 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:12:832 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:12:832 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:833 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:833 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 18:59:12:833 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:834 CPU/(7879:7879): Asignar valor 7 en pagina: 1 offset: 8
+
+[ERROR] 18:59:12:834 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:835 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:863 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:865 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:937 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:938 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:938 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:938 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 18:59:12:938 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:938 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:945 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:945 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:952 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:953 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:954 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:955 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:955 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:957 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 18:59:12:958 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:963 CPU/(7879:7879): Asignar valor 14 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:963 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:964 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:7 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:8 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:59 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:60 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:60 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:60 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:61 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:61 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:61 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 18:59:13:62 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:120 CPU/(7879:7879): Asignar valor 6 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:122 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:123 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:134 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:135 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:162 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:13:163 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:163 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:13:164 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 18:59:13:165 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:13:165 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:13:165 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:165 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:291 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:292 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:293 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:13:293 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:293 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:295 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 18:59:13:295 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:303 CPU/(7879:7879): Asignar valor 15 en pagina: 1 offset: 4
+
+[ERROR] 18:59:13:303 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:303 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:383 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:383 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:395 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:396 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:396 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:396 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:396 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:397 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:397 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 18:59:13:398 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:402 CPU/(7879:7879): Asignar valor 5 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:403 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:403 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:447 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:447 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:615 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:616 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:616 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:616 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:12:616 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:616 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:617 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:617 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:651 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:651 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:652 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:652 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:653 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:653 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 18:59:12:653 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:654 CPU/(7879:7879): Asignar valor 16 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:658 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:658 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:709 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:714 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:755 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:12:755 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:12:755 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:12:756 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:12:756 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:756 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:756 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 18:59:12:757 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:763 CPU/(7879:7879): Asignar valor 4 en pagina: 1 offset: 8
+
+[ERROR] 18:59:12:782 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:782 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:859 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:859 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:861 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:12:872 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:12:872 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:12:873 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 18:59:12:873 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:12:873 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:12:874 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:874 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:916 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:12:916 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:12:917 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:12:917 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:917 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:12:971 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 18:59:12:971 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:12:976 CPU/(7879:7879): Asignar valor 17 en pagina: 1 offset: 4
+
+[ERROR] 18:59:12:977 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:12:977 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:12:992 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:58 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:72 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:72 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:72 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:73 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:73 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:73 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:74 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 18:59:13:74 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:74 CPU/(7879:7879): Asignar valor 3 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:75 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:75 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:86 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:167 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:174 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:13:175 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:175 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:13:176 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 18:59:13:176 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:13:176 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:13:176 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:177 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:212 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:212 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:213 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:13:213 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:214 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:214 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 18:59:13:214 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:214 CPU/(7879:7879): Asignar valor 18 en pagina: 1 offset: 4
+
+[ERROR] 18:59:13:218 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:219 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:253 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:254 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:316 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:316 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:316 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:317 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:317 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:317 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:317 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 18:59:13:317 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:320 CPU/(7879:7879): Asignar valor 2 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:323 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:323 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:326 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:327 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:420 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:13:421 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:421 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:13:426 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 18:59:13:426 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:13:426 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:13:432 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:452 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:458 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:458 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:461 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:13:461 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:462 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:463 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 18:59:13:463 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:464 CPU/(7879:7879): Asignar valor 19 en pagina: 1 offset: 4
+
+[ERROR] 18:59:13:464 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:464 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:512 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:513 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:578 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:579 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:579 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:579 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:580 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:580 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:580 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 18:59:13:580 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:580 CPU/(7879:7879): Asignar valor 1 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:581 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:581 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:591 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:591 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:692 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:13:693 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:701 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:13:702 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 18:59:13:702 CPU/(7879:7879): Ir al label: inicio
+
+[INFO] 18:59:13:702 CPU/(7879:7879): Program Counter actualizado a: 3
+
+[ERROR] 18:59:13:716 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:716 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:716 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:717 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:726 CPU/(7879:7879): Instruccion: 	i=i+1
+
+[INFO] 18:59:13:726 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:726 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:727 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 18:59:13:727 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:727 CPU/(7879:7879): Asignar valor 20 en pagina: 1 offset: 4
+
+[ERROR] 18:59:13:727 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:728 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:772 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:773 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:828 CPU/(7879:7879): Instruccion: 	t=f-i
+
+[INFO] 18:59:13:829 CPU/(7879:7879): Obtener posicion de la variable: f
+
+[INFO] 18:59:13:829 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:13:831 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:831 CPU/(7879:7879): Obtener posicion de la variable: i
+
+[INFO] 18:59:13:831 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:13:832 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 18:59:13:832 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:832 CPU/(7879:7879): Asignar valor 0 en pagina: 1 offset: 8
+
+[ERROR] 18:59:13:847 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:848 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:849 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:852 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:933 CPU/(7879:7879): Instruccion: 	jnz t inicio
+
+[INFO] 18:59:13:934 CPU/(7879:7879): Obtener posicion de la variable: t
+
+[INFO] 18:59:13:934 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:13:934 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 0
+
+[ERROR] 18:59:13:935 CPU/(7879:7879): Terminacion fallida del proceso: 2
+
+[INFO] 18:59:13:935 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:13:939 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:13:942 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:13:945 CPU/(7879:7879): Instruccion: end
+
+[INFO] 18:59:13:945 CPU/(7879:7879): Finalizar contexto de ejecucion del main
+
+[INFO] 18:59:13:950 CPU/(7879:7879): Proceso 2 terminado correctamente
+
+[INFO] 18:59:13:950 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:20:754 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:20:754 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:20:856 CPU/(7879:7879): Instruccion: 	variables a, b, c, d
+
+[INFO] 18:59:20:856 CPU/(7879:7879): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 18:59:20:857 CPU/(7879:7879): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 18:59:20:857 CPU/(7879:7879): Definir variable: c en: (pagina, offset)=(1,8)
+
+[INFO] 18:59:20:857 CPU/(7879:7879): Definir variable: d en: (pagina, offset)=(1,12)
+
+[ERROR] 18:59:20:858 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:20:858 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:20:863 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:20:865 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:20:868 CPU/(7879:7879): Instruccion: 	alocar a 50
+
+[INFO] 18:59:20:936 CPU/(7879:7879): Proceso: 3 solicita reservar 50 bytes en heap
+
+[INFO] 18:59:21:5 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:21:22 CPU/(7879:7879): Asignar valor 1029 en pagina: 1 offset: 0
+
+[ERROR] 18:59:21:23 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:21:23 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:21:96 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:21:96 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:21:262 CPU/(7879:7879): Instruccion: 	*a = 5
+
+[INFO] 18:59:21:263 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:21:263 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:21:264 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 18:59:21:264 CPU/(7879:7879): Asignar valor 5 en pagina: 2 offset: 5
+
+[ERROR] 18:59:21:269 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:21:269 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:21:383 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:21:383 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:21:496 CPU/(7879:7879): Instruccion: 	alocar b 20
+
+[INFO] 18:59:21:496 CPU/(7879:7879): Proceso: 3 solicita reservar 20 bytes en heap
+
+[INFO] 18:59:21:498 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:21:498 CPU/(7879:7879): Asignar valor 1084 en pagina: 1 offset: 4
+
+[ERROR] 18:59:21:562 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:21:563 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:21:599 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:21:600 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:21:709 CPU/(7879:7879): Instruccion: 	c = *a
+
+[INFO] 18:59:21:710 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:21:710 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:21:725 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 18:59:21:726 CPU/(7879:7879): Dereferenciar la direccion: 1029
+
+[INFO] 18:59:21:827 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:21:828 CPU/(7879:7879): Obtener posicion de la variable: c
+
+[INFO] 18:59:21:828 CPU/(7879:7879): Asignar valor 5 en pagina: 1 offset: 8
+
+[ERROR] 18:59:21:828 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:21:831 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:21:834 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:21:835 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:22:53 CPU/(7879:7879): Instruccion: 	wait SEM1
+
+[INFO] 18:59:22:54 CPU/(7879:7879): Proceso: 3 hace wait en el semaforo: SEM1
+
+[INFO] 18:59:22:59 CPU/(7879:7879): El proceso: 3 se bloqueo al hacer wait en el semaforo: SEM1
+
+[INFO] 18:59:22:60 CPU/(7879:7879): Proceso 3 terminado correctamente
+
+[INFO] 18:59:22:60 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:25:567 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:25:567 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:25:670 CPU/(7879:7879): Instruccion: 	variables a, b
+
+[INFO] 18:59:25:670 CPU/(7879:7879): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 18:59:25:671 CPU/(7879:7879): Definir variable: b en: (pagina, offset)=(1,4)
+
+[ERROR] 18:59:25:672 CPU/(7879:7879): Terminacion fallida del proceso: 4
+
+[INFO] 18:59:25:673 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:25:732 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:25:732 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:25:734 CPU/(7879:7879): Instruccion: 	signal SEM1
+
+[INFO] 18:59:25:735 CPU/(7879:7879): Proceso: 4 hace signal en el semaforo: SEM1
+
+[ERROR] 18:59:25:755 CPU/(7879:7879): Terminacion fallida del proceso: 4
+
+[INFO] 18:59:25:755 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:25:830 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:25:830 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:25:833 CPU/(7879:7879): Instruccion: 	alocar d 430
+
+[INFO] 18:59:25:833 CPU/(7879:7879): Proceso: 3 solicita reservar 430 bytes en heap
+
+[INFO] 18:59:25:838 CPU/(7879:7879): Obtener posicion de la variable: d
+
+[INFO] 18:59:25:838 CPU/(7879:7879): Asignar valor 1541 en pagina: 1 offset: 12
+
+[ERROR] 18:59:25:838 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:25:838 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:25:882 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:25:882 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:55 CPU/(7879:7879): Instruccion: 	a = 3
+
+[INFO] 18:59:26:56 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:26:56 CPU/(7879:7879): Asignar valor 3 en pagina: 1 offset: 0
+
+[ERROR] 18:59:26:56 CPU/(7879:7879): Terminacion fallida del proceso: 4
+
+[INFO] 18:59:26:57 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:26:63 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:26:63 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:287 CPU/(7879:7879): Instruccion: 	*d = c
+
+[INFO] 18:59:26:287 CPU/(7879:7879): Obtener posicion de la variable: c
+
+[INFO] 18:59:26:287 CPU/(7879:7879): Dereferenciar la direccion: 520
+
+[INFO] 18:59:26:288 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:26:288 CPU/(7879:7879): Obtener posicion de la variable: d
+
+[INFO] 18:59:26:288 CPU/(7879:7879): Dereferenciar la direccion: 524
+
+[INFO] 18:59:26:289 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1541
+
+[INFO] 18:59:26:289 CPU/(7879:7879): Asignar valor 5 en pagina: 3 offset: 5
+
+[ERROR] 18:59:26:291 CPU/(7879:7879): Terminacion fallida del proceso: 3
+
+[INFO] 18:59:26:291 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:26:294 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:26:313 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:391 CPU/(7879:7879): Instruccion: 	b = 5
+
+[INFO] 18:59:26:391 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:26:392 CPU/(7879:7879): Asignar valor 5 en pagina: 1 offset: 4
+
+[ERROR] 18:59:26:392 CPU/(7879:7879): Terminacion fallida del proceso: 4
+
+[INFO] 18:59:26:392 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:26:458 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:26:459 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:595 CPU/(7879:7879): Instruccion: end
+
+[INFO] 18:59:26:595 CPU/(7879:7879): Finalizar contexto de ejecucion del main
+
+[INFO] 18:59:26:596 CPU/(7879:7879): Proceso 3 terminado correctamente
+
+[INFO] 18:59:26:596 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:26:601 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:26:602 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:604 CPU/(7879:7879): Instruccion: 	a = b + 12
+
+[INFO] 18:59:26:604 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:26:604 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:26:606 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 18:59:26:606 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:26:608 CPU/(7879:7879): Asignar valor 17 en pagina: 1 offset: 0
+
+[ERROR] 18:59:26:609 CPU/(7879:7879): Terminacion fallida del proceso: 4
+
+[INFO] 18:59:26:609 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:26:662 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:26:663 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:26:708 CPU/(7879:7879): Instruccion: end
+
+[INFO] 18:59:26:709 CPU/(7879:7879): Finalizar contexto de ejecucion del main
+
+[INFO] 18:59:26:710 CPU/(7879:7879): Proceso 4 terminado correctamente
+
+[INFO] 18:59:26:710 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:31:469 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:31:469 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:31:643 CPU/(7879:7879): Instruccion: 	variables a, b, c
+
+[INFO] 18:59:31:644 CPU/(7879:7879): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 18:59:31:644 CPU/(7879:7879): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 18:59:31:645 CPU/(7879:7879): Definir variable: c en: (pagina, offset)=(1,8)
+
+[ERROR] 18:59:31:650 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:31:650 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:31:650 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:31:651 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:31:652 CPU/(7879:7879): Instruccion: 	alocar a 50
+
+[INFO] 18:59:31:652 CPU/(7879:7879): Proceso: 5 solicita reservar 50 bytes en heap
+
+[INFO] 18:59:31:761 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:31:802 CPU/(7879:7879): Asignar valor 1029 en pagina: 1 offset: 0
+
+[ERROR] 18:59:31:803 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:31:803 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:31:822 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:31:823 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:32:14 CPU/(7879:7879): Instruccion: 	alocar b 20
+
+[INFO] 18:59:32:14 CPU/(7879:7879): Proceso: 5 solicita reservar 20 bytes en heap
+
+[INFO] 18:59:32:19 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:32:21 CPU/(7879:7879): Asignar valor 1084 en pagina: 1 offset: 4
+
+[ERROR] 18:59:32:21 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:32:22 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:32:66 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:32:78 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:32:252 CPU/(7879:7879): Instruccion: 	liberar a
+
+[INFO] 18:59:32:253 CPU/(7879:7879): Obtener posicion de la variable: a
+
+[INFO] 18:59:32:253 CPU/(7879:7879): Dereferenciar la direccion: 512
+
+[INFO] 18:59:32:254 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 18:59:32:255 CPU/(7879:7879): Proceso: 5 libera memoria
+
+[ERROR] 18:59:32:267 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:32:267 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:32:326 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:32:326 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:32:448 CPU/(7879:7879): Instruccion: 	liberar b
+
+[INFO] 18:59:32:449 CPU/(7879:7879): Obtener posicion de la variable: b
+
+[INFO] 18:59:32:449 CPU/(7879:7879): Dereferenciar la direccion: 516
+
+[INFO] 18:59:32:550 CPU/(7879:7879): La variable fue dereferenciada, tiene valor: 1084
+
+[INFO] 18:59:32:550 CPU/(7879:7879): Proceso: 5 libera memoria
+
+[ERROR] 18:59:32:554 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:32:554 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:32:596 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:32:597 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:32:732 CPU/(7879:7879): Instruccion: 	alocar c 70
+
+[INFO] 18:59:32:733 CPU/(7879:7879): Proceso: 5 solicita reservar 70 bytes en heap
+
+[INFO] 18:59:32:734 CPU/(7879:7879): Obtener posicion de la variable: c
+
+[INFO] 18:59:32:734 CPU/(7879:7879): Asignar valor 1029 en pagina: 1 offset: 8
+
+[ERROR] 18:59:32:735 CPU/(7879:7879): Terminacion fallida del proceso: 5
+
+[INFO] 18:59:32:735 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:32:778 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:32:779 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 18:59:33:18 CPU/(7879:7879): Instruccion: end
+
+[INFO] 18:59:33:19 CPU/(7879:7879): Finalizar contexto de ejecucion del main
+
+[INFO] 18:59:33:20 CPU/(7879:7879): Proceso 5 terminado correctamente
+
+[INFO] 18:59:33:20 CPU/(7879:7879): Esperando proceso para ejecutar...
+
+[INFO] 18:59:45:259 CPU/(7879:7879): Se recibio codigo: 10
+
+[INFO] 18:59:46:262 CPU/(7879:7879): Se recibio un PCB
+
+[INFO] 19:06:47:42 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:06:56:654 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:06:56:654 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:06:56:771 CPU/(8334:8334): Instruccion: 	variables a, b
+
+[INFO] 19:06:56:771 CPU/(8334:8334): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:06:56:771 CPU/(8334:8334): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:06:56:771 CPU/(8334:8334): Fin de quantum del proceso: 1
+
+[INFO] 19:06:56:771 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Instruccion: 	a = 3
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Fin de quantum del proceso: 1
+
+[INFO] 19:06:56:819 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:06:56:861 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:06:56:861 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:06:56:922 CPU/(8334:8334): Instruccion: 	b = 5
+
+[INFO] 19:06:56:922 CPU/(8334:8334): Obtener posicion de la variable: b
+
+[INFO] 19:06:56:922 CPU/(8334:8334): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:06:56:923 CPU/(8334:8334): Fin de quantum del proceso: 1
+
+[INFO] 19:06:56:923 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:06:56:941 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:06:56:942 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Instruccion: 	a = b + 12
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Obtener posicion de la variable: b
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Dereferenciar la direccion: 516
+
+[INFO] 19:06:57:35 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Fin de quantum del proceso: 1
+
+[INFO] 19:06:57:35 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:06:57:83 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:06:57:83 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:06:57:137 CPU/(8334:8334): Instruccion: end
+
+[INFO] 19:06:57:137 CPU/(8334:8334): Finalizar contexto de ejecucion del main
+
+[INFO] 19:06:57:137 CPU/(8334:8334): Proceso 1 terminado correctamente
+
+[INFO] 19:06:57:137 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:02:528 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:02:528 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:02:648 CPU/(8334:8334): Instruccion: 	variables a, b, c, d
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Definir variable: c en: (pagina, offset)=(1,8)
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Definir variable: d en: (pagina, offset)=(1,12)
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:02:659 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:02:703 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:02:703 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:02:703 CPU/(8334:8334): Instruccion: 	alocar a 50
+
+[INFO] 19:07:02:703 CPU/(8334:8334): Proceso: 2 solicita reservar 50 bytes en heap
+
+[INFO] 19:07:02:748 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:07:02:748 CPU/(8334:8334): Asignar valor 1029 en pagina: 1 offset: 0
+
+[INFO] 19:07:02:748 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:02:748 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:02:804 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:02:804 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:02:989 CPU/(8334:8334): Instruccion: 	*a = 5
+
+[INFO] 19:07:02:989 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:07:02:989 CPU/(8334:8334): Dereferenciar la direccion: 512
+
+[INFO] 19:07:02:990 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:07:02:991 CPU/(8334:8334): Asignar valor 5 en pagina: 2 offset: 5
+
+[INFO] 19:07:02:991 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:02:991 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:03:7 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:03:7 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:03:207 CPU/(8334:8334): Instruccion: 	alocar b 20
+
+[INFO] 19:07:03:207 CPU/(8334:8334): Proceso: 2 solicita reservar 20 bytes en heap
+
+[INFO] 19:07:03:213 CPU/(8334:8334): Obtener posicion de la variable: b
+
+[INFO] 19:07:03:213 CPU/(8334:8334): Asignar valor 1084 en pagina: 1 offset: 4
+
+[INFO] 19:07:03:213 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:03:213 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:03:262 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:03:262 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:03:426 CPU/(8334:8334): Instruccion: 	c = *a
+
+[INFO] 19:07:03:426 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:07:03:426 CPU/(8334:8334): Dereferenciar la direccion: 512
+
+[INFO] 19:07:03:426 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:07:03:426 CPU/(8334:8334): Dereferenciar la direccion: 1029
+
+[INFO] 19:07:03:534 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:07:03:534 CPU/(8334:8334): Obtener posicion de la variable: c
+
+[INFO] 19:07:03:534 CPU/(8334:8334): Asignar valor 5 en pagina: 1 offset: 8
+
+[INFO] 19:07:03:534 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:03:534 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:03:540 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:03:540 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:03:745 CPU/(8334:8334): Instruccion: 	wait SEM1
+
+[INFO] 19:07:03:745 CPU/(8334:8334): Proceso: 2 hace wait en el semaforo: SEM1
+
+[INFO] 19:07:03:745 CPU/(8334:8334): El proceso: 2 se bloqueo al hacer wait en el semaforo: SEM1
+
+[INFO] 19:07:03:745 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:346 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:346 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:06:450 CPU/(8334:8334): Instruccion: 	variables a, b
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Fin de quantum del proceso: 3
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Instruccion: 	signal SEM1
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Proceso: 3 hace signal en el semaforo: SEM1
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Fin de quantum del proceso: 3
+
+[INFO] 19:07:06:451 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:560 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:560 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:06:575 CPU/(8334:8334): Instruccion: 	alocar d 430
+
+[INFO] 19:07:06:575 CPU/(8334:8334): Proceso: 2 solicita reservar 430 bytes en heap
+
+[INFO] 19:07:06:577 CPU/(8334:8334): Obtener posicion de la variable: d
+
+[INFO] 19:07:06:577 CPU/(8334:8334): Asignar valor 1541 en pagina: 1 offset: 12
+
+[INFO] 19:07:06:577 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:06:577 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:621 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:621 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:06:687 CPU/(8334:8334): Instruccion: 	a = 3
+
+[INFO] 19:07:06:687 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:07:06:687 CPU/(8334:8334): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:07:06:687 CPU/(8334:8334): Fin de quantum del proceso: 3
+
+[INFO] 19:07:06:687 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:752 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:752 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:06:900 CPU/(8334:8334): Instruccion: 	*d = c
+
+[INFO] 19:07:06:900 CPU/(8334:8334): Obtener posicion de la variable: c
+
+[INFO] 19:07:06:900 CPU/(8334:8334): Dereferenciar la direccion: 520
+
+[INFO] 19:07:06:900 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:07:06:900 CPU/(8334:8334): Obtener posicion de la variable: d
+
+[INFO] 19:07:06:900 CPU/(8334:8334): Dereferenciar la direccion: 524
+
+[INFO] 19:07:06:915 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 1541
+
+[INFO] 19:07:06:915 CPU/(8334:8334): Asignar valor 5 en pagina: 3 offset: 5
+
+[INFO] 19:07:06:915 CPU/(8334:8334): Fin de quantum del proceso: 2
+
+[INFO] 19:07:06:915 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:06:915 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:06:915 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:07:59 CPU/(8334:8334): Instruccion: 	b = 5
+
+[INFO] 19:07:07:122 CPU/(8334:8334): Obtener posicion de la variable: b
+
+[INFO] 19:07:07:122 CPU/(8334:8334): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:07:07:122 CPU/(8334:8334): Fin de quantum del proceso: 3
+
+[INFO] 19:07:07:122 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:07:123 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:07:123 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:07:323 CPU/(8334:8334): Instruccion: end
+
+[INFO] 19:07:07:323 CPU/(8334:8334): Finalizar contexto de ejecucion del main
+
+[INFO] 19:07:07:323 CPU/(8334:8334): Proceso 2 terminado correctamente
+
+[INFO] 19:07:07:323 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Instruccion: 	a = b + 12
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Obtener posicion de la variable: b
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Dereferenciar la direccion: 516
+
+[INFO] 19:07:07:325 CPU/(8334:8334): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Obtener posicion de la variable: a
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Fin de quantum del proceso: 3
+
+[INFO] 19:07:07:325 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:07:07:372 CPU/(8334:8334): Se recibio codigo: 10
+
+[INFO] 19:07:07:372 CPU/(8334:8334): Se recibio un PCB
+
+[INFO] 19:07:07:462 CPU/(8334:8334): Instruccion: end
+
+[INFO] 19:07:07:462 CPU/(8334:8334): Finalizar contexto de ejecucion del main
+
+[INFO] 19:07:07:464 CPU/(8334:8334): Proceso 3 terminado correctamente
+
+[INFO] 19:07:07:464 CPU/(8334:8334): Esperando proceso para ejecutar...
+
+[INFO] 19:09:31:390 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:40:514 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:40:514 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:40:628 CPU/(8543:8543): Instruccion: 	variables a, b, c, d
+
+[INFO] 19:09:40:634 CPU/(8543:8543): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:09:40:634 CPU/(8543:8543): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:09:40:634 CPU/(8543:8543): Definir variable: c en: (pagina, offset)=(1,8)
+
+[INFO] 19:09:40:634 CPU/(8543:8543): Definir variable: d en: (pagina, offset)=(1,12)
+
+[INFO] 19:09:40:636 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:40:636 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:40:638 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:40:638 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:40:638 CPU/(8543:8543): Instruccion: 	alocar a 50
+
+[INFO] 19:09:40:638 CPU/(8543:8543): Proceso: 1 solicita reservar 50 bytes en heap
+
+[INFO] 19:09:40:678 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:40:678 CPU/(8543:8543): Asignar valor 1029 en pagina: 1 offset: 0
+
+[INFO] 19:09:40:678 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:40:678 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:40:718 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:40:718 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:40:892 CPU/(8543:8543): Instruccion: 	*a = 5
+
+[INFO] 19:09:40:892 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:40:892 CPU/(8543:8543): Dereferenciar la direccion: 512
+
+[INFO] 19:09:40:893 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:09:40:893 CPU/(8543:8543): Asignar valor 5 en pagina: 2 offset: 5
+
+[INFO] 19:09:40:893 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:40:893 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:40:896 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:40:896 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Instruccion: 	alocar b 20
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Proceso: 1 solicita reservar 20 bytes en heap
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Asignar valor 1084 en pagina: 1 offset: 4
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:41:114 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:41:154 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:41:154 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:41:323 CPU/(8543:8543): Instruccion: 	c = *a
+
+[INFO] 19:09:41:323 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:41:323 CPU/(8543:8543): Dereferenciar la direccion: 512
+
+[INFO] 19:09:41:323 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:09:41:323 CPU/(8543:8543): Dereferenciar la direccion: 1029
+
+[INFO] 19:09:41:425 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:09:41:425 CPU/(8543:8543): Obtener posicion de la variable: c
+
+[INFO] 19:09:41:425 CPU/(8543:8543): Asignar valor 5 en pagina: 1 offset: 8
+
+[INFO] 19:09:41:425 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:41:425 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:41:430 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:41:430 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:41:646 CPU/(8543:8543): Instruccion: 	wait SEM1
+
+[INFO] 19:09:41:646 CPU/(8543:8543): Proceso: 1 hace wait en el semaforo: SEM1
+
+[INFO] 19:09:41:647 CPU/(8543:8543): El proceso: 1 se bloqueo al hacer wait en el semaforo: SEM1
+
+[INFO] 19:09:41:647 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:401 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:401 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:45:502 CPU/(8543:8543): Instruccion: 	variables a, b
+
+[INFO] 19:09:45:502 CPU/(8543:8543): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:09:45:502 CPU/(8543:8543): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:09:45:502 CPU/(8543:8543): Fin de quantum del proceso: 2
+
+[INFO] 19:09:45:502 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:518 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:519 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:45:519 CPU/(8543:8543): Instruccion: 	signal SEM1
+
+[INFO] 19:09:45:519 CPU/(8543:8543): Proceso: 2 hace signal en el semaforo: SEM1
+
+[INFO] 19:09:45:519 CPU/(8543:8543): Fin de quantum del proceso: 2
+
+[INFO] 19:09:45:519 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:601 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:601 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:45:601 CPU/(8543:8543): Instruccion: 	alocar d 430
+
+[INFO] 19:09:45:601 CPU/(8543:8543): Proceso: 1 solicita reservar 430 bytes en heap
+
+[INFO] 19:09:45:604 CPU/(8543:8543): Obtener posicion de la variable: d
+
+[INFO] 19:09:45:604 CPU/(8543:8543): Asignar valor 1541 en pagina: 1 offset: 12
+
+[INFO] 19:09:45:604 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:45:604 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:666 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:666 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:45:705 CPU/(8543:8543): Instruccion: 	a = 3
+
+[INFO] 19:09:45:705 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:45:705 CPU/(8543:8543): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:09:45:705 CPU/(8543:8543): Fin de quantum del proceso: 2
+
+[INFO] 19:09:45:705 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:768 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:770 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Instruccion: 	*d = c
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Obtener posicion de la variable: c
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Dereferenciar la direccion: 520
+
+[INFO] 19:09:45:935 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Obtener posicion de la variable: d
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Dereferenciar la direccion: 524
+
+[INFO] 19:09:45:935 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 1541
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Asignar valor 5 en pagina: 3 offset: 5
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Fin de quantum del proceso: 1
+
+[INFO] 19:09:45:935 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:45:938 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:45:938 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:46:57 CPU/(8543:8543): Instruccion: 	b = 5
+
+[INFO] 19:09:46:57 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:46:57 CPU/(8543:8543): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:09:46:57 CPU/(8543:8543): Fin de quantum del proceso: 2
+
+[INFO] 19:09:46:57 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:46:66 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:46:66 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:46:286 CPU/(8543:8543): Instruccion: end
+
+[INFO] 19:09:46:286 CPU/(8543:8543): Finalizar contexto de ejecucion del main
+
+[INFO] 19:09:46:286 CPU/(8543:8543): Proceso 1 terminado correctamente
+
+[INFO] 19:09:46:286 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:46:291 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:46:291 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Instruccion: 	a = b + 12
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Dereferenciar la direccion: 516
+
+[INFO] 19:09:46:292 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Fin de quantum del proceso: 2
+
+[INFO] 19:09:46:292 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:46:379 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:46:424 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:46:425 CPU/(8543:8543): Instruccion: end
+
+[INFO] 19:09:46:425 CPU/(8543:8543): Finalizar contexto de ejecucion del main
+
+[INFO] 19:09:46:425 CPU/(8543:8543): Proceso 2 terminado correctamente
+
+[INFO] 19:09:46:425 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:49:219 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:49:219 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:49:320 CPU/(8543:8543): Instruccion: 	variables a, b
+
+[INFO] 19:09:49:320 CPU/(8543:8543): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:09:49:320 CPU/(8543:8543): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:09:49:320 CPU/(8543:8543): Fin de quantum del proceso: 3
+
+[INFO] 19:09:49:320 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:49:322 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:49:322 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:49:322 CPU/(8543:8543): Instruccion: 	wait SEM1
+
+[INFO] 19:09:49:322 CPU/(8543:8543): Proceso: 3 hace wait en el semaforo: SEM1
+
+[INFO] 19:09:49:322 CPU/(8543:8543): El proceso: 3 se bloqueo al hacer wait en el semaforo: SEM1
+
+[INFO] 19:09:49:322 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:422 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:422 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:553 CPU/(8543:8543): Instruccion: 	variables a, b
+
+[INFO] 19:09:53:553 CPU/(8543:8543): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:09:53:553 CPU/(8543:8543): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:09:53:553 CPU/(8543:8543): Fin de quantum del proceso: 4
+
+[INFO] 19:09:53:553 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:648 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:648 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:648 CPU/(8543:8543): Instruccion: 	signal SEM1
+
+[INFO] 19:09:53:648 CPU/(8543:8543): Proceso: 4 hace signal en el semaforo: SEM1
+
+[INFO] 19:09:53:649 CPU/(8543:8543): Fin de quantum del proceso: 4
+
+[INFO] 19:09:53:649 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:690 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:690 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:691 CPU/(8543:8543): Instruccion: 	a = 3
+
+[INFO] 19:09:53:691 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:53:691 CPU/(8543:8543): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:09:53:691 CPU/(8543:8543): Fin de quantum del proceso: 3
+
+[INFO] 19:09:53:691 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:734 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:734 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:795 CPU/(8543:8543): Instruccion: 	a = 3
+
+[INFO] 19:09:53:795 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:53:795 CPU/(8543:8543): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:09:53:795 CPU/(8543:8543): Fin de quantum del proceso: 4
+
+[INFO] 19:09:53:795 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:814 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:814 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:895 CPU/(8543:8543): Instruccion: 	b = 5
+
+[INFO] 19:09:53:895 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:53:895 CPU/(8543:8543): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:09:53:895 CPU/(8543:8543): Fin de quantum del proceso: 3
+
+[INFO] 19:09:53:896 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:902 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:902 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:53:996 CPU/(8543:8543): Instruccion: 	b = 5
+
+[INFO] 19:09:53:996 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:53:996 CPU/(8543:8543): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:09:53:996 CPU/(8543:8543): Fin de quantum del proceso: 4
+
+[INFO] 19:09:53:997 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:53:999 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:53:0 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Instruccion: 	a = b + 12
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Dereferenciar la direccion: 516
+
+[INFO] 19:09:54:124 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Fin de quantum del proceso: 3
+
+[INFO] 19:09:54:124 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:54:173 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:54:173 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:54:225 CPU/(8543:8543): Instruccion: 	a = b + 12
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Obtener posicion de la variable: b
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Dereferenciar la direccion: 516
+
+[INFO] 19:09:54:226 CPU/(8543:8543): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Obtener posicion de la variable: a
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Fin de quantum del proceso: 4
+
+[INFO] 19:09:54:226 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:54:228 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:54:228 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:54:329 CPU/(8543:8543): Instruccion: end
+
+[INFO] 19:09:54:329 CPU/(8543:8543): Finalizar contexto de ejecucion del main
+
+[INFO] 19:09:54:329 CPU/(8543:8543): Proceso 3 terminado correctamente
+
+[INFO] 19:09:54:329 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Instruccion: end
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Finalizar contexto de ejecucion del main
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Proceso 4 terminado correctamente
+
+[INFO] 19:09:54:379 CPU/(8543:8543): Esperando proceso para ejecutar...
+
+[INFO] 19:09:59:882 CPU/(8543:8543): Se recibio codigo: 10
+
+[INFO] 19:09:59:882 CPU/(8543:8543): Se recibio un PCB
+
+[INFO] 19:12:01:671 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:04:906 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:04:906 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Instruccion: 	variables a, b, c, d
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Definir variable: c en: (pagina, offset)=(1,8)
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Definir variable: d en: (pagina, offset)=(1,12)
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:05:60 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:05:73 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:05:73 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:05:73 CPU/(8747:8747): Instruccion: 	alocar a 50
+
+[INFO] 19:12:05:73 CPU/(8747:8747): Proceso: 1 solicita reservar 50 bytes en heap
+
+[INFO] 19:12:05:151 CPU/(8747:8747): Obtener posicion de la variable: a
+
+[INFO] 19:12:05:151 CPU/(8747:8747): Asignar valor 1029 en pagina: 1 offset: 0
+
+[INFO] 19:12:05:151 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:05:151 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:05:191 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:05:191 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:05:362 CPU/(8747:8747): Instruccion: 	*a = 5
+
+[INFO] 19:12:05:362 CPU/(8747:8747): Obtener posicion de la variable: a
+
+[INFO] 19:12:05:362 CPU/(8747:8747): Dereferenciar la direccion: 512
+
+[INFO] 19:12:05:363 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:12:05:363 CPU/(8747:8747): Asignar valor 5 en pagina: 2 offset: 5
+
+[INFO] 19:12:05:363 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:05:363 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:05:366 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:05:366 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:05:590 CPU/(8747:8747): Instruccion: 	alocar b 20
+
+[INFO] 19:12:05:590 CPU/(8747:8747): Proceso: 1 solicita reservar 20 bytes en heap
+
+[INFO] 19:12:05:591 CPU/(8747:8747): Obtener posicion de la variable: b
+
+[INFO] 19:12:05:591 CPU/(8747:8747): Asignar valor 1084 en pagina: 1 offset: 4
+
+[INFO] 19:12:05:591 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:05:591 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:05:629 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:05:629 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:05:794 CPU/(8747:8747): Instruccion: 	c = *a
+
+[INFO] 19:12:05:794 CPU/(8747:8747): Obtener posicion de la variable: a
+
+[INFO] 19:12:05:794 CPU/(8747:8747): Dereferenciar la direccion: 512
+
+[INFO] 19:12:05:794 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 1029
+
+[INFO] 19:12:05:794 CPU/(8747:8747): Dereferenciar la direccion: 1029
+
+[INFO] 19:12:05:901 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:12:05:901 CPU/(8747:8747): Obtener posicion de la variable: c
+
+[INFO] 19:12:05:901 CPU/(8747:8747): Asignar valor 5 en pagina: 1 offset: 8
+
+[INFO] 19:12:05:901 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:05:901 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:05:904 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:05:904 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:06:107 CPU/(8747:8747): Instruccion: 	wait SEM1
+
+[INFO] 19:12:06:107 CPU/(8747:8747): Proceso: 1 hace wait en el semaforo: SEM1
+
+[INFO] 19:12:06:107 CPU/(8747:8747): El proceso: 1 se bloqueo al hacer wait en el semaforo: SEM1
+
+[INFO] 19:12:06:107 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:165 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:166 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:266 CPU/(8747:8747): Instruccion: 	variables a, b
+
+[INFO] 19:12:32:266 CPU/(8747:8747): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 19:12:32:266 CPU/(8747:8747): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 19:12:32:266 CPU/(8747:8747): Fin de quantum del proceso: 2
+
+[INFO] 19:12:32:266 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Instruccion: 	signal SEM1
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Proceso: 2 hace signal en el semaforo: SEM1
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Fin de quantum del proceso: 2
+
+[INFO] 19:12:32:267 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Instruccion: 	alocar d 430
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Proceso: 1 solicita reservar 430 bytes en heap
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Obtener posicion de la variable: d
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Asignar valor 1541 en pagina: 1 offset: 12
+
+[INFO] 19:12:32:474 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:32:475 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:548 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:548 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:583 CPU/(8747:8747): Instruccion: 	a = 3
+
+[INFO] 19:12:32:583 CPU/(8747:8747): Obtener posicion de la variable: a
+
+[INFO] 19:12:32:583 CPU/(8747:8747): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 19:12:32:583 CPU/(8747:8747): Fin de quantum del proceso: 2
+
+[INFO] 19:12:32:583 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:623 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:623 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:830 CPU/(8747:8747): Instruccion: 	*d = c
+
+[INFO] 19:12:32:830 CPU/(8747:8747): Obtener posicion de la variable: c
+
+[INFO] 19:12:32:830 CPU/(8747:8747): Dereferenciar la direccion: 520
+
+[INFO] 19:12:32:831 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:12:32:831 CPU/(8747:8747): Obtener posicion de la variable: d
+
+[INFO] 19:12:32:831 CPU/(8747:8747): Dereferenciar la direccion: 524
+
+[INFO] 19:12:32:831 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 1541
+
+[INFO] 19:12:32:831 CPU/(8747:8747): Asignar valor 5 en pagina: 3 offset: 5
+
+[INFO] 19:12:32:831 CPU/(8747:8747): Fin de quantum del proceso: 1
+
+[INFO] 19:12:32:831 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:836 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:836 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:32:932 CPU/(8747:8747): Instruccion: 	b = 5
+
+[INFO] 19:12:32:932 CPU/(8747:8747): Obtener posicion de la variable: b
+
+[INFO] 19:12:32:932 CPU/(8747:8747): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 19:12:32:932 CPU/(8747:8747): Fin de quantum del proceso: 2
+
+[INFO] 19:12:32:932 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:32:981 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:32:981 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:33:164 CPU/(8747:8747): Instruccion: end
+
+[INFO] 19:12:33:164 CPU/(8747:8747): Finalizar contexto de ejecucion del main
+
+[INFO] 19:12:33:164 CPU/(8747:8747): Proceso 1 terminado correctamente
+
+[INFO] 19:12:33:164 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Instruccion: 	a = b + 12
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Obtener posicion de la variable: b
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Dereferenciar la direccion: 516
+
+[INFO] 19:12:33:165 CPU/(8747:8747): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Obtener posicion de la variable: a
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Fin de quantum del proceso: 2
+
+[INFO] 19:12:33:165 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:12:33:205 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:12:33:205 CPU/(8747:8747): Se recibio un PCB
+
+[INFO] 19:12:33:266 CPU/(8747:8747): Instruccion: end
+
+[INFO] 19:12:33:266 CPU/(8747:8747): Finalizar contexto de ejecucion del main
+
+[INFO] 19:12:33:266 CPU/(8747:8747): Proceso 2 terminado correctamente
+
+[INFO] 19:12:33:266 CPU/(8747:8747): Esperando proceso para ejecutar...
+
+[INFO] 19:13:52:23 CPU/(8747:8747): Se recibio codigo: 10
+
+[INFO] 19:13:52:23 CPU/(8747:8747): Se recibio un PCB
+

@@ -910,15 +910,27 @@ int main(int argc, char **argv) {
 				free(instruccion);
 				quantum --;
 			}
-			if((programaTerminado == true) || (stackOverflow==true) || (procesoBloqueado == true)){
+			if((programaTerminado == true))
+			{
 				codigo = 10;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
+			} else if(procesoBloqueado == true)
+			{
+				codigo = 10;
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
+				printf("Se bloqueo el proceso\n");
+
+			} else if(stackOverflow == true)
+			{
+				codigo = 10;
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
+				printf("STACK OVERFLOW\n");
 			}
-			if((quantum == 0) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false)){
+			else if((quantum == 0)){
 				codigo = 13;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
-				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
+				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
 			}
 		}
 	}
