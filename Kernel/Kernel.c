@@ -544,9 +544,7 @@ int buscar_consola_de_proceso(int processid){
 	{
 		proceso_conexion* aux = list_get(lista_consolas,i);
 		if(aux->proceso == processid)
-		{
 			res = aux->sock_fd;
-		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_fd_consolas);
@@ -710,28 +708,24 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
+				printf("El proceso ha sido finalizado con Exit Code: %d\n", PCB->exit_code);
 				log_info(kernelLog, "El proceso ha sido finalizado con Exit Code: %d\n", PCB->exit_code);
 				encontrado = 1;
 			}
 			else
 			{
+				printf("El proceso elegido ya esta finalizado\n");
 				log_info(kernelLog, "El proceso elegido ya esta finalizado\n");
 			}
 		}
 		i++;
 	}
 
-	//Aca indico cuantos bytes quedaron leakeando
-	int bytes_lost = liberarHeap(PID);
-	if(bytes_lost != 0)
-		log_info(kernelLog, "Memory leak: se perdieron %d bytes\n",bytes_lost);
-	else
-		log_info(kernelLog, "No hubo Memory leaks, bien ahi!\n");
-
 	pthread_mutex_unlock(&mutex_process_list);
 	if(!encontrado && consola_conectada)
 	{
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
+			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 	 		log_info(kernelLog, "El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 			//Lo mando 0 para que sepa que no se pudo borrar el proceso
 			uint32_t codigo_de_cancelado_no_ok = 0;
@@ -741,6 +735,13 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	}
 	if(encontrado)
 	{
+		//Aca indico cuantos bytes quedaron leakeando
+		int bytes_lost = liberarHeap(PID);
+		if(bytes_lost != 0)
+				log_info(kernelLog, "Memory leak: se perdieron %d bytes\n",bytes_lost);
+			else
+				log_info(kernelLog, "No hubo Memory leaks, bien ahi!\n");
+
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
 		uint32_t codigo_para_borrar_paginas = 5;
@@ -777,11 +778,14 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	}
 }
 
-
-void print_PCB_list(){
+void print_PCB_list(char* state){
+	bool todos;
+	if((strcmp(state, "all")) == 0)
+		todos = true;
+	else todos = false;
+	int i = 0, number_of_prints = 0;
 	if(list_size(todos_los_procesos)>0)
 	{
-		int i = 0;
 		pthread_mutex_lock(&mutex_process_list);
 
 		printf("Se imprime lista de PCBs en el log\n");
@@ -791,13 +795,17 @@ void print_PCB_list(){
 		while(i < list_size(todos_los_procesos))
 		{
 			PCB* aux = list_get(todos_los_procesos,i);
-			printf("PID: %d\n",aux->pid);
-			log_info(kernelLog,"PID: %d\n",aux->pid);
+			if(todos || strcasecmp(aux->estado,state) == 0)
+			{
+				printf("PID: %d\n",aux->pid);
+				log_info(kernelLog,"PID: %d\n",aux->pid);
+				number_of_prints++;
+			}
 			i++;
 		}
 		pthread_mutex_unlock(&mutex_process_list);
 	}
-	else
+	if(number_of_prints == 0)
 	{
 		printf("No hay procesos en planificacion\n");
 		log_info(kernelLog,"No hay procesos en planificacion\n");
@@ -805,6 +813,16 @@ void print_PCB_list(){
 	printf("\n");
 }
 
+void interface_print_PCB(){
+	char* state = malloc(sizeof(char)*256);
+	printf("Elija el estado de los procesos que desea imprimir\n");
+	printf("All - New - Ready - Exec - Block - Exit\n");
+	scanf("%s", state);
+	if((strcasecmp(state, "All")) == 0 || (strcasecmp(state, "New")) == 0 || (strcasecmp(state, "Ready")) == 0 || (strcasecmp(state, "Exec")) == 0 || (strcasecmp(state, "Block")) == 0 || (strcasecmp(state, "Exit")) == 0)
+		print_PCB_list(state);
+	else printf("Error: cola invalida. Sera devuelto al menu principal\n\n");
+	free(state);
+}
 
 void print_all_files(){
 	pthread_mutex_lock(&mutex_archivos_globales);
@@ -835,7 +853,6 @@ void print_all_files(){
 void print_files_from_process(){
 	int i = 0, j = 0, encontrado = 0;
 	int* PID = malloc(sizeof(int));
-
 	printf("Ingrese el PID del proceso cuyos archivos desea ver\n");
 	scanf("%d", PID);
 
@@ -880,6 +897,7 @@ void print_commands()
 	printf("\t files_all	- Lista de todos los archivos\n");
 	printf("\t files		- Lista de los archivos de un proceso\n");
 	printf("\t data		- Informacion estadistica de un proceso\n");
+	printf("\t grado		- Modifica el grado de multiprogramacion\n");
 	printf("\t menu		- Mostrar menu\n\n");
 }
 
@@ -894,7 +912,7 @@ void pcb_state()
 
 	if(*PID<1)
 	{
-		printf("Los PIDs empiezan en 1, genio :l");
+		printf("Los PIDs empiezan en 1");
 		log_error(kernelLog, "Se intento localizar el PCB de un proceso con pid menor a 1, lo cual es invalido\n");
 	}
 	else
@@ -1045,6 +1063,38 @@ void file_handler(int sockfs, int tipo){
 	}
 }
 
+void finish_process(){
+	int PID;
+	printf("Ingrese el PID del PCB cuyo estado desea ver: ");
+	scanf("%d",&PID);
+	if(PID < 1)
+		printf("Error: el grado de multiprogramacion debe ser mayor a 0\n");
+	else
+	{
+		int consola = buscar_consola_de_proceso(PID);
+		if(consola != -1)
+			end_process(PID,-7,consola,true);
+		else
+			end_process(PID,-7,consola,false);
+	}
+}
+
+void set_multiprog(){
+	int grado;
+	printf("Ingrese el nuevo grado de multiprogramacion (grado actual: %d)\n", data_config.grado_multiprog);
+	scanf("%d", &grado);
+	if(grado < 1)
+		printf("Error: el grado de multiprogramacion debe ser mayor a 0\n");
+	else
+	{
+		//Por las dudas detengo la planificacion durante esta operacion
+		plan_go = false;
+		data_config.grado_multiprog = grado;
+		plan_go = true;
+		printf("El grado de multiprogramacion fue cambiado a %d\n", data_config.grado_multiprog);
+	}
+	printf("\n");
+}
 
 void menu()
 {
@@ -1053,7 +1103,7 @@ void menu()
 		char* command = malloc(20);
 		scanf("%s", command);
 		if((strcmp(command, "list")) == 0)
-			print_PCB_list();
+			interface_print_PCB();
 		else if((strcmp(command, "state")) == 0)
 			pcb_state();
 		else if((strcmp(command, "plan")) == 0)
@@ -1061,14 +1111,14 @@ void menu()
 			if(plan_go)
 			{
 				plan_go = false;
-				printf("Se ha detenido la planificacion\n");
-				log_info(kernelLog, "Se ha detenido la planificacion\n");
+				printf("Se ha detenido la planificacion\n\n");
+				log_info(kernelLog, "Se ha detenido la planificacion\n\n");
 			}
 			else
 			{
 				plan_go=true;
-				printf("Se ha reanudado la planificacion\n");
-				log_info(kernelLog, "Se ha reanudado la planificacion\n");
+				printf("Se ha reanudado la planificacion\n\n");
+				log_info(kernelLog, "Se ha reanudado la planificacion\n\n");
 			}
 		}
 		else if((strcmp(command, "files_all") == 0))
@@ -1077,8 +1127,12 @@ void menu()
 			print_files_from_process();
 		else if((strcmp(command, "data") == 0))
 			get_data_from_process();
+		else if((strcmp(command, "grado") == 0))
+			set_multiprog();
 		else if((strcmp(command, "menu") == 0))
 			print_commands();
+		else if((strcmp(command, "end") == 0))
+			finish_process();
 		else
 		{
 			printf("Comando incorrecto. Ingrese otro comando: \n");
@@ -1476,7 +1530,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
 	}
-	if(numbytes != 0){perror("receive");}
+	if(numbytes == 0){perror("receive");}
 }
 
 void planificacion(){
@@ -2178,7 +2232,6 @@ int main(int argc, char** argv) {
 						else
 						{
 							int errornum = errno;
-
 							printf("Ocurrio un error, revisar el log\n");
 							log_error(kernelLog, "Se ha producido un error con un recv: %s\n", strerror(errornum));
 						}
@@ -2203,7 +2256,9 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_in_exec);
 							}
 							else
+							{
 								log_info(kernelLog, "Se desconecto la CPU %d, que no estaba ejecutando ningun proceso\n",cpu_a_quitar->sock_fd);
+							}
 						}
 						remove_by_fd_socket(lista_cpus, i); //Lo sacamos de la lista de conexiones cpus y liberamos la memoria
 						pthread_mutex_unlock(&mutex_fd_cpus);
