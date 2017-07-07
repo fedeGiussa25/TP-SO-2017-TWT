@@ -856,12 +856,13 @@ int main(int argc, char **argv) {
 	while(1)
 	{
 		log_info(messagesLog, "Esperando proceso para ejecutar...\n");
+		printf("Esperando proceso para ejecutar...\n");
 		recv(fd_kernel, &quantum, sizeof(int32_t), 0);
 		recv(fd_kernel, &quantum_sleep, sizeof(uint32_t), 0);
 		recv(fd_kernel, &codigo, sizeof(uint32_t),0);
 		printf("Se recibio codigo: %d\n", codigo);
 		log_info(messagesLog, "Se recibio codigo: %d\n", codigo);
-		nuevaPCB = recibirPCB(fd_kernel);
+		nuevaPCB = recibirPCBV2(fd_kernel);
 		printf("RECIBI PCB\n");
 		log_info(messagesLog, "Se recibio un PCB\n");
 
@@ -884,13 +885,17 @@ int main(int argc, char **argv) {
 			}
 			if(programaTerminado == true){
 				codigo = 10;
-				send_PCB(fd_kernel, nuevaPCB, codigo);
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
+			}else if(procesoBloqueado == true){
+				codigo = 10;
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
+				printf("Se bloqueo el proceso\n");
 			}
 			else{
 				codigo = 25;
 				enviar(fd_kernel, &codigo_error, sizeof(int32_t));
-				send_PCB(fd_kernel, nuevaPCB, codigo);
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 			}
 		}
@@ -907,12 +912,12 @@ int main(int argc, char **argv) {
 			}
 			if((programaTerminado == true) || (stackOverflow==true) || (procesoBloqueado == true)){
 				codigo = 10;
-				send_PCB(fd_kernel, nuevaPCB, codigo);
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 			}
 			if((quantum == 0) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false)){
 				codigo = 13;
-				send_PCB(fd_kernel, nuevaPCB, codigo);
+				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 			}
 		}

@@ -42,7 +42,7 @@ typedef struct{
 	uint32_t page;
 	uint32_t offset;
 	uint32_t size;
-}variable;
+}__attribute__((packed)) variable;
 
 typedef struct{
 	int sock_fd;
@@ -432,7 +432,7 @@ void *PCB_cerealV2(script_manager_setup *sms,PCB *pcb,uint32_t *stack_size,uint3
 			tamanio_stack = 0;
 
 			if(cantRegistros>0){
-				list_iterate(pcb->stack_index, (void*) sumar_tamanio_registro);
+				list_iterate(pcb->stack_index, (void*) sumar_tamanio_registroV2);
 			}
 
 			sendbuf = malloc(sizeof(uint32_t)*9/*Propio de PCB*/+ sizeof(int32_t)/*exit_code*/+ sizeof(uint32_t)/*tamanio de i_de_codigo*/+ tamanio_indice_codigo+
@@ -767,7 +767,9 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 
 	recv(fd_socket, &tamanio_estado, sizeof(uint32_t),0);
 
-	recv(fd_socket, pcb->estado, tamanio_estado,0);
+	char *estado = malloc(tamanio_estado);
+
+	recv(fd_socket, estado, tamanio_estado,0);
 
 	recv(fd_socket, &exit_code, sizeof(int32_t),0);
 
@@ -884,6 +886,7 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 	pcb->primerPaginaStack=primerPagStack;
 	pcb->stackPointer=stack_pointer;
 	pcb->exit_code=exit_code;
+	pcb->estado = estado;
 	//strcpy(pcb->estado, estado);
 
 }

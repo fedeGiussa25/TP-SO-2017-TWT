@@ -281,6 +281,40 @@ void print_PCB(PCB* pcb){
 	log_info(kernelLog, "\n");
 }
 
+void print_PCB2(PCB* pcb){
+	int i, j=0, k, l;
+	printf("pid: %d\n", pcb->pid);
+	printf("page_counter: %d\n", pcb->page_counter);
+	printf("direccion_inicio_de_codigo: %d\n", pcb->direccion_inicio_codigo);
+	printf("program_counter: %d\n", pcb->program_counter);
+	printf("cantidad_de_instrucciones: %d\n", pcb->cantidad_de_instrucciones);
+	printf("primeraPaginaStack: %d\n", pcb->primerPaginaStack);
+	printf("stackPointer: %d\n", pcb->stackPointer);
+	printf("tamanioStack: %d\n", pcb->tamanioStack);
+	printf("estado: %s\n", pcb->estado);
+	printf("exit_code: %d\n", pcb->exit_code);
+	for(i=0; i<pcb->cantidad_de_instrucciones; i++){
+		printf("Instruccion %d: Inicio = %d, Offset = %d\n", i, pcb->indice_de_codigo[i].inicio, pcb->indice_de_codigo[i].offset);
+	}
+	printf("lista_de_etiquetas: %s\n", pcb->lista_de_etiquetas);
+	while(j<list_size(pcb->stack_index)){
+		registroStack *unReg = list_get(pcb->stack_index,j);
+		printf("ret_pos: %d\n",unReg->ret_pos);
+		printf("Pagina:%d, Offset: %d, Size: %d\n",unReg->ret_var.page,unReg->ret_var.offset, unReg->ret_var.size);
+		printf("Variables:\n");
+		for(k=0; k<list_size(unReg->vars);k++){
+			variable *unaVar = list_get(unReg->vars, k);
+			printf("ID: %c, offset: %d, page: %d, size: %d\n", unaVar->id,unaVar->offset, unaVar->page, unaVar->size);
+		}
+		printf("Argumentos:\n");
+		for(l=0; l<list_size(unReg->args);l++){
+			variable *unArg = list_get(unReg->args, l);
+			printf("ID: %c, offset: %d, page: %d, size: %d\n", unArg->id,unArg->offset, unArg->page, unArg->size);
+		}
+		j++;
+	}
+
+}
 
 //Todo lo de funciones de PCB
 PCB* create_PCB(char* script, int fd_consola){
@@ -1385,7 +1419,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 
 	//Le mando el codigo y el largo a la memoria
 	//INICIO SERIALIZACION PARA MEMORIAAAAA
-	sendbuf = (void*) PCB_cereal(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
+	sendbuf = (void*) PCB_cerealV2(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
 	log_info(kernelLog, "Mandamos a memoria!\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
 	//YA SERIALIZE Y MANDE A MEMORIA MIAMEEEEEEEEEE
@@ -1493,7 +1527,7 @@ void planificacion(){
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
 					log_info(kernelLog, "Mande Codigo: %d\n", codigo);
-					send_PCB(cpu->sock_fd, pcb_to_use, codigo);
+					send_PCBV2(cpu->sock_fd, pcb_to_use, codigo);
 					cpu->proceso = pcb_to_use->pid;
 
 					pcb_to_use->estado = "Exec";
@@ -2351,8 +2385,8 @@ int main(int argc, char** argv) {
 								uint32_t primerMensaje;
 								recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
-								PCB *unPCB = recibirPCB(i);
-								print_PCB(unPCB);
+								PCB *unPCB = recibirPCBV2(i);
+								print_PCB2(unPCB);
 
 								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
@@ -2420,8 +2454,8 @@ int main(int argc, char** argv) {
 
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE)
 						{
-							PCB *unPCB = recibirPCB(i);
-							print_PCB(unPCB);
+							PCB *unPCB = recibirPCBV2(i);
+							print_PCB2(unPCB);
 							uint32_t PID = unPCB->pid;
 
 							datos_proceso* dp = get_datos_proceso(PID);
@@ -2461,8 +2495,8 @@ int main(int argc, char** argv) {
 						if(codigo == FIN_DE_RAFAGA)
 						{
 							//Lo recibo...
-							PCB *unPCB = recibirPCB(i);
-							print_PCB(unPCB);
+							PCB *unPCB = recibirPCBV2(i);
+							print_PCB2(unPCB);
 
 							datos_proceso* dp = get_datos_proceso(unPCB->pid);
 							dp->rafagas ++;
@@ -2776,7 +2810,7 @@ int main(int argc, char** argv) {
 						{
 							void* buffer_codigo = malloc(4);
 							recibir(i, buffer_codigo, 4);
-							PCB *unPCB = recibirPCB(i);
+							PCB *unPCB = recibirPCBV2(i);
 							print_PCB(unPCB);
 							uint32_t PID = unPCB->pid;
 							int fd_consola = buscar_consola_de_proceso(PID);
