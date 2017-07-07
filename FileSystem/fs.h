@@ -1,11 +1,87 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <commons/bitarray.h>
+
+#define PATH_BLQ "Bloques/"
+#define FNF 20 // FILE NOT FOUND
 typedef struct{
 	int32_t tamanio;
-	int32_t *array;
+	char** array;
 	uint32_t cantidadElementos; //es posible sacarlo con un algoritmo pero no me jode ya tenerlo
 }Archivo_t;
+
+typedef struct {
+    int32_t id;
+    int32_t offset;
+    int32_t size;
+}Bloque_t;
+
+int32_t bloque_offset(int32_t offset,int32_t sizeBloque){
+    int32_t i;
+    for (i = 0; sizeBloque *i <= offset;i++);
+    return i;
+}
+
+Bloque_t *blocks_to_process(int32_t sizeBloque,int32_t offset,int32_t sizeOp){
+    int32_t readed = 0,counter = 0;
+    Bloque_t *returned = NULL;
+    while(readed < sizeOp){
+        if(readed == 0)
+            returned = malloc(sizeof(Bloque_t));
+        else
+            returned = realloc(returned,sizeof(Bloque_t)*(counter+1));
+        int32_t data = bloque_offset(offset+readed,sizeBloque);
+        int32_t proximoLeer;
+        if(readed == 0){
+            if(sizeOp > sizeBloque)
+                proximoLeer=(offset-(data-1)*sizeBloque);
+            else
+                proximoLeer = sizeOp;
+        }
+        else{
+            if(sizeOp-readed >sizeBloque)
+                proximoLeer = sizeBloque;
+            else
+                proximoLeer = sizeOp - readed;
+        }
+        int32_t actualOffset;
+        if(readed ==0){
+            actualOffset = proximoLeer;
+            proximoLeer = sizeBloque - proximoLeer;
+            readed+=proximoLeer;
+        }
+        else{
+            actualOffset = 0;
+            readed +=proximoLeer;
+        }
+        returned[counter].id = data -1;
+        returned[counter].offset = actualOffset;
+        returned[counter].size = proximoLeer;
+        counter++;
+    }
+    returned = realloc(returned,sizeof(Bloque_t)*(counter+1));
+    returned[counter].id = -1;
+    return returned;
+}
+
+typedef struct {
+    char* puerto;
+    char* montaje;
+} fs_config;
+
+void checkArguments(int argc){
+    if(argc == 1)
+    {
+        printf("Debe ingresar el nombre del archivo de configuracion");
+        exit(1);
+    }
+
+    if(argc != 2)
+    {
+        printf("Numero incorrecto de argumentos\n");
+        exit(1);
+    }
+}
 
 uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
@@ -144,27 +220,20 @@ int potencia(int nro,int potencia){
 		aux*=nro;
 	return aux;
 }	
-
-Archivo_t *get_data_archivo(char *path){
-	t_config *config;
+Archivo_t *get_data_Archivo(char *path){
 	
-	config = config_create(path);
 	Archivo_t *aux = malloc(sizeof(Archivo_t));
-
-	char** bloques=config_get_array_value(config,"BLOQUES");
+	t_config *config = config_create(path);
+	int32_t i;
+	char **data =config_get_array_value(config,"BLOQUES");
 	aux->tamanio=config_get_int_value(config,"TAMANIO");
-	aux->array = malloc(sizeof(int32_t)); 
-	int i;
-	for (i = 0;bloques[i] != NULL; ++i)
-	{
-		aux->array = realloc(aux->array,sizeof(int32_t)*(i+1));
-		aux->array[i] = atoi(bloques[i]);
-	}
-	if(i==0){
-		config_destroy(config);
-		return NULL;
-	}
+	for (i = 0;data[i] != NULL; i++);
 	aux->cantidadElementos = i;
+	aux->array = malloc(aux->cantidadElementos * sizeof(char*));
+	for (i = 0;data[i] != NULL; i++){
+		aux->array[i] = malloc(strlen(data[i])+1);
+		strcpy(aux->array[i],data[i]);
+	}
 	config_destroy(config);
 	return aux;
 }
@@ -286,7 +355,7 @@ void kill_archivo(Archivo_t *aux){
 
 void delete_archivo(char* path,char* montaje,t_bitarray *data){
 	char* fullPath = unir_str(montaje,path);
-	Archivo_t *aux = get_data_archivo(fullPath);
+	Archivo_t *aux = get_data_Archivo(fullPath);
 	int i;
 	printf("limpiare %d bloques\n",aux->cantidadElementos );
 	for(i=0;i<aux->cantidadElementos;i++){
@@ -296,7 +365,20 @@ void delete_archivo(char* path,char* montaje,t_bitarray *data){
 	remove(fullPath);
 	free(fullPath);
 }
-
+void setBloques(Archivo_t *aux,t_bitarray *data){
+	int i;
+	for(i=0;i<aux->cantidadElementos;i++){
+		int posicion = atoi((aux->array[i]));
+		bitarray_set_bit(data,posicion);
+	}
+}
+void cleanBloques(Archivo_t *aux,t_bitarray *data){
+	int i;
+	for(i=0;i<aux->cantidadElementos;i++){
+		int posicion = atoi((aux->array[i]));
+		bitarray_clean_bit(data,posicion);
+	}
+}
 int32_t validar_archivo(char* path,char* montaje){
 	char *fullPath = unir_str(montaje,path);
 	int32_t valida=false;;
@@ -312,4 +394,66 @@ int32_t validar_archivo(char* path,char* montaje){
 	config_destroy(config);
 	free(fullPath);
 	return valida;
+}
+
+void* readFromBlock(char* block,char* montajeBlck,int32_t offset,int32_t size){
+    char* pathBlock = unir_str(block,".bin");
+    char* fullPath = unir_str(montajeBlck,pathBlock);
+    free(pathBlock);
+    printf("Abriendo %s \n",fullPath);
+    FILE *leer = fopen(fullPath,"rb");
+    if(leer == NULL)
+        return NULL;
+    int i;
+    void *data = malloc(size);
+
+    fseek(leer,offset,SEEK_SET);
+    for(i=0;i<size;i++)
+        fread(data+i,sizeof(char),1,leer);
+    fclose(leer);
+    free(fullPath);
+    return data;
+}
+
+void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque){
+	if(validar_archivo(path,montaje) == false){
+		return FNF;
+	}
+	char* fullPath = unir_str(montaje,path);
+	Archivo_t *archivo = get_data_Archivo(fullPath);
+	free(fullPath);
+	int32_t i;
+	if(archivo->tamanio - size-offset >0)
+		return 16;
+	if(size < 1)
+		return 14;
+	if(offset<0)
+		return 15;
+	Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
+    uint32_t cargado=0;
+    void *miDato = malloc(size);
+	for (i = 0; aux[i].id != -1; i++)
+	{
+        void* readAux = readFromBlock(archivo->array[aux[i].id],PATH_BLQ,aux[i].offset,aux[i].size);
+        if(readAux == NULL) {
+            free(miDato);
+            free(aux);
+            kill_archivo(archivo);
+            return NULL;
+        }
+        memcpy(miDato+cargado,readAux,aux[i].size);
+        cargado+=aux[i].size;
+        free(readAux);
+	}
+	free(aux);
+    kill_archivo(archivo);
+	return miDato;
+}
+int32_t guardar_datos(char* path,char* montaje){
+	if(validar_archivo(path,montaje) == false){
+		return FNF;
+	}
+
+	return true;
+
 }

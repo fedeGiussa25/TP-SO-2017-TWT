@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include "../config_shortcuts/config_shortcuts.h"
 #include "socketEze.h"
 #include <errno.h>
 #include "fs.h"
@@ -21,6 +20,7 @@
 #define SIZE_MSG 15
 #define VALIDAR_MSG 11
 #define CREAR_MSG 12
+#define READ_MSG 13
 #define PATH_ARCH "Archivos/"
 #define PATH_META "Metadata/"
 #define PATH_BLQ "Bloques/"
@@ -51,9 +51,7 @@ t_bitarray *ready_to_work(char *pathBitmap,void* data){
 	close(fd);
 	return dataB;
 
-}	
-
-
+}
 
 int main(int argc, char** argv)
 {
@@ -102,11 +100,11 @@ int main(int argc, char** argv)
 	t_bitarray *bitmap = ready_to_work(miBitmap,dataArchivo);
 	free(miBitmap);
 	int32_t aux = find_or_create(montaje,PATH_BLQ);
-	if(aux == 0 || !exist("1.bin",PATH_BLQ)){
+	if(aux == 0 || !exist("0.bin",PATH_BLQ)){
 		printf("%d\n",cantidadBloques);
 
 		for(i=0;i<cantidadBloques;i++){
-			char *nro = int_to_str(i+1);
+			char *nro = int_to_str(i);
 			create_block(pathBloques,nro,tamanioBloques);
 			free(nro);
 		}
@@ -126,7 +124,7 @@ int main(int argc, char** argv)
 		exit(5);
 	
 	char *nameArchRequest;
-	uint32_t msg;
+	int32_t msg;
 	while(1){
 		if(recibir(kernel,&msg,sizeof(int32_t))==NULL)
 			exit(6);
@@ -136,7 +134,6 @@ int main(int argc, char** argv)
 				msg = validar_archivo(nameArchRequest,pathArchivos);
 				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
-				
 				break;
 			case CREAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
@@ -144,6 +141,18 @@ int main(int argc, char** argv)
 				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
+            case READ_MSG:
+                nameArchRequest = obtieneNombreArchivo(kernel);
+                int32_t offset,size;
+                if(recibir(kernel,&offset,sizeof(int32_t)) == NULL)
+                    exit(6);
+                if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
+                    exit(6);
+                void *data = obtener_datos(nameArchRequest,PATH_ARCH,offset,size,tamanioBloques);
+                enviar(kernel,data,size);
+                free(data);
+                free(nameArchRequest);
+                break;
 			default:
 				msg= -10;
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
