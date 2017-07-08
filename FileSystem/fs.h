@@ -522,7 +522,7 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
         for(i=0;i<bloquesNecesarios;i++){
             int ubicacionBit= primer_bloque_libre(bitmap);
             agregarBloque(aux,ubicacionBit);
-            bitarray_set_bit(ubicacionBit);
+            bitarray_set_bit(bitmap,ubicacionBit);
         }
     }
     int writed = 0;
