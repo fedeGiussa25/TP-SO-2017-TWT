@@ -1980,6 +1980,87 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	return 1;
 }
 
+int execute_delete(int pid, int fd){
+	int i = 0;
+	int referencia_tabla_global;
+	tabla_de_archivos_de_proceso* tabla_archivos;
+	bool encontrado = false;
+
+	//Saco la tabla de archivos asociada a mi proceso
+	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
+	{
+		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, i);
+		if(pid == aux->pid)
+		{
+			tabla_archivos = aux;
+			encontrado = true;
+		}
+		i++;
+	}
+	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
+	if(!encontrado)
+	{
+		printf("Ocurrio un error al borrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al borrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
+		return -1;
+	}
+	log_info(kernelLog, "El proceso %d existe\n", pid);
+	i = 0;
+	encontrado = false;
+	archivo_de_proceso* arch_aux;
+
+	//Busco el fd dentro de la tabla del proceso
+	while(i < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
+	{
+		arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
+		if(arch_aux->fd == fd)
+		{
+			log_info(kernelLog, "Encontre el archivo %d para el proceso %d\n", fd, pid);
+			encontrado = true;
+			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
+		}
+		i++;
+	}
+
+	if(!encontrado)
+	{
+		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
+		return -1;
+	}
+
+	i--; //La posicion del archivo en la tabla
+	pthread_mutex_lock(&mutex_archivos_globales);
+	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
+	pthread_mutex_unlock(&mutex_archivos_globales);
+
+	//Significa que solo esta abierto por este proceso
+	if(arch->instancias_abiertas == 1)
+	{
+		uint32_t size = strlen(arch->ruta_del_archivo), reciever;
+		void* buffer = malloc(sizeof(uint32_t) + size);
+		memcpy(buffer, &size, sizeof(uint32_t));
+		memcpy(buffer + sizeof(uint32_t), &(arch->ruta_del_archivo), size);
+		enviar(sockfd_fs, buffer, sizeof(uint32_t) + size);
+		recibir(sockfd_fs, &reciever, sizeof(uint32_t));
+		free(buffer);
+		if(reciever)
+		{
+			list_remove(tabla_global_de_archivos, referencia_tabla_global);
+			free(arch);
+			list_remove(tabla_archivos->lista_de_archivos,i);
+			free(arch_aux);
+			log_info(kernelLog, "Elimine las entradas en las tablas local y global %d\n");
+			return reciever;
+		}
+	}
+	else
+	{
+		log_info(kernelLog, "Error: varios procesos tienen abierto el archivo %d\n");
+		return -1;
+	}
+}
+
 int execute_close(int pid, int fd)
 {
 	int i = 0;
@@ -1996,7 +2077,6 @@ int execute_close(int pid, int fd)
 			tabla_archivos = aux;
 			encontrado = true;
 		}
-
 		i++;
 	}
 	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
@@ -2052,9 +2132,11 @@ int execute_close(int pid, int fd)
 		pthread_mutex_unlock(&mutex_archivos_globales);
 	}
 	else
+	{
 		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
 		arch->instancias_abiertas--;
 		log_info(kernelLog, "Disminui en 1 las instancias abiertas del archivo\n");
+	}
 
 	return 1;
 }
@@ -2556,29 +2638,42 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(unPCB->pid);
 							dp->rafagas ++;
 
-							//Saco la CPU de la lista de ejecucion
-							pthread_mutex_lock(&mutex_in_exec);
-							remove_by_fd_socket(lista_en_ejecucion, i);
-							pthread_mutex_unlock(&mutex_in_exec);
+							if(!proceso_para_borrar(unPCB->pid))
+							{
+								//Saco la CPU de la lista de ejecucion
+								pthread_mutex_lock(&mutex_in_exec);
+								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
 
-							//Busco la version anterior del PCB y la saco de Exec
-							pthread_mutex_lock(&mutex_exec_queue);
-							remove_PCB_from_specific_queue(unPCB->pid,exec_queue);
-							pthread_mutex_unlock(&mutex_exec_queue);
+								//Busco la version anterior del PCB y la saco de Exec
+								pthread_mutex_lock(&mutex_exec_queue);
+								remove_PCB_from_specific_queue(unPCB->pid,exec_queue);
+								pthread_mutex_unlock(&mutex_exec_queue);
 
-							pthread_mutex_lock(&mutex_process_list);
-							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-							PCB_vieja->estado = "Ready";
-							list_add(todos_los_procesos,PCB_vieja);
-							pthread_mutex_unlock(&mutex_process_list);
+								pthread_mutex_lock(&mutex_process_list);
+								PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+								PCB_vieja->estado = "Ready";
+								list_add(todos_los_procesos,PCB_vieja);
+								pthread_mutex_unlock(&mutex_process_list);
 
-							//Meto el modificado en Ready
-							pthread_mutex_lock(&mutex_ready_queue);
-							queue_push(ready_queue,unPCB);
-							pthread_mutex_unlock(&mutex_ready_queue);
+								//Meto el modificado en Ready
+								pthread_mutex_lock(&mutex_ready_queue);
+								queue_push(ready_queue,unPCB);
+								pthread_mutex_unlock(&mutex_ready_queue);
 
-							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
-							//free(pcb_viejo);
+								//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
+								//free(pcb_viejo);
+							}
+							else
+							{
+								pthread_mutex_lock(&mutex_in_exec);
+								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
+
+								int consola_con = buscar_consola_de_proceso(unPCB->pid);
+								log_info(kernelLog, "El proceso estaba para borrar\n");
+								end_process(unPCB->pid, -6, consola_con, false);
+							}
 						}
 
 						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
