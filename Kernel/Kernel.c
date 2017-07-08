@@ -1718,10 +1718,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	//Le pregunto a fs si ese archivo existe
 	//Primero serializo data
 	codigo = BUSCAR_ARCHIVO_FS;
-	void* serializedData = malloc(sizeof(uint32_t) + path_length);
-
-//	memcpy(serializedData, &path_length, sizeof(uint32_t));
-//	memcpy(serializedData + sizeof(uint32_t), path, path_length);
+//	void* serializedData = malloc(sizeof(uint32_t) + path_length);
 
 	log_info(kernelLog, "Codigo: %d\n", codigo);
 	log_info(kernelLog, "Path length: %d\n", path_length);
@@ -1729,8 +1726,10 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 	enviar(sockfd_fs, &codigo, sizeof(uint32_t));
 	enviar(sockfd_fs, &path_length, sizeof(uint32_t));
-	enviar(sockfd_fs, (void *)path, path_length);
+	enviar(sockfd_fs, path, path_length);
+
 	recibir(sockfd_fs, &encontrado, sizeof(encontrado));
+	log_info(kernelLog, "Encontrado: %d\n", encontrado);
 
 	if((encontrado != 1) && (permisos->creacion))
 	{
@@ -1740,12 +1739,9 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 		enviar(sockfd_fs, &codigo, sizeof(uint32_t));
 		enviar(sockfd_fs, &path_length, sizeof(path_length));
-		enviar(sockfd_fs, (void *) path, path_length);
-	//	enviar(sock_fs, &codigo, sizeof(uint32_t));
-	//	enviar(sock_fs, serializedData, sizeof(uint32_t) + path_length);
-		recibir(sockfd_fs, &pudo_crear_archivo, sizeof(pudo_crear_archivo));
+		enviar(sockfd_fs, path, path_length);
 
-		free(serializedData);
+		recibir(sockfd_fs, &pudo_crear_archivo, sizeof(pudo_crear_archivo));
 
 		if(pudo_crear_archivo)
 		{
@@ -1803,7 +1799,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
 
-	log_info(kernelLog, "Setteanding the new archive baby!\n");
+	log_info(kernelLog, "Setteando el nuevo archivo!\n");
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
@@ -1920,7 +1916,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
 		//Busco el fd dentro de la tabla
-		int k = FD_INICIAL_ARCHIVOS;
+		int k = 0;
 		bool encontrado = false;
 
 		while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
@@ -1931,7 +1927,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 			{
 				//Agarro el flag para ese archivo
 				t_banderas* banderas = arch_aux->flags;
-
+				encontrado = true;
 				if(banderas->escritura)
 				{
 					//Saco la posicion en la tabla global
@@ -1950,15 +1946,17 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 					//Primero serializo
 					codigo = ESCRIBIR_ARCHIVO_FS;
-					void* buffer = malloc((sizeof(int)*3) + strlen(arch->ruta_del_archivo) + messageLength);
+					int size_arch = strlen(arch->ruta_del_archivo);
+					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
-					memcpy(buffer, &codigo, sizeof(int));
-					memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
-					memcpy(buffer + (sizeof(int)*2), &offset, sizeof(int));
-					memcpy(buffer + (sizeof(int)*3), arch->ruta_del_archivo, strlen(arch->ruta_del_archivo));
-					memcpy(buffer + (sizeof(int)*3) + strlen(arch->ruta_del_archivo), message, messageLength);
+					memcpy(buffer, &codigo, sizeof(uint32_t));
+					memcpy(buffer + sizeof(uint32_t), &size_arch, sizeof(uint32_t));
+					memcpy(buffer + (sizeof(uint32_t)*2), arch->ruta_del_archivo, size_arch);
+					memcpy(buffer + (sizeof(uint32_t)*2) + size_arch, &offset, sizeof(uint32_t));
+					memcpy(buffer + (sizeof(uint32_t)*3) + size_arch, &messageLength, sizeof(uint32_t));
+					memcpy(buffer + (sizeof(uint32_t)*4) + size_arch, message, messageLength);
 
-					enviar(sockfd_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo) + messageLength);
+					enviar(sockfd_fs, buffer, (sizeof(uint32_t)*4) + size_arch + messageLength);
 					recibir(sockfd_fs, &escritura_correcta, sizeof(bool));
 
 					free(buffer);
@@ -1984,7 +1982,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
 					return -1;
 				}
-				encontrado = true;
 			}
 			k++;
 		}
@@ -2080,6 +2077,7 @@ int execute_delete(int pid, int fd){
 		log_info(kernelLog, "Error: varios procesos tienen abierto el archivo %d\n");
 		return -1;
 	}
+	return -1;
 }
 
 int execute_close(int pid, int fd)
@@ -2183,7 +2181,7 @@ int main(int argc, char** argv) {
 	int messageLength;
 
 	//Creo el log
-	kernelLog = log_create("../../Files/Logs/Kernel.log", "Kernel", false, LOG_LEVEL_INFO);
+	kernelLog = log_create("../../Files/Logs/Kernel.log", "Kernel", true, LOG_LEVEL_INFO);
 	log_info(kernelLog, "\n\n//////////////////////\n\n");	//lo pongo para separar entre ejecuciones
 
 	//Consolas y cpus
@@ -2576,49 +2574,50 @@ int main(int argc, char** argv) {
 							if(existe == true)
 							{
 
-							head = 1; //Existe el semaforo
+								head = 1; //Existe el semaforo
 
-							valor = wait(id_sem, PID);
-							print_vars();
+								valor = wait(id_sem, PID);
+								print_vars();
 
-							send(i, &head, sizeof(int32_t),0);
-							send(i, &valor, sizeof(int32_t), 0);
+								send(i, &head, sizeof(int32_t),0);
+								send(i, &valor, sizeof(int32_t), 0);
 
-							if(valor < 0)
-							{
-								uint32_t primerMensaje;
-								recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
+								if(valor < 0)
+								{
+									uint32_t primerMensaje;
+									recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
-								PCB *unPCB = recibirPCBV2(i);
-								print_PCB2(unPCB);
+									PCB *unPCB = recibirPCBV2(i);
+									print_PCB2(unPCB);
 
-								pthread_mutex_lock(&mutex_in_exec);
-								remove_by_fd_socket(lista_en_ejecucion, i);
-								pthread_mutex_unlock(&mutex_in_exec);
+									pthread_mutex_lock(&mutex_in_exec);
+									remove_by_fd_socket(lista_en_ejecucion, i);
+									pthread_mutex_unlock(&mutex_in_exec);
 
-								log_info(kernelLog, "check 1\n");
-								pthread_mutex_lock(&mutex_semaforos_ansisop);
-								semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
+									log_info(kernelLog, "check 1\n");
+									pthread_mutex_lock(&mutex_semaforos_ansisop);
+									semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
 
-								log_info(kernelLog, "check 2\n");
-								pthread_mutex_lock(&mutex_exec_queue);
-								remove_PCB_from_specific_queue(PID, exec_queue);
-								pthread_mutex_unlock(&mutex_exec_queue);
+									log_info(kernelLog, "check 2\n");
+									pthread_mutex_lock(&mutex_exec_queue);
+									remove_PCB_from_specific_queue(PID, exec_queue);
+									pthread_mutex_unlock(&mutex_exec_queue);
 
-								pthread_mutex_lock(&mutex_process_list);
-								PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-								PCB_a_modif->estado = "Block";
-								list_add(todos_los_procesos, PCB_a_modif);
-								pthread_mutex_unlock(&mutex_process_list);
+									pthread_mutex_lock(&mutex_process_list);
+									PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+									PCB_a_modif->estado = "Block";
+									list_add(todos_los_procesos, PCB_a_modif);
+									pthread_mutex_unlock(&mutex_process_list);
 
-								log_info(kernelLog, "check 3\n");
-								queue_push(unSem->cola_de_bloqueados, unPCB);
-								list_add(semaforos, unSem);
-								pthread_mutex_unlock(&mutex_semaforos_ansisop);
-								log_info(kernelLog, "El proceso %d paso de Exec a Wait\n",unPCB->pid);
-								log_info(kernelLog, "Termino todo el envio\n");
+									log_info(kernelLog, "check 3\n");
+									queue_push(unSem->cola_de_bloqueados, unPCB);
+									list_add(semaforos, unSem);
+									pthread_mutex_unlock(&mutex_semaforos_ansisop);
+									log_info(kernelLog, "El proceso %d paso de Exec a Wait\n",unPCB->pid);
+									log_info(kernelLog, "Termino todo el envio\n");
+								}
 							}
-							} else //Si no existe el semaforo
+							else //Si no existe el semaforo
 							{
 								head = 0;
 								send(i, &head, sizeof(int32_t),0);
@@ -2638,29 +2637,6 @@ int main(int argc, char** argv) {
 							print_vars();
 							free(id_sem);
 						}
-
-		/*				//Si recibo 9 significa que se desconecto la consola
-						if(codigo==DESCONEXION)
-						{
-							//Cacheo el pid del proceso que tengo que borrar
-							int pid;
-							recv(i,&pid,sizeof(int),0);
-
-							if(!proceso_en_ejecucion(pid))
-							{
-								log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
-								end_process(pid, -6, i, false);
-							}
-							else
-							{
-								log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
-								proceso_conexion* aux = buscar_conexion_de_consola(i);
-								pthread_mutex_lock(&mutex_to_delete);
-								list_add(procesos_a_borrar,aux);
-								pthread_mutex_unlock(&mutex_to_delete);
-							}
-							//Y llamo a la funcion que lo borra
-						}*/
 
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE)
 						{
@@ -2776,10 +2752,10 @@ int main(int argc, char** argv) {
 							recibir(i, &(permisos->escritura), sizeof(bool));
 
 							log_info(kernelLog, "Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
-							log_info(kernelLog, "  PID: %d\n",pid);
-							log_info(kernelLog, "  Path length: %d\n", path_length);
-							log_info(kernelLog, "  Path: %s\n", file_path);
-							log_info(kernelLog, "  Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
+							log_info(kernelLog, "PID: %d\n",pid);
+							log_info(kernelLog, "Path length: %d\n", path_length);
+							log_info(kernelLog, "Path: %s\n", file_path);
+							log_info(kernelLog, "Permisos: C(%d), R(%d), W(%d)\n", permisos->creacion, permisos->lectura, permisos->escritura);
 
 							int resultado = execute_open(pid, permisos, file_path, path_length);
 
@@ -2805,8 +2781,6 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Un archivo ha sido abierto exitosamente para el proceso %d\n", pid);
 								enviar(i, &resultado, sizeof(int));
 							}
-
-							free(file_path);
 						}
 
 						if(codigo == LEER_ARCHIVO)
@@ -2857,12 +2831,10 @@ int main(int argc, char** argv) {
 							//Recibo el mensaje a escribir
 							recibir(i, message, messageLength);
 
-							int resultado;
-							resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
+							int resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
 							//Independientemente del resultado, le aviso a CPU
-							//resultado = -1 --> error; resultado = 1 --> ok
-							//enviar(i, &resultado, sizeof(int));
+							enviar(i, &resultado, sizeof(int));
 
 							free(message);
 						}

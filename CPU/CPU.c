@@ -606,7 +606,7 @@ void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t
 	memset(informacion+tamanio, '\0', 1);
 	log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
 	int desc_salida=descriptor_archivo;
-	uint32_t resp;
+	int resp;
 	if(desc_salida==0)
 	{
 		desc_salida = 1; //El parser devuelve 0	como FD de salida, no se por que
@@ -620,7 +620,7 @@ void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t
 	memcpy(buffer+sizeof(uint32_t)*4, informacion, tamanio);
 	enviar(fd_kernel, buffer, sizeof(uint32_t)*4+tamanio);
 
-	recibir(fd_kernel, &resp, sizeof(uint32_t));
+	recibir(fd_kernel, &resp, sizeof(int));
 
 	if(resp < 0){
 		procesoAbortado=true;
@@ -864,7 +864,7 @@ int main(int argc, char **argv) {
 
 	//Creacion del archivo de log
 
-	messagesLog = log_create("../../Files/Logs/CPUMessages.log", "CPU", false, LOG_LEVEL_INFO);
+	messagesLog = log_create("../../Files/Logs/CPUMessages.log", "CPU", true, LOG_LEVEL_INFO);
 
 	// CONEXION A KERNEL
 
