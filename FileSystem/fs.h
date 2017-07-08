@@ -1,7 +1,6 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <commons/bitarray.h>
-
 #define PATH_BLQ "Bloques/"
 #define FNF 20 // FILE NOT FOUND
 typedef struct{
@@ -308,6 +307,20 @@ char* array_to_write(Archivo_t *aux){
 	return charArray;
 }
 
+int32_t Archivo_guardar(char* path,char* montaje,Archivo_t *aux){
+    char* fullPath = unir_str(montaje,path);
+    FILE *archivo = fopen(fullPath,"w");
+    free(fullPath);
+    if(archivo == NULL)
+        return false;
+    t_config *config = config_create(fullPath);
+    config_set_value(config,"TAMANIO",int_to_str(aux->tamanio));
+    config_set_value(config,"BLOQUES",array_to_write(aux));
+    config_save(config);
+    config_destroy(config);
+    return true;
+}
+
 int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	if(exist(path,montaje)==true)
 		return false;
@@ -321,10 +334,10 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	aux->tamanio = 0;
 	aux->cantidadElementos = 0;
 	aux->array = NULL;
-	int bloque = primer_bloque_libre(data) + 1;
+	int bloque = primer_bloque_libre(data);
 	printf("El primer bloque libre fue el %d\n",bloque);
 	agregarBloque(aux,bloque);
-	bitarray_set_bit(data,bloque-1);
+	bitarray_set_bit(data,bloque);
 	t_config *config = config_create(fullPath);
 	config_set_value(config,"TAMANIO", "0");
 	char *array = array_to_write(aux);
@@ -353,31 +366,30 @@ void kill_archivo(Archivo_t *aux){
 	free(aux);
 }
 
-void delete_archivo(char* path,char* montaje,t_bitarray *data){
-	char* fullPath = unir_str(montaje,path);
-	Archivo_t *aux = get_data_Archivo(fullPath);
-	int i;
-	printf("limpiare %d bloques\n",aux->cantidadElementos );
-	for(i=0;i<aux->cantidadElementos;i++){
-		int posicion = atoi((aux->array[i]))-1;
-		bitarray_clean_bit(data,posicion);
-	}
-	remove(fullPath);
-	free(fullPath);
-}
 void setBloques(Archivo_t *aux,t_bitarray *data){
-	int i;
-	for(i=0;i<aux->cantidadElementos;i++){
-		int posicion = atoi((aux->array[i]));
-		bitarray_set_bit(data,posicion);
-	}
+    int i;
+    for(i=0;i<aux->cantidadElementos;i++){
+        int posicion = atoi((aux->array[i]));
+        bitarray_set_bit(data,posicion);
+    }
 }
 void cleanBloques(Archivo_t *aux,t_bitarray *data){
+    int i;
+    for(i=0;i<aux->cantidadElementos;i++){
+        int posicion = atoi((aux->array[i]));
+        bitarray_clean_bit(data,posicion);
+    }
+}
+int32_t delete_archivo(char* path,char* montaje,t_bitarray *data){
+	char* fullPath = unir_str(montaje,path);
+	Archivo_t *aux = get_data_Archivo(fullPath);
+    if(aux == NULL)
+        return false;
 	int i;
-	for(i=0;i<aux->cantidadElementos;i++){
-		int posicion = atoi((aux->array[i]));
-		bitarray_clean_bit(data,posicion);
-	}
+	cleanBloques(aux,data);
+	remove(fullPath);
+	free(fullPath);
+    return true;
 }
 int32_t validar_archivo(char* path,char* montaje){
 	char *fullPath = unir_str(montaje,path);
@@ -400,8 +412,7 @@ void* readFromBlock(char* block,char* montajeBlck,int32_t offset,int32_t size){
     char* pathBlock = unir_str(block,".bin");
     char* fullPath = unir_str(montajeBlck,pathBlock);
     free(pathBlock);
-    printf("Abriendo %s \n",fullPath);
-    FILE *leer = fopen(fullPath,"rb");
+    FILE* leer = fopen(fullPath,"rb");
     if(leer == NULL)
         return NULL;
     int i;
@@ -415,20 +426,41 @@ void* readFromBlock(char* block,char* montajeBlck,int32_t offset,int32_t size){
     return data;
 }
 
+int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,void* buffer){
+    char* pathBlock = unir_str(block,".bin");
+    char* fullPath = unir_str(montajeBlck,pathBlock);
+    free(pathBlock);
+    FILE* writer = fopen(fullPath,"rb+");
+    if(writer == NULL)
+        return NULL;
+    int i;
+    fseek(writer,offset,SEEK_SET);
+    for(i=0;i<size;i++)
+        fwrite(buffer+i,sizeof(char),1,writer);
+    fclose(writer);
+    free(fullPath);
+    return true;
+}
+
+
 void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque){
 	if(validar_archivo(path,montaje) == false){
 		return FNF;
 	}
-	char* fullPath = unir_str(montaje,path);
-	Archivo_t *archivo = get_data_Archivo(fullPath);
-	free(fullPath);
-	int32_t i;
-	if(archivo->tamanio - size-offset >0)
-		return 16;
-	if(size < 1)
-		return 14;
-	if(offset<0)
-		return 15;
+    if(size < 1) {
+        return 14;
+    }
+    if(offset<0) {
+        return 15;
+    }
+    char* fullPath = unir_str(montaje,path);
+    Archivo_t *archivo = get_data_Archivo(fullPath);
+    if(archivo->tamanio - size-offset >0) {
+        kill_archivo(archivo);
+        free(fullPath);
+        return 16;
+    }
+    int32_t i;
 	Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
     uint32_t cargado=0;
     void *miDato = malloc(size);
@@ -438,6 +470,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
         if(readAux == NULL) {
             free(miDato);
             free(aux);
+            free(fullPath);
             kill_archivo(archivo);
             return NULL;
         }
@@ -449,11 +482,56 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
     kill_archivo(archivo);
 	return miDato;
 }
-int32_t guardar_datos(char* path,char* montaje){
+
+int32_t cantidadBloquesLibres(t_bitarray* bitmap){
+    int32_t i,cantidad=0;
+    if(bitmap==NULL)
+        return NULL;
+    for(i=0;i<bitarray_get_max_bit(bitmap);i++){
+        if(bitarray_test_bit(bitmap,i)==false)
+            cantidad++;
+    }
+    return cantidad;
+}
+
+int32_t max(int32_t numA,int32_t numB){
+    if(numA >=numB)
+        return numA;
+    return numB;
+}
+int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void* buffer,t_bitarray* bitmap,int32_t sizeBloque){
 	if(validar_archivo(path,montaje) == false){
 		return FNF;
 	}
+    if(size < 1)
+        return 14;
+    if(offset<0)
+        return 15;
+    char* fullPath = unir_str(montaje,path);
+    Archivo_t *archivo = get_data_Archivo(fullPath);
+    free(fullPath);
+    int32_t i;
+    Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
+    for(i=0;aux[i].id != -1;i++);
+    int32_t bloquesNecesarios = i - archivo->cantidadElementos;
 
-	return true;
+    if(bloquesNecesarios >0){
+        int32_t bloques = cantidadBloquesLibres(bitmap);
+        if(bloques < bloquesNecesarios)
+            return 16;
+        for(i=0;i<bloquesNecesarios;i++){
+            int ubicacionBit= primer_bloque_libre(bitmap);
+            agregarBloque(aux,ubicacionBit);
+            bitarray_set_bit(ubicacionBit);
+        }
+    }
+    int writed = 0;
+    for(i=0;aux[i].id != -1;i++){
+        writeToBlock(archivo->array[aux[i].id],PATH_BLQ,aux[i].offset,aux[i].size,buffer+writed);
+        writed+=aux[i].size;
+    }
+    free(aux);
+    Archivo_guardar(path,montaje,archivo);
+    return true;
 
 }

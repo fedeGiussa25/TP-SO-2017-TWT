@@ -21,6 +21,8 @@
 #define VALIDAR_MSG 11
 #define CREAR_MSG 12
 #define READ_MSG 13
+#define WRITE_MSG 14
+#define DEL_MSG 15
 #define PATH_ARCH "Archivos/"
 #define PATH_META "Metadata/"
 #define PATH_BLQ "Bloques/"
@@ -124,7 +126,7 @@ int main(int argc, char** argv)
 		exit(5);
 	
 	char *nameArchRequest;
-	int32_t msg;
+	int32_t msg,offset,size;
 	while(1){
 		if(recibir(kernel,&msg,sizeof(int32_t))==NULL)
 			exit(6);
@@ -143,7 +145,7 @@ int main(int argc, char** argv)
 				break;
             case READ_MSG:
                 nameArchRequest = obtieneNombreArchivo(kernel);
-                int32_t offset,size;
+
                 if(recibir(kernel,&offset,sizeof(int32_t)) == NULL)
                     exit(6);
                 if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
@@ -152,6 +154,28 @@ int main(int argc, char** argv)
                 enviar(kernel,data,size);
                 free(data);
                 free(nameArchRequest);
+                break;
+            case WRITE_MSG:
+                nameArchRequest = obtieneNombreArchivo(kernel);
+                int32_t offset,size;
+                void* buffer;
+                if(recibir(kernel,&offset,sizeof(int32_t)) == NULL)
+                    exit(6);
+                if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
+                    exit(6);
+                buffer = malloc(size);
+                if(recibir(kernel,buffer,size) == NULL)
+                    exit(6);
+                msg = guardar_datos(nameArchRequest,PATH_ARCH,offset,size,buffer,bitmap,tamanioBloques);
+                enviar(kernel,(void *)&msg,sizeof(uint32_t));
+                free(buffer);
+                free(nameArchRequest);
+                break;
+            case DEL_MSG:
+                nameArchRequest = obtieneNombreArchivo(kernel);
+                msg = delete_archivo(nameArchRequest,PATH_ARCH,bitmap);
+                free(nameArchRequest);
+                enviar(kernel,(void *)&msg,sizeof(uint32_t));
                 break;
 			default:
 				msg= -10;
