@@ -280,6 +280,7 @@ t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 	int codigo = BUSCAR_VALOR;
 	int largo = strlen(variable)+1;
 	void *buffer = malloc(sizeof(u_int32_t)*2 + largo);
+	uint32_t respuesta;
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(u_int32_t), &largo, sizeof(u_int32_t));
@@ -287,10 +288,17 @@ t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 
 	send(fd_kernel, buffer, sizeof(u_int32_t)*2 + largo, 0);
 
+	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
+
+	if(respuesta==1){
+
 	recv(fd_kernel, &value, sizeof(u_int32_t),0);
 
 	log_info(messagesLog,"Valor de la variable compartida %s: %d\n", variable, value);
-
+	} else {
+		procesoAbortado=true;
+		log_error(messagesLog,"No existe la variable compartida: %s\n", variable);
+	}
 	return value;
 }
 t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_valor_variable valor)
@@ -303,6 +311,7 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 	int codigo = ASIGNAR_VALOR_COMPARTIDA;
 	int largo = strlen(variable)+1;
 	void *buffer = malloc(sizeof(u_int32_t)*3 + largo);
+	uint32_t respuesta;
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(u_int32_t), &valor, sizeof(u_int32_t));
@@ -310,6 +319,13 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 	memcpy(buffer+sizeof(u_int32_t)*3, variable, largo);
 
 	send(fd_kernel, buffer, sizeof(u_int32_t)*3 + largo, 0);
+
+	recv(fd_kernel, &respuesta, sizeof(uint32_t), 0);
+	if(respuesta == 0)
+	{
+		procesoAbortado = true;
+		log_error(messagesLog, "Proceso: %d abortado, variable compartida inexistente", nuevaPCB->pid);
+	}
 
 	free(buffer);
 	return 0;
@@ -395,7 +411,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 {
 	log_info(messagesLog,"Proceso: %d hace wait en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
 	uint32_t codigo = WAIT;
-	int32_t valor;
+	int32_t valor, respuesta;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
 	void* buffer = malloc((sizeof(uint32_t)*3)+messageLength);
 
@@ -408,20 +424,30 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 
 	free(buffer);
 
-	recv(fd_kernel, &valor, sizeof(int32_t), 0);
+	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
 
-	if(valor < 0){
-		procesoBloqueado = true;
-		log_info(messagesLog,"El proceso: %d se bloqueo al hacer wait en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
+	if(respuesta==1)
+	{
+		recv(fd_kernel, &valor, sizeof(int32_t), 0);
+
+		if(valor < 0)
+		{
+			procesoBloqueado = true;
+			log_info(messagesLog,"El proceso: %d se bloqueo al hacer wait en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
+		}
+	}
+	else
+	{
+		procesoAbortado=true;
+		log_error(messagesLog, "El proceso: %d fue abortado, semaforo %s inexistente", nuevaPCB->pid, identificador_semaforo);
 	}
 
 	return;
 }
 void twt_signal (t_nombre_semaforo identificador_semaforo)
 {
-	log_info(messagesLog,"Proceso: %d hace signal en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
-
 	uint32_t codigo = SIGNAL;
+	uint32_t respuesta;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
 	void* buffer = malloc((sizeof(uint32_t)*2)+messageLength);
 
@@ -430,8 +456,20 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 	memcpy(buffer + sizeof(uint32_t)*2, (char *) identificador_semaforo, messageLength);
 
 	send(fd_kernel,buffer,sizeof(int)*2+messageLength,0);
-	free(buffer);
 
+	/*recv(fd_kernel, &respuesta, sizeof(uint32_t), 0);
+
+	if(respuesta==1)
+	{
+		log_info(messagesLog,"Proceso: %d hace signal en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
+	}
+	else
+	{
+		procesoAbortado=true;
+		log_error(messagesLog, "El proceso: %d fue abortado, semaforo %s inexistente", nuevaPCB->pid, identificador_semaforo);
+	}*/
+
+	free(buffer);
 	return;
 }
 t_puntero twt_reservar (t_valor_variable espacio)

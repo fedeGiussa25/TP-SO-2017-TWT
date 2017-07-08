@@ -1339,7 +1339,28 @@ u_int32_t obtener_valor_variable_compartida(char* ID){
 	return value;
 }
 
+bool existeSemaforo(char* id_semaforo){
+	bool _remove_element(void* list_element)
+	{
+		semaforo_cola *unSem = (semaforo_cola *) list_element;
+		return strcmp(id_semaforo, unSem->sem->ID)==0;
+    }
+	bool existe = list_any_satisfy(semaforos, *_remove_element);
+	return existe;
+}
+
+bool existeCompartida(char* id_compartida){
+	bool _remove_element(void* list_element)
+	{
+		variable_compartida *unaVar = (variable_compartida *) list_element;
+		return strcmp(id_compartida, unaVar->ID)==0;
+    }
+	bool existe = list_any_satisfy(variables_compartidas, *_remove_element);
+	return existe;
+}
+
 int32_t wait(char *id_semaforo, uint32_t PID){
+	uint32_t valorSemaforo;
 	pthread_mutex_lock(&mutex_semaforos_ansisop);
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
 	unSem->sem->valor = unSem->sem->valor - 1;
@@ -2468,41 +2489,76 @@ int main(int argc, char** argv) {
 						}
 						if(codigo == ASIGNAR_VALOR_COMPARTIDA)
 						{
-							u_int32_t value, tamanio;
+							u_int32_t value, tamanio, head;
+							bool existe;
 							recv(i, &value, sizeof(u_int32_t),0);
 							recv(i, &tamanio, sizeof(u_int32_t),0);
 
 							char *id_var = malloc(tamanio);
 							recv(i, id_var, tamanio,0);
 
+							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
+							existe = existeCompartida(id_var);
+							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
+
+							if(existe == true)
+							{
 							log_info(kernelLog, "Hay que modificar la variable %s con el valor %d\n", id_var, value);
+
 							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							asignar_valor_variable_compartida(id_var, value);
 							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
+
+							head=1;
+							send(i, &head, sizeof(u_int32_t), 0);
 							print_vars();
+							} else //Si no existe la compartida
+							{
+								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
+								head = 0;
+								send(i, &head, sizeof(u_int32_t), 0);
+							}
 						}
 
 						if(codigo == BUSCAR_VALOR_COMPARTIDA)
 						{
-							u_int32_t value, tamanio;
+							u_int32_t value, tamanio, head;
+							bool existe;
 							recv(i, &tamanio, sizeof(u_int32_t),0);
 
 							char *id_var = malloc(tamanio);
 							recv(i, id_var, tamanio,0);
 
+							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
+							existe = existeCompartida(id_var);
+							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
+
+							if(existe == true)
+							{
 							log_info(kernelLog, "Hay que obtener el valor de la variable %s\n", id_var);
+
+							head=1;
+							send(i, &head, sizeof(u_int32_t), 0);
+
 							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
 							value = obtener_valor_variable_compartida(id_var);
 							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
 							log_info(kernelLog, "La variable %s tiene valor %d\n", id_var, value);
 
 							send(i, &value, sizeof(u_int32_t), 0);
+							} else //Si no existe la compartida
+							{
+								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
+								head = 0;
+								send(i, &head, sizeof(u_int32_t), 0);
+							}
 						}
 
 						if (codigo==WAIT)
 						{
 							uint32_t PID;
-							int32_t valor;
+							int32_t valor, head;
+							bool existe;
 							recv(i, &PID, sizeof(uint32_t), 0);
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 							char *id_sem = malloc(messageLength);
@@ -2512,9 +2568,20 @@ int main(int argc, char** argv) {
 							dp->syscalls ++;
 
 							log_info(kernelLog, "CPU pide: Wait en semaforo: %s\n\n", id_sem);
+
+							pthread_mutex_lock(&mutex_semaforos_ansisop);
+							existe = existeSemaforo(id_sem);
+							pthread_mutex_unlock(&mutex_semaforos_ansisop);
+
+							if(existe == true)
+							{
+
+							head = 1; //Existe el semaforo
+
 							valor = wait(id_sem, PID);
 							print_vars();
 
+							send(i, &head, sizeof(int32_t),0);
 							send(i, &valor, sizeof(int32_t), 0);
 
 							if(valor < 0)
@@ -2550,6 +2617,12 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_semaforos_ansisop);
 								log_info(kernelLog, "El proceso %d paso de Exec a Wait\n",unPCB->pid);
 								log_info(kernelLog, "Termino todo el envio\n");
+							}
+							} else //Si no existe el semaforo
+							{
+								head = 0;
+								send(i, &head, sizeof(int32_t),0);
+								log_info(kernelLog, "Abortar proceso, semaforo inexistente");
 							}
 
 							free(id_sem);
@@ -2856,7 +2929,11 @@ int main(int argc, char** argv) {
 									nuevoHeap->heap = list_create();
 									nuevoHeap->pid = pid;
 									list_add(heap, nuevoHeap);
-								}
+								} else if(paginas_totales == -1)
+									{
+										enviar(i, &error, sizeof(int32_t));
+										log_error(kernelLog, "Abortar proceso, no hay espacio suficiente para el pedido\n");
+									}
 							}
 							if(tiene_heap(pid) == true && espacio <= tam_max_alocable){
 								heap_de_proceso *heap_buscado = buscar_heap(pid);
@@ -2902,7 +2979,7 @@ int main(int argc, char** argv) {
 								}
 								else
 								{
-									log_info(kernelLog, "No hay espacio suficiente para el pedido\n");
+									log_error(kernelLog, "Abortar proceso, no hay espacio suficiente para el pedido\n");
 									enviar(i, &error, sizeof(int32_t));
 								}
 
@@ -2948,11 +3025,11 @@ int main(int argc, char** argv) {
 									free(buffer);
 								}
 								else{
-									log_info(kernelLog, "El proceso no tiene dicha direccion reservada\n");
+									log_info(kernelLog, "Abortar el proceso, no tiene dicha direccion reservada\n");
 									enviar(i, &error, sizeof(int32_t));
 								}
 							}else{
-								log_info(kernelLog, "El proceso no tiene paginas alocadas\n");
+								log_error(kernelLog, "Abortar el proceso, no tiene paginas alocadas\n");
 								enviar(i, &error, sizeof(int32_t));
 							}
 						}
