@@ -2209,7 +2209,7 @@ int main(int argc, char** argv) {
 	int messageLength;
 
 	//Creo el log
-	kernelLog = log_create("../../Files/Logs/Kernel.log", "Kernel", true, LOG_LEVEL_INFO);
+	kernelLog = log_create("../../Files/Logs/Kernel.log", "Kernel", false, LOG_LEVEL_INFO);
 	log_info(kernelLog, "\n\n//////////////////////\n\n");	//lo pongo para separar entre ejecuciones
 
 	//Consolas y cpus
@@ -2616,7 +2616,7 @@ int main(int argc, char** argv) {
 									recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
 									PCB *unPCB = recibirPCBV2(i);
-									print_PCB2(unPCB);
+									//print_PCB2(unPCB);
 
 									pthread_mutex_lock(&mutex_in_exec);
 									remove_by_fd_socket(lista_en_ejecucion, i);
@@ -2669,7 +2669,7 @@ int main(int argc, char** argv) {
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE)
 						{
 							PCB *unPCB = recibirPCBV2(i);
-							print_PCB2(unPCB);
+							//print_PCB2(unPCB);
 							uint32_t PID = unPCB->pid;
 
 							datos_proceso* dp = get_datos_proceso(PID);
@@ -2710,7 +2710,7 @@ int main(int argc, char** argv) {
 						{
 							//Lo recibo...
 							PCB *unPCB = recibirPCBV2(i);
-							print_PCB2(unPCB);
+							//print_PCB2(unPCB);
 
 							datos_proceso* dp = get_datos_proceso(unPCB->pid);
 							dp->rafagas ++;

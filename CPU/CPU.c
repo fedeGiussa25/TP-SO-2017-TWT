@@ -78,6 +78,33 @@ t_log* messagesLog;
  * (el twt es por the walking thread :))
  */
 
+void liberar_PCB(PCB *pcb){
+	free(pcb->indice_de_codigo);
+	free(pcb->estado);
+	free(pcb->lista_de_etiquetas);
+
+	int cant_reg_stack = list_size(pcb->stack_index), i;
+
+	for(i=0; i< cant_reg_stack; i++){
+		registroStack *unReg = list_remove(pcb->stack_index, 0);
+		int cant_vars = list_size(unReg->vars), cant_args = list_size(unReg->args), j, k;
+		for(j=0; j<cant_vars; j++){
+			variable *unaVar = list_remove(unReg->vars, 0);
+			free(unaVar);
+		}
+		list_destroy(unReg->vars);
+		for(k=0; k<cant_args; k++){
+			variable *unArg = list_remove(unReg->args, 0);
+			free(unArg);
+		}
+		list_destroy(unReg->args);
+		free(unReg);
+	}
+
+	list_destroy(pcb->stack_index);
+	free(pcb);
+}
+
 void eliminar_proceso(u_int32_t PID){
 
 	u_int32_t codigo = ELIMINAR_PROCESO;
@@ -864,7 +891,7 @@ int main(int argc, char **argv) {
 
 	//Creacion del archivo de log
 
-	messagesLog = log_create("../../Files/Logs/CPUMessages.log", "CPU", true, LOG_LEVEL_INFO);
+	messagesLog = log_create("../../Files/Logs/CPUMessages.log", "CPU", false, LOG_LEVEL_INFO);
 
 	// CONEXION A KERNEL
 
@@ -925,16 +952,19 @@ int main(int argc, char **argv) {
 				codigo = 10;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
 			}else if(procesoBloqueado == true){
 				codigo = 10;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
+				liberar_PCB(nuevaPCB);
 			}
 			else{
 				codigo = 25;
 				enviar(fd_kernel, &codigo_error, sizeof(int32_t));
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
 			}
 		}
 		else{
@@ -953,22 +983,19 @@ int main(int argc, char **argv) {
 				codigo = 10;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
 			} else if(procesoBloqueado == true)
 			{
 				codigo = 10;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
+				liberar_PCB(nuevaPCB);
 
-			} else if(stackOverflow == true)
-			{
-				codigo = 10;
-				send_PCBV2(fd_kernel, nuevaPCB, codigo);
-				printf("STACK OVERFLOW\n");
-			}
-			else if((quantum == 0)){
+			} else if((quantum == 0)){
 				codigo = 13;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
 			}
 		}
 	}

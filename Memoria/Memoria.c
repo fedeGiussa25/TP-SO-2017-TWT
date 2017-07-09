@@ -427,21 +427,21 @@ void insertar_entrada(uint32_t pid, uint32_t pagina, uint32_t frame){
 	int direccion = frame*data_config.marco_size;
 
 	if(data_config.entradas_cache > 0 && data_config.cache_x_proceso > 0){
-		printf("Agregamos la pagina a la cache\n");
+		//printf("Agregamos la pagina a la cache\n");
 		if(hay_espacio_en_cache() == true){
 			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
-				printf("Buscamos una entrada libre\n");
+				//printf("Buscamos una entrada libre\n");
 				aux = entrada_libre();
 			}else{
-				printf("Buscamos una victima local\n");
+				//printf("Buscamos una victima local\n");
 				aux = buscar_victima_local(pid);
 			}
 		}else{
 			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
-				printf("Buscamos una victima global\n");
+				//printf("Buscamos una victima global\n");
 				aux = buscar_victima_global();
 			}else{
-				printf("Buscamos una victima local\n");
+				//printf("Buscamos una victima local\n");
 				aux = buscar_victima_local(pid);
 			}
 		}
@@ -713,7 +713,7 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 		insertar_entrada(PID, pagina, frame);
 
 		}else{
-			printf("La pagina esta en cache\n");
+			//printf("La pagina esta en cache\n");
 			entrada_cache unaCache = buscar_entrada(PID, pagina);
 			memcpy(instruccion, (unaCache.contenido+inicio), offset);
 			aumentar_referencias();
@@ -737,7 +737,7 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 	memcpy(memoria+direccion_fisica+offset, value, tamanio);
 
 	if(esta_en_cache(PID, pagina) == true){
-		printf("Actualizamos la pagina en la cache\n");
+		//printf("Actualizamos la pagina en la cache\n");
 		entrada_cache unaCache = buscar_entrada(PID, pagina);
 		memcpy((unaCache.contenido+offset), value, tamanio);
 		aumentar_referencias();
@@ -793,7 +793,7 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	}
 
 	if(esta_en_cache(PID, pagina) == true){
-		printf("Actualizamos la pagina en la cache\n");
+		//printf("Actualizamos la pagina en la cache\n");
 		entrada_cache unaCache = buscar_entrada(PID, pagina);
 		memcpy((unaCache.contenido), (memoria + frame*tamanio_pagina), tamanio_pagina);
 		aumentar_referencias();
@@ -834,11 +834,11 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	posicion_hash = calcular_posicion(PID, pagina);
 	frame = buscar_en_indice(posicion_hash, PID, pagina);
 
-	printf("El frame buscado para liberar heap es el %d\n", frame);
+	//printf("El frame buscado para liberar heap es el %d\n", frame);
 
 	int direccion_fisica = (frame*tamanio_pagina + direccion) - sizeof(heapMetadata);
 
-	printf("Y la direccion del puntero es %d\n", direccion_fisica);
+	//printf("Y la direccion del puntero es %d\n", direccion_fisica);
 
 	//Marcamos espacio como libre
 	heapMetadata *unPuntero = (heapMetadata *) (memoria + direccion_fisica);
@@ -850,7 +850,7 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	clean_heap(frame*tamanio_pagina);
 
 	if(esta_en_cache(PID, pagina) == true){
-		printf("Actualizamos la pagina en la cache\n");
+		//printf("Actualizamos la pagina en la cache\n");
 		entrada_cache unaCache = buscar_entrada(PID, pagina);
 		memcpy((unaCache.contenido), (memoria + frame*tamanio_pagina), tamanio_pagina);
 		aumentar_referencias();
