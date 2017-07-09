@@ -7,5 +7,5 @@ begin
 
 	abrir f LC miarchivo.txt
 
-	cerrar f
+	# cerrar f
 end

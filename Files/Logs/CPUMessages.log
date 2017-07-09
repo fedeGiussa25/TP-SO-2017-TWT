@@ -1,0 +1,1072 @@
+[INFO] 23:13:30:400 CPU/(3299:3299): Esperando proceso para ejecutar...
+
+[INFO] 23:13:37:647 CPU/(3299:3299): Se recibio codigo: 10
+
+[INFO] 23:13:37:647 CPU/(3299:3299): Se recibio un PCB
+
+[INFO] 23:13:37:747 CPU/(3299:3299): Instruccion: 	variables f
+
+[INFO] 23:13:37:747 CPU/(3299:3299): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:13:37:748 CPU/(3299:3299): Instruccion: 	abrir f LC miarchivo.txt
+
+[INFO] 23:13:37:748 CPU/(3299:3299): Abrir archivo: miarchivo.txt
+
+[INFO] 23:13:37:804 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:13:37:804 CPU/(3299:3299): Asignar valor 4 en pagina: 1 offset: 0
+
+[INFO] 23:13:37:904 CPU/(3299:3299): Instruccion: 	cerrar f
+
+[INFO] 23:13:37:904 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:13:37:904 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:13:37:904 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 23:13:37:904 CPU/(3299:3299): Cerrar archivo, file descriptor: 4
+
+[INFO] 23:13:37:905 CPU/(3299:3299): Instruccion: end
+
+[INFO] 23:13:37:905 CPU/(3299:3299): Finalizar contexto de ejecucion del main
+
+[INFO] 23:13:37:905 CPU/(3299:3299): Proceso 1 terminado correctamente
+
+[INFO] 23:13:37:905 CPU/(3299:3299): Esperando proceso para ejecutar...
+
+[INFO] 23:14:08:542 CPU/(3299:3299): Se recibio codigo: 10
+
+[INFO] 23:14:08:542 CPU/(3299:3299): Se recibio un PCB
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Instruccion: variables f, i, t
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Definir variable: i en: (pagina, offset)=(1,4)
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Definir variable: t en: (pagina, offset)=(1,8)
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Instruccion: 	i=0
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:08:642 CPU/(3299:3299): Asignar valor 0 en pagina: 1 offset: 4
+
+[INFO] 23:14:08:743 CPU/(3299:3299): Instruccion: 	f=20
+
+[INFO] 23:14:08:743 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:08:743 CPU/(3299:3299): Asignar valor 20 en pagina: 1 offset: 0
+
+[INFO] 23:14:08:843 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:08:843 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:08:843 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:08:843 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 0
+
+[INFO] 23:14:08:843 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:08:843 CPU/(3299:3299): Asignar valor 1 en pagina: 1 offset: 4
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:08:944 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:08:944 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:08:944 CPU/(3299:3299): Asignar valor 19 en pagina: 1 offset: 8
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:09:45 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:45 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:45 CPU/(3299:3299): Asignar valor 2 en pagina: 1 offset: 4
+
+[INFO] 23:14:09:145 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:09:146 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:146 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:146 CPU/(3299:3299): Asignar valor 18 en pagina: 1 offset: 8
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:09:246 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:246 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:246 CPU/(3299:3299): Asignar valor 3 en pagina: 1 offset: 4
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:09:347 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:347 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:347 CPU/(3299:3299): Asignar valor 17 en pagina: 1 offset: 8
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:09:447 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:447 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:447 CPU/(3299:3299): Asignar valor 4 en pagina: 1 offset: 4
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:09:548 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:548 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:548 CPU/(3299:3299): Asignar valor 16 en pagina: 1 offset: 8
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:09:649 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:649 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:649 CPU/(3299:3299): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:09:750 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:750 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:750 CPU/(3299:3299): Asignar valor 15 en pagina: 1 offset: 8
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:09:850 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:09:850 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:09:851 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:851 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:851 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 23:14:09:851 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:851 CPU/(3299:3299): Asignar valor 6 en pagina: 1 offset: 4
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:09:951 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:09:951 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:09:951 CPU/(3299:3299): Asignar valor 14 en pagina: 1 offset: 8
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:10:52 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:52 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:52 CPU/(3299:3299): Asignar valor 7 en pagina: 1 offset: 4
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:10:153 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:153 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:153 CPU/(3299:3299): Asignar valor 13 en pagina: 1 offset: 8
+
+[INFO] 23:14:10:253 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:10:253 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:253 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:10:253 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:254 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:254 CPU/(3299:3299): Asignar valor 8 en pagina: 1 offset: 4
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:10:354 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:354 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:354 CPU/(3299:3299): Asignar valor 12 en pagina: 1 offset: 8
+
+[INFO] 23:14:10:454 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:10:454 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:10:455 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:455 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:455 CPU/(3299:3299): Asignar valor 9 en pagina: 1 offset: 4
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:10:555 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:555 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:555 CPU/(3299:3299): Asignar valor 11 en pagina: 1 offset: 8
+
+[INFO] 23:14:10:655 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:10:655 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:655 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:10:656 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:656 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:656 CPU/(3299:3299): Asignar valor 10 en pagina: 1 offset: 4
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:10:756 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:756 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:756 CPU/(3299:3299): Asignar valor 10 en pagina: 1 offset: 8
+
+[INFO] 23:14:10:856 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:10:856 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:856 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:10:857 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:857 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 10
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:857 CPU/(3299:3299): Asignar valor 11 en pagina: 1 offset: 4
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:10:957 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:10:957 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:10:957 CPU/(3299:3299): Asignar valor 9 en pagina: 1 offset: 8
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:11:58 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 9
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:58 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 11
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:58 CPU/(3299:3299): Asignar valor 12 en pagina: 1 offset: 4
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:11:159 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:159 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:159 CPU/(3299:3299): Asignar valor 8 en pagina: 1 offset: 8
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:11:259 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 8
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:259 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 12
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:259 CPU/(3299:3299): Asignar valor 13 en pagina: 1 offset: 4
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:11:360 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:360 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:360 CPU/(3299:3299): Asignar valor 7 en pagina: 1 offset: 8
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:11:461 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 7
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:461 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 13
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:461 CPU/(3299:3299): Asignar valor 14 en pagina: 1 offset: 4
+
+[INFO] 23:14:11:561 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:11:561 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:11:561 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:11:562 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:11:562 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:562 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:562 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 23:14:11:562 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:562 CPU/(3299:3299): Asignar valor 6 en pagina: 1 offset: 8
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:11:662 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 6
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:662 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 14
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:662 CPU/(3299:3299): Asignar valor 15 en pagina: 1 offset: 4
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:11:763 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:763 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:763 CPU/(3299:3299): Asignar valor 5 en pagina: 1 offset: 8
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:11:864 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:864 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 15
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:864 CPU/(3299:3299): Asignar valor 16 en pagina: 1 offset: 4
+
+[INFO] 23:14:11:964 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:11:964 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:11:965 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:11:965 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:11:965 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:11:965 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:11:965 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 23:14:11:965 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:11:965 CPU/(3299:3299): Asignar valor 4 en pagina: 1 offset: 8
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:12:65 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 4
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:65 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:66 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 16
+
+[INFO] 23:14:12:66 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:66 CPU/(3299:3299): Asignar valor 17 en pagina: 1 offset: 4
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:12:166 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:166 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:166 CPU/(3299:3299): Asignar valor 3 en pagina: 1 offset: 8
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:12:267 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 3
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:267 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 17
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:267 CPU/(3299:3299): Asignar valor 18 en pagina: 1 offset: 4
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:12:368 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:368 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:368 CPU/(3299:3299): Asignar valor 2 en pagina: 1 offset: 8
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:12:468 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 2
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:12:468 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:469 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:469 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 18
+
+[INFO] 23:14:12:469 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:469 CPU/(3299:3299): Asignar valor 19 en pagina: 1 offset: 4
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:12:569 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:569 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:569 CPU/(3299:3299): Asignar valor 1 en pagina: 1 offset: 8
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:12:670 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 1
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Ir al label: inicio
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Program Counter actualizado a: 3
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Instruccion: 	i=i+1
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:670 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 19
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:670 CPU/(3299:3299): Asignar valor 20 en pagina: 1 offset: 4
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Instruccion: 	t=f-i
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Dereferenciar la direccion: 512
+
+[INFO] 23:14:12:771 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Obtener posicion de la variable: i
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:14:12:771 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 20
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:771 CPU/(3299:3299): Asignar valor 0 en pagina: 1 offset: 8
+
+[INFO] 23:14:12:871 CPU/(3299:3299): Instruccion: 	jnz t inicio
+
+[INFO] 23:14:12:871 CPU/(3299:3299): Obtener posicion de la variable: t
+
+[INFO] 23:14:12:871 CPU/(3299:3299): Dereferenciar la direccion: 520
+
+[INFO] 23:14:12:872 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 0
+
+[INFO] 23:14:12:872 CPU/(3299:3299): Instruccion: end
+
+[INFO] 23:14:12:872 CPU/(3299:3299): Finalizar contexto de ejecucion del main
+
+[INFO] 23:14:12:872 CPU/(3299:3299): Proceso 2 terminado correctamente
+
+[INFO] 23:14:12:872 CPU/(3299:3299): Esperando proceso para ejecutar...
+
+[INFO] 23:14:38:710 CPU/(3299:3299): Se recibio codigo: 10
+
+[INFO] 23:14:38:710 CPU/(3299:3299): Se recibio un PCB
+
+[INFO] 23:14:38:817 CPU/(3299:3299): Instruccion: 	variables f
+
+[INFO] 23:14:38:817 CPU/(3299:3299): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:14:38:817 CPU/(3299:3299): Instruccion: 	abrir f LC miarchivo.txt
+
+[INFO] 23:14:38:817 CPU/(3299:3299): Abrir archivo: miarchivo.txt
+
+[INFO] 23:14:38:854 CPU/(3299:3299): Obtener posicion de la variable: f
+
+[INFO] 23:14:38:854 CPU/(3299:3299): Asignar valor 4 en pagina: 1 offset: 0
+
+[INFO] 23:14:38:954 CPU/(3299:3299): Instruccion: end
+
+[INFO] 23:14:38:954 CPU/(3299:3299): Finalizar contexto de ejecucion del main
+
+[INFO] 23:14:38:955 CPU/(3299:3299): Proceso 3 terminado correctamente
+
+[INFO] 23:14:38:955 CPU/(3299:3299): Esperando proceso para ejecutar...
+
+[INFO] 23:15:13:286 CPU/(3299:3299): Se recibio codigo: 10
+
+[INFO] 23:15:13:286 CPU/(3299:3299): Se recibio un PCB
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Instruccion: 	variables a, b
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Definir variable: a en: (pagina, offset)=(1,0)
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Definir variable: b en: (pagina, offset)=(1,4)
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Instruccion: 	a = 3
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Obtener posicion de la variable: a
+
+[INFO] 23:15:13:386 CPU/(3299:3299): Asignar valor 3 en pagina: 1 offset: 0
+
+[INFO] 23:15:13:487 CPU/(3299:3299): Instruccion: 	b = 5
+
+[INFO] 23:15:13:487 CPU/(3299:3299): Obtener posicion de la variable: b
+
+[INFO] 23:15:13:487 CPU/(3299:3299): Asignar valor 5 en pagina: 1 offset: 4
+
+[INFO] 23:15:13:587 CPU/(3299:3299): Instruccion: 	a = b + 12
+
+[INFO] 23:15:13:587 CPU/(3299:3299): Obtener posicion de la variable: b
+
+[INFO] 23:15:13:587 CPU/(3299:3299): Dereferenciar la direccion: 516
+
+[INFO] 23:15:13:587 CPU/(3299:3299): La variable fue dereferenciada, tiene valor: 5
+
+[INFO] 23:15:13:587 CPU/(3299:3299): Obtener posicion de la variable: a
+
+[INFO] 23:15:13:587 CPU/(3299:3299): Asignar valor 17 en pagina: 1 offset: 0
+
+[INFO] 23:15:13:688 CPU/(3299:3299): Instruccion: end
+
+[INFO] 23:15:13:688 CPU/(3299:3299): Finalizar contexto de ejecucion del main
+
+[INFO] 23:15:13:688 CPU/(3299:3299): Proceso 4 terminado correctamente
+
+[INFO] 23:15:13:688 CPU/(3299:3299): Esperando proceso para ejecutar...
+
+[INFO] 23:16:25:44 CPU/(3636:3636): Esperando proceso para ejecutar...
+
+[INFO] 23:16:27:894 CPU/(3636:3636): Se recibio codigo: 10
+
+[INFO] 23:16:27:894 CPU/(3636:3636): Se recibio un PCB
+
+[INFO] 23:16:27:994 CPU/(3636:3636): Instruccion: 	variables f
+
+[INFO] 23:16:27:994 CPU/(3636:3636): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:16:27:994 CPU/(3636:3636): Instruccion: 	abrir f LC miarchivo.txt
+
+[INFO] 23:16:27:994 CPU/(3636:3636): Abrir archivo: miarchivo.txt
+
+[INFO] 23:16:28:34 CPU/(3636:3636): Obtener posicion de la variable: f
+
+[INFO] 23:16:28:34 CPU/(3636:3636): Asignar valor 4 en pagina: 1 offset: 0
+
+[INFO] 23:16:28:135 CPU/(3636:3636): Instruccion: end
+
+[INFO] 23:16:28:135 CPU/(3636:3636): Finalizar contexto de ejecucion del main
+
+[INFO] 23:16:28:135 CPU/(3636:3636): Proceso 1 terminado correctamente
+
+[INFO] 23:16:28:135 CPU/(3636:3636): Esperando proceso para ejecutar...
+
+[INFO] 23:19:40:964 CPU/(3899:3899): Esperando proceso para ejecutar...
+
+[INFO] 23:19:43:974 CPU/(3899:3899): Se recibio codigo: 10
+
+[INFO] 23:19:43:974 CPU/(3899:3899): Se recibio un PCB
+
+[INFO] 23:19:44:75 CPU/(3899:3899): Instruccion: 	variables f
+
+[INFO] 23:19:44:75 CPU/(3899:3899): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:19:44:75 CPU/(3899:3899): Instruccion: 	abrir f LC miarchivo.txt
+
+[INFO] 23:19:44:75 CPU/(3899:3899): Abrir archivo: miarchivo.txt
+
+[INFO] 23:19:44:114 CPU/(3899:3899): Obtener posicion de la variable: f
+
+[INFO] 23:19:44:114 CPU/(3899:3899): Asignar valor 4 en pagina: 1 offset: 0
+
+[INFO] 23:19:44:215 CPU/(3899:3899): Instruccion: end
+
+[INFO] 23:19:44:215 CPU/(3899:3899): Finalizar contexto de ejecucion del main
+
+[INFO] 23:19:44:215 CPU/(3899:3899): Proceso 1 terminado correctamente
+
+[INFO] 23:19:44:215 CPU/(3899:3899): Esperando proceso para ejecutar...
+
+[INFO] 23:26:27:625 CPU/(4326:4326): Esperando proceso para ejecutar...
+
+[INFO] 23:26:34:185 CPU/(4326:4326): Se recibio codigo: 10
+
+[INFO] 23:26:34:185 CPU/(4326:4326): Se recibio un PCB
+
+[INFO] 23:26:34:286 CPU/(4326:4326): Instruccion: 	variables f
+
+[INFO] 23:26:34:286 CPU/(4326:4326): Definir variable: f en: (pagina, offset)=(1,0)
+
+[INFO] 23:26:34:286 CPU/(4326:4326): Instruccion: 	abrir f LC miarchivo.txt
+
+[INFO] 23:26:34:286 CPU/(4326:4326): Abrir archivo: miarchivo.txt
+
+[INFO] 23:26:34:326 CPU/(4326:4326): Obtener posicion de la variable: f
+
+[INFO] 23:26:34:326 CPU/(4326:4326): Asignar valor 4 en pagina: 1 offset: 0
+
+[INFO] 23:26:34:427 CPU/(4326:4326): Instruccion: end
+
+[INFO] 23:26:34:427 CPU/(4326:4326): Finalizar contexto de ejecucion del main
+
+[INFO] 23:26:34:427 CPU/(4326:4326): Proceso 1 terminado correctamente
+
+[INFO] 23:26:34:427 CPU/(4326:4326): Esperando proceso para ejecutar...
+
+[INFO] 23:27:32:296 CPU/(4326:4326): Se recibio codigo: 10
+
+[INFO] 23:27:32:296 CPU/(4326:4326): Se recibio un PCB
+
+[INFO] 23:27:44:845 CPU/(4339:4339): Esperando proceso para ejecutar...
+
+[INFO] 23:27:49:568 CPU/(4339:4339): Se recibio codigo: 2
+
+[INFO] 23:27:49:568 CPU/(4339:4339): Se recibio un PCB
+
+[ERROR] 23:27:53:695 CPU/(4343:4343): client: connect
+
+[INFO] 23:27:53:696 CPU/(4343:4343): Esperando proceso para ejecutar...
+
+[INFO] 23:27:53:696 CPU/(4343:4343): Se recibio codigo: 2
+
+[INFO] 23:27:53:696 CPU/(4343:4343): Se recibio un PCB
+
+[INFO] 23:27:57:720 CPU/(4350:4350): Esperando proceso para ejecutar...
+
+[INFO] 23:28:06:810 CPU/(4350:4350): Se recibio codigo: 2
+
+[INFO] 23:28:06:810 CPU/(4350:4350): Se recibio un PCB
+

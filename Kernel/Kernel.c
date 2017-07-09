@@ -669,6 +669,115 @@ PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
 	return PCB_buscado;
 }
 
+int execute_close(int pid, int fd)
+{
+	int i = 0;
+	int referencia_tabla_global;
+	tabla_de_archivos_de_proceso* tabla_archivos;
+	bool encontrado = false;
+
+	//Saco la tabla de archivos asociada a mi proceso
+	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
+	{
+		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, i);
+		if(pid == aux->pid)
+		{
+			tabla_archivos = aux;
+			encontrado = true;
+		}
+		i++;
+	}
+	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
+	if(!encontrado)
+	{
+		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
+		return -1;
+	}
+
+	log_info(kernelLog, "El proceso %d existe\n", pid);
+	i = 0;
+	encontrado = false;
+
+	//Busco el fd dentro de la tabla del proceso y elimino las entradas correspondientes a dicho fd
+	while(i < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
+	{
+		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
+		if(arch_aux->fd == fd)
+		{
+			log_info(kernelLog, "Encontre el archivo %d para el proceso %d", fd, pid);
+			encontrado = true;
+			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
+			list_remove(tabla_archivos->lista_de_archivos,i);
+			free(arch_aux);
+			log_info(kernelLog, "Borre el archivo %d de la tabla de archivos y lo libere\n", fd);
+		}
+		i++;
+	}
+	//Si no encuentro el fd, hay tabla :P
+	if(!encontrado)
+	{
+		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
+		return -1;
+	}
+
+	i = 0;
+	encontrado = false;
+
+	//Disminuyo la cantidad de instancias abiertas del archivo perteneciente al fd dado
+	pthread_mutex_lock(&mutex_archivos_globales);
+	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
+	pthread_mutex_unlock(&mutex_archivos_globales);
+
+	if(arch->instancias_abiertas == 1)
+	{
+		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
+		//en 0, por lo que tengo que eliminar esa fila de la tabla global
+		log_info(kernelLog, "Ningun otro proceso tiene abierto el archivo borrado asi que fue borrado de la global table\n");
+		pthread_mutex_lock(&mutex_archivos_globales);
+		archivo_global* archivito = list_remove(tabla_global_de_archivos, referencia_tabla_global);
+		pthread_mutex_unlock(&mutex_archivos_globales);
+		free(archivito->ruta_del_archivo);
+	}
+	else
+	{
+		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
+		arch->instancias_abiertas--;
+		log_info(kernelLog, "Disminui en 1 las instancias abiertas del archivo\n");
+	}
+
+	return 1;
+}
+
+void borrarTablaDeArchivos(int PID){
+	int i = 0, j = 0, mem_ref = 0;
+	tabla_de_archivos_de_proceso* tabla_archivos;
+	bool encontrado = false;
+
+	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
+	{
+		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, i);
+		if(pid == aux->pid)
+		{
+			mem_ref = i;
+			tabla_archivos = aux;
+			encontrado = true;
+		}
+		i++;
+	}
+
+	while(j < list_size(tabla_archivos->lista_de_archivos))
+	{
+		archivo_de_proceso* aux = list_get(tabla_archivos->lista_de_archivos,j);
+		execute_close(PID,aux->fd);
+		j++;
+	}
+
+	list_remove(tabla_de_archivos_por_proceso,mem_ref);
+	free(tabla_archivos);
+}
+
 
 //Devuelve bytes liberados
 int liberarHeap(int PID){
@@ -704,6 +813,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		{
 			if(strcmp(PCB->estado,"Exit")!=0)
 			{
+				borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
@@ -852,15 +962,15 @@ void print_all_files(){
 
 void print_files_from_process(){
 	int i = 0, j = 0, encontrado = 0;
-	int* PID = malloc(sizeof(int));
+	int PID;
 	printf("Ingrese el PID del proceso cuyos archivos desea ver\n");
-	scanf("%d", PID);
+	scanf("%d", &PID);
 
 	pthread_mutex_lock(&mutex_archivos_x_proceso);
 	while(i < list_size(tabla_de_archivos_por_proceso) && encontrado == 0)
 	{
 		tabla_de_archivos_de_proceso* aux_table = list_get(tabla_de_archivos_por_proceso,i);
-		if(aux_table->pid == *PID)
+		if(aux_table->pid == PID)
 		{
 			printf("Se imprime la informacion de los archivos del proceso en el log\n");
 
@@ -879,8 +989,7 @@ void print_files_from_process(){
 			}
 			else
 				log_info(kernelLog, "Este proceso no ha abierto ningun archivo\n");
-
-			encontrado = 1;
+				encontrado = 1;
 		}
 		i++;
 	}
@@ -2079,87 +2188,6 @@ int execute_delete(int pid, int fd){
 	}
 	return -1;
 }
-
-int execute_close(int pid, int fd)
-{
-	int i = 0;
-	int referencia_tabla_global;
-	tabla_de_archivos_de_proceso* tabla_archivos;
-	bool encontrado = false;
-
-	//Saco la tabla de archivos asociada a mi proceso
-	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
-	{
-		tabla_de_archivos_de_proceso* aux = list_get(tabla_de_archivos_por_proceso, i);
-		if(pid == aux->pid)
-		{
-			tabla_archivos = aux;
-			encontrado = true;
-		}
-		i++;
-	}
-	//Si no encuentra la tabla de archivos del proceso, hay tabla :P
-	if(!encontrado)
-	{
-		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
-		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
-		return -1;
-	}
-
-	log_info(kernelLog, "El proceso %d existe\n", pid);
-	i = 0;
-	encontrado = false;
-
-	//Busco el fd dentro de la tabla del proceso y elimino las entradas correspondientes a dicho fd
-	while(i < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
-	{
-		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
-		if(arch_aux->fd == fd)
-		{
-			log_info(kernelLog, "Encontre el archivo %d para el proceso %d", fd, pid);
-			encontrado = true;
-			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
-			list_remove(tabla_archivos->lista_de_archivos,i);
-			free(arch_aux);
-			log_info(kernelLog, "Borre el archivo %d de la tabla de archivos y lo libere\n", fd);
-		}
-		i++;
-	}
-	//Si no encuentro el fd, hay tabla :P
-	if(!encontrado)
-	{
-		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
-		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
-		return -1;
-	}
-
-	i = 0;
-	encontrado = false;
-
-	//Disminuyo la cantidad de instancias abiertas del archivo perteneciente al fd dado
-	pthread_mutex_lock(&mutex_archivos_globales);
-	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
-	pthread_mutex_unlock(&mutex_archivos_globales);
-
-	if(arch->instancias_abiertas == 1)
-	{
-		//Si la cantidad de instancias abiertas del archivo dado es 1, al disminuir la cantidad de instancias, queda
-		//en 0, por lo que tengo que eliminar esa fila de la tabla global
-		log_info(kernelLog, "Ningun otro proceso tiene abierto el archivo borrado asi que fue borrado de la global table\n");
-		pthread_mutex_lock(&mutex_archivos_globales);
-		list_remove(tabla_global_de_archivos, referencia_tabla_global);
-		pthread_mutex_unlock(&mutex_archivos_globales);
-	}
-	else
-	{
-		//Disminuyo en 1 la cantidad de instancias abiertas del archivo
-		arch->instancias_abiertas--;
-		log_info(kernelLog, "Disminui en 1 las instancias abiertas del archivo\n");
-	}
-
-	return 1;
-}
-
 
 //TODO el main
 
