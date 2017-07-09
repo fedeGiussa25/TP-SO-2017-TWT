@@ -55,7 +55,10 @@ enum{
 	READ_WRITE = 4,
 	READ_CREATE = 5,
 	WRITE_CREATE = 6,
-	READ_WRITE_CREATE = 7
+	READ_WRITE_CREATE = 7,
+	//Finalizaciones
+	PROCESO_FINALIZO_CORRECTAMENTE = 10,
+	FIN_DE_QUANTUM = 13
 };
 
 PCB* nuevaPCB;
@@ -303,11 +306,11 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 {
 	log_info(messagesLog,"Solicitar al Kernel el valor de la variable compartida: %s\n", variable);
-	int value;
+	int32_t value;
 	int codigo = BUSCAR_VALOR;
 	int largo = strlen(variable)+1;
 	void *buffer = malloc(sizeof(u_int32_t)*2 + largo);
-	uint32_t respuesta;
+	int32_t respuesta;
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(u_int32_t), &largo, sizeof(u_int32_t));
@@ -317,9 +320,9 @@ t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 
 	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
 
-	if(respuesta==1){
+	if(respuesta>0){
 
-	recv(fd_kernel, &value, sizeof(u_int32_t),0);
+	recv(fd_kernel, &value, sizeof(int32_t),0);
 
 	log_info(messagesLog,"Valor de la variable compartida %s: %d\n", variable, value);
 	} else {
@@ -331,14 +334,11 @@ t_valor_variable twt_obtenerValorCompartida (t_nombre_compartida variable)
 t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_valor_variable valor)
 {
 	log_info(messagesLog,"Asignar el valor: %d en la variable compartida: %s\n", valor, variable);
-/*	int aldope;
-	recv(fd_kernel, &aldope, sizeof(u_int32_t), 0);
-	printf("El loco del kernel me tiro un: %d\n",aldope);*/
 
 	int codigo = ASIGNAR_VALOR_COMPARTIDA;
 	int largo = strlen(variable)+1;
 	void *buffer = malloc(sizeof(u_int32_t)*3 + largo);
-	uint32_t respuesta;
+	int32_t respuesta;
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(u_int32_t), &valor, sizeof(u_int32_t));
@@ -347,8 +347,8 @@ t_valor_variable twt_asignarValorCompartida (t_nombre_compartida variable, t_val
 
 	send(fd_kernel, buffer, sizeof(u_int32_t)*3 + largo, 0);
 
-	recv(fd_kernel, &respuesta, sizeof(uint32_t), 0);
-	if(respuesta == 0)
+	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
+	if(respuesta < 0)
 	{
 		procesoAbortado = true;
 		log_error(messagesLog, "Proceso: %d abortado, variable compartida inexistente", nuevaPCB->pid);
@@ -453,7 +453,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 
 	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
 
-	if(respuesta==1)
+	if(respuesta>0)
 	{
 		recv(fd_kernel, &valor, sizeof(int32_t), 0);
 
@@ -474,7 +474,7 @@ void twt_wait(t_nombre_semaforo identificador_semaforo)
 void twt_signal (t_nombre_semaforo identificador_semaforo)
 {
 	uint32_t codigo = SIGNAL;
-	uint32_t respuesta;
+	int32_t respuesta;
 	uint32_t messageLength = strlen((char *) identificador_semaforo) + 1;
 	void* buffer = malloc((sizeof(uint32_t)*2)+messageLength);
 
@@ -484,9 +484,9 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 
 	send(fd_kernel,buffer,sizeof(int)*2+messageLength,0);
 
-	/*recv(fd_kernel, &respuesta, sizeof(uint32_t), 0);
+	recv(fd_kernel, &respuesta, sizeof(int32_t), 0);
 
-	if(respuesta==1)
+	if(respuesta>0)
 	{
 		log_info(messagesLog,"Proceso: %d hace signal en el semaforo: %s\n", nuevaPCB->pid, identificador_semaforo);
 	}
@@ -494,7 +494,7 @@ void twt_signal (t_nombre_semaforo identificador_semaforo)
 	{
 		procesoAbortado=true;
 		log_error(messagesLog, "El proceso: %d fue abortado, semaforo %s inexistente", nuevaPCB->pid, identificador_semaforo);
-	}*/
+	}
 
 	free(buffer);
 	return;
@@ -522,7 +522,8 @@ t_puntero twt_reservar (t_valor_variable espacio)
 void twt_liberar(t_puntero puntero)
 {
 	log_info(messagesLog,"Proceso: %d libera memoria\n", nuevaPCB->pid);
-	uint32_t resp, codigo = LIBERAR_MEMORIA;
+	uint32_t codigo = LIBERAR_MEMORIA;
+	int32_t resp;
 	void *buffer = malloc(sizeof(uint32_t)*2 + sizeof(u_int32_t));
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer + sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
@@ -949,20 +950,17 @@ int main(int argc, char **argv) {
 				free(instruccion);
 			}
 			if(programaTerminado == true){
-				codigo = 10;
+				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
 			}else if(procesoBloqueado == true){
-				codigo = 10;
+				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
 			}
 			else{
-				codigo = 25;
-				enviar(fd_kernel, &codigo_error, sizeof(int32_t));
-				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
 			}
@@ -980,21 +978,25 @@ int main(int argc, char **argv) {
 			}
 			if((programaTerminado == true))
 			{
-				codigo = 10;
+				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
 			} else if(procesoBloqueado == true)
 			{
-				codigo = 10;
+				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
 
-			} else if((quantum == 0)){
-				codigo = 13;
+			} else if((quantum == 0) && procesoAbortado == false){
+				codigo = FIN_DE_QUANTUM;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
+			}
+			else{
+				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
 			}
 		}

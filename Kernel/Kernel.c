@@ -813,7 +813,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		{
 			if(strcmp(PCB->estado,"Exit")!=0)
 			{
-				borrarTablaDeArchivos(PID);
+				//borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
@@ -1186,6 +1186,21 @@ void finish_process(){
 		else
 			end_process(PID,-7,consola,false);
 	}
+}
+
+void abort_process(uint32_t pid, int32_t codigo_error, uint32_t fd_cpu){
+	int32_t respuesta = -1;
+	enviar(fd_cpu, &respuesta, sizeof(int32_t));
+
+	pthread_mutex_lock(&mutex_in_exec);
+	remove_by_fd_socket(lista_en_ejecucion, fd_cpu);
+	pthread_mutex_unlock(&mutex_in_exec);
+
+	int fd_consola = buscar_consola_de_proceso(pid);
+
+	bool proceso_borrado = proceso_para_borrar(pid);
+
+	end_process(pid, codigo_error, fd_consola, proceso_borrado);
 }
 
 void set_multiprog(){
@@ -2014,10 +2029,10 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	if(archivo == 0 || archivo == 2)
 	{
 		//Estos fd NUNCA se van a usar, si me los piden hubo un error
-		end_process(pid, -2, sock_consola, true);
+		//end_process(pid, -2, sock_consola, true);
 		printf("Ocurrio un error al escribir un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo que se intenta escribir no existe\n", archivo, pid);
-		return -1;
+		return -2;
 	}
 
 	if(archivo > FD_INICIAL_ARCHIVOS)
@@ -2073,10 +2088,9 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					if(!escritura_correcta)
 					{
 						//Termino el proceso con exit code -11 -> El fs no pudo escribir el archivo
-						end_process(pid, -11, sock_consola, true);
 						printf("Ocurrio un error al escribir un archivo, revisar el log\n");
 						log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
-						return -1;
+						return -11;
 					}
 
 					//Aumento el puntero del archivo
@@ -2086,10 +2100,10 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 				if(!(banderas->escritura))
 				{
 					//Termino el proceso con exit code -4
-					end_process(pid, -4, sock_consola, true);
+					//end_process(pid, -4, sock_consola, true);
 					printf("Ocurrio un error al escribir un archivo revisar el log\n");
 					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
-					return -1;
+					return -4;
 				}
 			}
 			k++;
@@ -2098,10 +2112,10 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		//Si no lo encontre signfica que el proceso nunca abrio ese archivo
 		if(!encontrado)
 		{
-			end_process(pid,-4,sock_consola, true);
+			//end_process(pid,-4,sock_consola, true);
 			printf("Ocurrio un error al escribir un archivo, revisar el log\n");
 			log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
-			return -1;
+			return -4;
 		}
 	}
 	return 1;
@@ -2515,7 +2529,8 @@ int main(int argc, char** argv) {
 						}
 						if(codigo == ASIGNAR_VALOR_COMPARTIDA)
 						{
-							u_int32_t value, tamanio, head;
+							u_int32_t value, tamanio;
+							int32_t head;
 							bool existe;
 							recv(i, &value, sizeof(u_int32_t),0);
 							recv(i, &tamanio, sizeof(u_int32_t),0);
@@ -2541,14 +2556,15 @@ int main(int argc, char** argv) {
 							} else //Si no existe la compartida
 							{
 								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
-								head = 0;
-								send(i, &head, sizeof(u_int32_t), 0);
+								int32_t codigo_error = -15;
+								abort_process(pid, codigo_error, i);
 							}
 						}
 
 						if(codigo == BUSCAR_VALOR_COMPARTIDA)
 						{
-							u_int32_t value, tamanio, head;
+							u_int32_t value, tamanio;
+							int32_t head;
 							bool existe;
 							recv(i, &tamanio, sizeof(u_int32_t),0);
 
@@ -2575,8 +2591,8 @@ int main(int argc, char** argv) {
 							} else //Si no existe la compartida
 							{
 								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
-								head = 0;
-								send(i, &head, sizeof(u_int32_t), 0);
+								int32_t codigo_error = -15;
+								abort_process(pid, codigo_error, i);
 							}
 						}
 
@@ -2647,9 +2663,9 @@ int main(int argc, char** argv) {
 							}
 							else //Si no existe el semaforo
 							{
-								head = 0;
-								send(i, &head, sizeof(int32_t),0);
 								log_info(kernelLog, "Abortar proceso, semaforo inexistente");
+								int32_t codigo_error = -15;
+								abort_process(pid, codigo_error, i);
 							}
 
 							free(id_sem);
@@ -2657,12 +2673,27 @@ int main(int argc, char** argv) {
 
 						if(codigo==SIGNAL)
 						{
+							int32_t respuesta;
 							recv(i, &messageLength , sizeof(uint32_t), 0);
 							char *id_sem = malloc(messageLength);
 							recv(i, id_sem, messageLength, 0);
 							log_info(kernelLog, "CPU pide: Signal en semaforo: %s \n\n", id_sem);
-							signal(id_sem);
-							print_vars();
+
+							pthread_mutex_lock(&mutex_semaforos_ansisop);
+							bool existe = existeSemaforo(id_sem);
+							pthread_mutex_unlock(&mutex_semaforos_ansisop);
+
+							if(existe == true){
+								signal(id_sem);
+								print_vars();
+								respuesta = 1;
+								enviar(i, &respuesta, sizeof(respuesta));
+							}else{
+								log_info(kernelLog, "Abortar proceso, semaforo inexistente");
+								int32_t codigo_error = -15;
+								abort_process(pid, codigo_error, i);
+							}
+
 							free(id_sem);
 						}
 
@@ -2787,21 +2818,20 @@ int main(int argc, char** argv) {
 
 							int resultado = execute_open(pid, permisos, file_path, path_length);
 
-							int sock_consola = obtener_consola_asignada_al_proceso(pid);
-
 							if(resultado == -1)
 							{
 								//Codigo de error -10:
 								//No se pudo abrir el archivo por que no existe y no se puede crear por falta de permisos
-								end_process(pid, sockfd_memoria, -10, sock_consola);
-								enviar(i, &resultado, sizeof(int));
+								int32_t codigo_error = -10;
+								abort_process(pid, codigo_error, i);
 							}
 							else if(resultado == -2)
 							{
 								//Codigo de error -11:
 								//El fs no pudo crear el archivo, se produjo error
-								end_process(pid, sockfd_memoria, -11, sock_consola);
-								enviar(i, &resultado, sizeof(int));
+								//end_process(pid, sockfd_memoria, -11, sock_consola);
+								int32_t codigo_error = -11;
+								abort_process(pid, codigo_error, i);
 							}
 							else
 							{
@@ -2861,8 +2891,12 @@ int main(int argc, char** argv) {
 
 							int resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
-							//Independientemente del resultado, le aviso a CPU
-							enviar(i, &resultado, sizeof(int));
+							if(resultado < 0){
+								abort_process(pid, resultado, i);
+							}else{
+								//Independientemente del resultado, le aviso a CPU
+								enviar(i, &resultado, sizeof(int));
+							}
 
 							free(message);
 						}
@@ -2890,9 +2924,9 @@ int main(int argc, char** argv) {
 								//Codigo de error -12
 								//Error al cerrar el archivo - No existe el proceso en la tabla de archivos
 								//o no esta el fd en la tabla de archivos del proceso
+								int32_t codigo_error = -12;
+								abort_process(pid, codigo_error, i);
 
-								sock_consola = obtener_consola_asignada_al_proceso(pid);
-								end_process(pid, sockfd_memoria, -12, sock_consola);
 							}
 							else
 								log_info(kernelLog, "Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
@@ -2931,7 +2965,8 @@ int main(int argc, char** argv) {
 									list_add(heap, nuevoHeap);
 								} else if(paginas_totales == -1)
 									{
-										enviar(i, &error, sizeof(int32_t));
+										error = -9;
+										abort_process(pid, error, i);
 										log_error(kernelLog, "Abortar proceso, no hay espacio suficiente para el pedido\n");
 									}
 							}
@@ -2980,7 +3015,8 @@ int main(int argc, char** argv) {
 								else
 								{
 									log_error(kernelLog, "Abortar proceso, no hay espacio suficiente para el pedido\n");
-									enviar(i, &error, sizeof(int32_t));
+									error = -9;
+									abort_process(pid, error, i);
 								}
 
 							}else{
@@ -2988,7 +3024,7 @@ int main(int argc, char** argv) {
 								printf("Ocurrio un error al reservar memoria, revisar el log\n");
 								log_error(kernelLog, "Error: No es posible reservar un espacio mayor que una pagina\n");
 								error = -8;
-								enviar(i, &error, sizeof(int32_t));
+								abort_process(pid, error, i);
 							}
 						}
 						if(codigo == LIBERAR_MEMORIA)
@@ -3009,7 +3045,7 @@ int main(int argc, char** argv) {
 									puntero *unPuntero = remove_puntero(heap_buscado->heap, direccion);
 
 									uint32_t corrimiento = unPuntero->direccion - (unPuntero->pagina * tamanio_pagina);
-									uint32_t cod = 9;
+									uint32_t cod = LIBERAR;
 									void *buffer = malloc(sizeof(uint32_t)*4);
 									memcpy(buffer, &cod, sizeof(uint32_t));
 									memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
@@ -3026,11 +3062,13 @@ int main(int argc, char** argv) {
 								}
 								else{
 									log_info(kernelLog, "Abortar el proceso, no tiene dicha direccion reservada\n");
-									enviar(i, &error, sizeof(int32_t));
+									error = -5;
+									abort_process(pid, error, i);
 								}
 							}else{
 								log_error(kernelLog, "Abortar el proceso, no tiene paginas alocadas\n");
-								enviar(i, &error, sizeof(int32_t));
+								error = -5;
+								abort_process(pid, error, i);
 							}
 						}
 						if(codigo == PROCESO_FINALIZO_ERRONEAMENTE)
