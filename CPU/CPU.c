@@ -58,7 +58,8 @@ enum{
 	READ_WRITE_CREATE = 7,
 	//Finalizaciones
 	PROCESO_FINALIZO_CORRECTAMENTE = 10,
-	FIN_DE_QUANTUM = 13
+	FIN_DE_QUANTUM = 13,
+	PROCESO_FINALIZO_ERRONEAMENTE = 22
 };
 
 PCB* nuevaPCB;
@@ -959,6 +960,13 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
+			}else if(stackOverflow == true){
+				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
+				enviar(fd_kernel, &codigo, sizeof(uint32_t));
+				int32_t error_cod = -5;
+				send_PCBV2(fd_kernel, nuevaPCB, error_cod);
+				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
 			}
 			else{
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
@@ -989,10 +997,17 @@ int main(int argc, char **argv) {
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
 
-			} else if((quantum == 0) && procesoAbortado == false){
+			} else if((quantum == 0) && procesoAbortado == false && stackOverflow == false){
 				codigo = FIN_DE_QUANTUM;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
+				liberar_PCB(nuevaPCB);
+			} else if(stackOverflow == true){
+				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
+				enviar(fd_kernel, &codigo, sizeof(uint32_t));
+				int32_t error_cod = -5;
+				send_PCBV2(fd_kernel, nuevaPCB, error_cod);
+				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
 			}
 			else{

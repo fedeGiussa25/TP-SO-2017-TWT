@@ -536,7 +536,7 @@ void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
 	free(ultimateBuffer); //Vos tambien.
 }
-void send_PCBV2(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
+void send_PCBV2(uint32_t sock_fd, PCB *pcb, int32_t codigo){
 	int tamanio_indice_codigo = (pcb->cantidad_de_instrucciones)*sizeof(entrada_indice_de_codigo);
 	uint32_t tamanio_indice_etiquetas = pcb->lista_de_etiquetas_length;
 	uint32_t tamanio_estado = strlen(pcb->estado) + 1;
@@ -547,11 +547,11 @@ void send_PCBV2(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 			tamanio_indice_etiquetas+ sizeof(uint32_t)/*tamanio de estado*/ + tamanio_estado+ sizeof(uint32_t)/*cant_registros_stack*/+ tamanio_stack;
 
 	//Creamos un buffer completo, que ademas del PCB llevara un codigo.
-	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(uint32_t));
-	memcpy(ultimateBuffer, &codigo, sizeof(uint32_t));
-	memcpy(ultimateBuffer+sizeof(uint32_t), ultraBuffer, tamanio_total_buffer);
+	void *ultimateBuffer = malloc(tamanio_total_buffer+sizeof(int32_t));
+	memcpy(ultimateBuffer, &codigo, sizeof(int32_t));
+	memcpy(ultimateBuffer+sizeof(int32_t), ultraBuffer, tamanio_total_buffer);
 
-	send(sock_fd, ultimateBuffer, sizeof(uint32_t) + tamanio_total_buffer,0);
+	send(sock_fd, ultimateBuffer, sizeof(int32_t) + tamanio_total_buffer,0);
 
 	printf("Mande un PCB :D\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.

@@ -1,3 +1,5 @@
+#!/usr/bin/ansisop
+
 begin
 	variables a
 	a <- f

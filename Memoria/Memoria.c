@@ -11,11 +11,13 @@
 #include <arpa/inet.h>
 #include "../config_shortcuts/config_shortcuts.h"
 #include "../shared_libs/PCB.h"
+#include <commons/log.h>
 
 mem_config data_config;
 pthread_mutex_t mutex_memoria;
 void *memoria;
 t_list** hash_index;
+t_log* messagesLog;
 
 enum{
 	HANDSHAKE = 1,
@@ -71,6 +73,7 @@ int verificar_conexiones_socket(int fd, int estado){
 			}
 		if(estado == 0){
 			printf("Se desconecto el socket: %d\n", fd);
+			log_info(messagesLog,"Se desconecto el socket: %d\n", fd);
 		}
 		close(fd);
 		return 0;
@@ -167,6 +170,7 @@ void dump_de_tabla(){
 
 	for(i=0; i < data_config.marcos; i++){
 		printf("Frame %d:	PID = %d	Pagina = %d	\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
+		log_info(messagesLog,"Frame %d:	PID = %d	Pagina = %d	\n", tabla[i].frame, tabla[i].PID, tabla[i].pagina);
 	}
 }
 
@@ -184,6 +188,7 @@ void memory_size(){
 		}
 	}
 	printf("Hay %d frames libres y %d ocupados\n", frames_libres, frames_ocupados);
+	log_info(messagesLog,"Hay %d frames libres y %d ocupados\n", frames_libres, frames_ocupados);
 }
 
 void process_size(int pid){
@@ -196,6 +201,7 @@ void process_size(int pid){
 		i++;
 	}
 	printf("El proceso %d tiene %d paginas\n", pid, paginas_de_proceso);
+	log_info(messagesLog,"El proceso %d tiene %d paginas\n", pid, paginas_de_proceso);
 }
 
 void dump_de_memoria(){
@@ -206,10 +212,12 @@ void dump_de_memoria(){
 			void *contenido_frame = malloc(data_config.marco_size);
 			memcpy(contenido_frame, memoria+(i*data_config.marco_size), data_config.marco_size);
 			printf("Frame %d:\n%s\n", i, (char *) contenido_frame);
+			log_info(messagesLog,"Frame %d:\n%s\n", i, (char *) contenido_frame);
 			free(contenido_frame);
 		}
 		else{
 			printf("Frame %d:\n\n", i);
+			log_info(messagesLog,"Frame %d:\n\n", i);
 		}
 	}
 }
@@ -222,6 +230,7 @@ void dump_de_proceso(int pid){
 			void *contenido_frame = malloc(data_config.marco_size);
 			memcpy(contenido_frame, memoria+(i*data_config.marco_size), data_config.marco_size);
 			printf("Frame %d, pagina: %d\n%s\n", i, tabla[i].pagina,(char *) contenido_frame);
+			log_info(messagesLog,"Frame %d, pagina: %d\n%s\n", i, tabla[i].pagina,(char *) contenido_frame);
 			free(contenido_frame);
 		}
 	}
@@ -326,6 +335,7 @@ void print_cache(){
 	int i;
 	for(i=0; i<data_config.entradas_cache; i++){
 		printf("Entrada %d:		PID: %d		Pagina: %d		Contenido:\n%s\n", i, cache[i].pid, cache[i].pagina, (char *) cache[i].contenido);
+		log_info(messagesLog,"Entrada %d:		PID: %d		Pagina: %d		Contenido:\n%s\n", i, cache[i].pid, cache[i].pagina, (char *) cache[i].contenido);
 	}
 }
 
@@ -427,21 +437,21 @@ void insertar_entrada(uint32_t pid, uint32_t pagina, uint32_t frame){
 	int direccion = frame*data_config.marco_size;
 
 	if(data_config.entradas_cache > 0 && data_config.cache_x_proceso > 0){
-		//printf("Agregamos la pagina a la cache\n");
+		log_info(messagesLog,"Agregamos la pagina a la cache\n");
 		if(hay_espacio_en_cache() == true){
 			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
-				//printf("Buscamos una entrada libre\n");
+				log_info(messagesLog,"Buscamos una entrada libre\n");
 				aux = entrada_libre();
 			}else{
-				//printf("Buscamos una victima local\n");
+				log_info(messagesLog,"Buscamos una victima local\n");
 				aux = buscar_victima_local(pid);
 			}
 		}else{
 			if(cantidad_de_entradas(pid) < data_config.cache_x_proceso){
-				//printf("Buscamos una victima global\n");
+				log_info(messagesLog,"Buscamos una victima global\n");
 				aux = buscar_victima_global();
 			}else{
-				//printf("Buscamos una victima local\n");
+				log_info(messagesLog,"Buscamos una victima local\n");
 				aux = buscar_victima_local(pid);
 			}
 		}
@@ -526,7 +536,7 @@ int buscar_espacio_stack(u_int32_t PID, int paginas, int paginas_ocupadas){
 	}
 
 	if(encontrado == 0){
-		printf("No hay espacio para el stack\n");
+		log_error(messagesLog,"No hay espacio para el stack\n");
 		return -1;
 	}
 
@@ -576,7 +586,7 @@ espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int sta
 	}
 
 	if(encontrado == 0){
-		printf("No hay espacio suficiente para el pedido\n");
+		log_error(messagesLog,"No hay espacio suficiente para el pedido\n");
 		espacio->direccion = -1;
 		espacio->page_counter = -1;
 		return espacio;
@@ -630,7 +640,7 @@ espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 	uint32_t numero_de_pagina = paginas_de_proceso(pid);
 
 	if(encontrado == 0){
-		printf("No hay espacio suficiente para el pedido\n");
+		log_error(messagesLog,"No hay espacio suficiente para el pedido\n");
 		espacio->direccion = -1;
 		espacio->page_counter = -1;
 		return espacio;
@@ -647,7 +657,7 @@ espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 
 	memcpy(memoria + marcos_size*i, unEspacio, sizeof(heapMetadata));
 
-	printf("Se ha reservado memoria para el Heap\n");
+	log_info(messagesLog,"Se ha reservado memoria para el Heap\n");
 
 	espacio->page_counter = paginas_de_proceso(pid);
 	espacio->direccion = marcos_size*i;
@@ -713,7 +723,7 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 		insertar_entrada(PID, pagina, frame);
 
 		}else{
-			//printf("La pagina esta en cache\n");
+			log_info(messagesLog,"La pagina esta en cache\n");
 			entrada_cache unaCache = buscar_entrada(PID, pagina);
 			memcpy(instruccion, (unaCache.contenido+inicio), offset);
 			aumentar_referencias();
@@ -730,14 +740,14 @@ void escritura(u_int32_t PID, int pagina, int offset, int tamanio, void *value){
 	posicion_en_indice = calcular_posicion(PID, pagina);
 	frame = buscar_en_indice(posicion_en_indice, PID, pagina);
 
-	//printf("El frame buscado es el %d\n", frame);
+	log_info(messagesLog,"El frame buscado es el %d\n", frame);
 
 	int direccion_fisica = frame*tamanio_pagina;
 
 	memcpy(memoria+direccion_fisica+offset, value, tamanio);
 
 	if(esta_en_cache(PID, pagina) == true){
-		//printf("Actualizamos la pagina en la cache\n");
+		log_info(messagesLog,"Actualizamos la pagina en la cache\n");
 		entrada_cache unaCache = buscar_entrada(PID, pagina);
 		memcpy((unaCache.contenido+offset), value, tamanio);
 		aumentar_referencias();
@@ -765,7 +775,7 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 
 	while(puntero < 0 && no_hay_espacio == false){
 		if(puntero < 0 && process_last_page(PID, pagina) == true){
-			printf("Creamos un nuevo Espacio\n");
+			log_info(messagesLog,"Creamos un nuevo Espacio\n");
 			espacio_reservado *unEspacio = buscar_espacio_para_heap(PID);
 			if(unEspacio->direccion < 0){
 				no_hay_espacio = true;
@@ -779,13 +789,13 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 				puntero = buscar_espacio_libre(espacio, direccion_fisica);
 			}
 		}else if(puntero < 0 && process_last_page(PID, pagina) == false){
-			printf("Buscamos la siguiente pagina\n");
+			log_info(messagesLog,"Buscamos la siguiente pagina\n");
 			pagina ++;
 
 			posicion_hash = calcular_posicion(PID, pagina);
 			frame = buscar_en_indice(posicion_hash, PID, pagina);
 
-			printf("El frame buscado para alocar heap es el %d\n", frame);
+			log_info(messagesLog,"El frame buscado para alocar heap es el %d\n", frame);
 
 			int direccion_fisica = frame*tamanio_pagina;
 			puntero = buscar_espacio_libre(espacio, direccion_fisica);
@@ -793,7 +803,7 @@ espacio_reservado *alocar(uint32_t PID, uint32_t pagina, uint32_t espacio){
 	}
 
 	if(esta_en_cache(PID, pagina) == true){
-		//printf("Actualizamos la pagina en la cache\n");
+		log_info(messagesLog,"Actualizamos la pagina en la cache\n");
 		entrada_cache unaCache = buscar_entrada(PID, pagina);
 		memcpy((unaCache.contenido), (memoria + frame*tamanio_pagina), tamanio_pagina);
 		aumentar_referencias();
@@ -843,7 +853,7 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	//Marcamos espacio como libre
 	heapMetadata *unPuntero = (heapMetadata *) (memoria + direccion_fisica);
 
-	printf("El puntero localizado tiene %d bytes de tamanio y flag en %d\n", unPuntero->size, unPuntero->isFree);
+	log_info(messagesLog, "El puntero localizado tiene %d bytes de tamanio y flag en %d\n", unPuntero->size, unPuntero->isFree);
 
 	unPuntero->isFree = true;
 
@@ -1063,13 +1073,16 @@ int main(int argc, char** argv){
 	t_config *config;
 
 	checkArguments(argc);
-	char *cfgPath = malloc(sizeof("../../Memoria/") + strlen(argv[1])+1);
+	config = config_create(argv[1]);
+	/*char *cfgPath = malloc(sizeof("../../Memoria/") + strlen(argv[1])+1);
 	*cfgPath = '\0';
 	strcpy(cfgPath, "../../Memoria/");
 
-	config = config_create_from_relative_with_check(argv, cfgPath);
+	config = config_create_from_relative_with_check(argv, cfgPath);*/
 	cargar_config(config);
 	print_config();
+
+	messagesLog = log_create("../../Files/Logs/Memoria.log", "Memoria", false, LOG_LEVEL_INFO);
 
 	espacio_total_tabla = data_config.marcos * sizeof(entrada_tabla);
 
@@ -1183,11 +1196,12 @@ int main(int argc, char** argv){
 	buf[bytes_leidos]='\0';
 	printf("%s",buf);*/
 
+	log_destroy(messagesLog);
 	free(contenido_cache);
 	free(admin_cache);
 	free(cache);
 	free(memoria);
-	free(cfgPath);
+	//free(cfgPath);
 	config_destroy(config);
 	return 0;
 }
