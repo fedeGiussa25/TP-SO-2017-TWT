@@ -115,6 +115,9 @@ typedef struct{
 
 typedef struct{
 	uint32_t proceso;
+	uint32_t consola_askeadora;
+	int exit_code;
+	bool connection;
 }just_a_pid;
 
 //Si bien la estructura se llama variable_compartida,
@@ -544,7 +547,10 @@ int buscar_consola_de_proceso(int processid){
 	{
 		proceso_conexion* aux = list_get(lista_consolas,i);
 		if(aux->proceso == processid)
-			res = aux->sock_fd;
+		{
+			pthread_mutex_unlock(&mutex_fd_consolas);
+			return aux->sock_fd;
+		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_fd_consolas);
@@ -624,7 +630,7 @@ bool proceso_en_ejecucion(int processID){
 }
 
 
-bool proceso_para_borrar(int processID){
+int proceso_para_borrar(int processID){
 	pthread_mutex_lock(&mutex_to_delete);
 	int i = 0, dimension = list_size(procesos_a_borrar);
 	just_a_pid *aux;
@@ -634,12 +640,12 @@ bool proceso_para_borrar(int processID){
 		if(aux->proceso == processID)
 		{
 			pthread_mutex_unlock(&mutex_to_delete);
-			return true;
+			return i;
 		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_to_delete);
-	return false;
+	return -1;
 }
 
 
@@ -831,10 +837,10 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		}
 		i++;
 	}
-
 	pthread_mutex_unlock(&mutex_process_list);
-	if(!encontrado && consola_conectada && exit_code == -7)
+	if(encontrado == 0 && consola_conectada && exit_code == -7)
 	{
+			printf("No lo encontre");
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
 			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 	 		log_info(kernelLog, "El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
@@ -844,7 +850,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t)*2,0);
 			free(sendbuf_consola_mensajera);
 	}
-	if(encontrado)
+	if(encontrado == 1)
 	{
 		//Aca indico cuantos bytes quedaron leakeando
 		int bytes_lost = liberarHeap(PID);
@@ -874,15 +880,21 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			else
 				codigo_para_abortar_proceso = 7;
 
-			int consola = buscar_consola_de_proceso(PID);
+			printf("I'm a reasonable man, get off my case\n");
+			int consola = 0;
+			consola = buscar_consola_de_proceso(PID);
 			memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
 			send(consola,sendbuf_consola,sizeof(uint32_t),0);
 
 			//Y al hilo que me mando el mensaje que fue lo que paso
 			//Le mando 1 para que sepa que se pudo borrar
 			uint32_t codigo_de_cancelado_ok = 1;
+
+			printf("I'm a reasonable man, get off my case\n");
 			memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
 			send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t),0);
+
+			printf("I'm a reasonable man, get off my case\n");
 			free(sendbuf_consola);
 			free(sendbuf_consola_mensajera);
 		}
@@ -1199,9 +1211,13 @@ void abort_process(uint32_t pid, int32_t codigo_error, uint32_t fd_cpu){
 
 	int fd_consola = buscar_consola_de_proceso(pid);
 
-	bool proceso_borrado = proceso_para_borrar(pid);
+	int proceso_borrado = proceso_para_borrar(pid);
+	bool hay_consola;
+	if(proceso_borrado < 0)
+		hay_consola = false;
+	else hay_consola = true;
 
-	end_process(pid, codigo_error, fd_consola, proceso_borrado);
+	end_process(pid, codigo_error, fd_consola, hay_consola);
 }
 
 void set_multiprog(){
@@ -2502,6 +2518,8 @@ int main(int argc, char** argv) {
 											log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
 											just_a_pid* aux = malloc(sizeof(just_a_pid));
 											aux->proceso = pcb->pid;
+											aux->exit_code = -6;
+											aux->connection = false;
 
 											pthread_mutex_lock(&mutex_to_delete);
 											list_add(procesos_a_borrar,aux);
@@ -2598,8 +2616,37 @@ int main(int argc, char** argv) {
 							//Cacheo el pid del proceso que tengo que borrar
 							int pid;
 							recv(i,&pid,sizeof(int),0);
-							//Y llamo a la funcion que lo borra
-							end_process(pid, -7, i, true);
+							PCB* actual_PCB = get_PCB(pid);
+
+							if(proceso_en_ejecucion(pid) && strcmp(actual_PCB->estado,"Exec") == 0){
+								//Si esta en ejecucion lo dejo esperando a que lo cancelen
+								just_a_pid* aux = malloc(sizeof(just_a_pid));
+								aux->proceso = actual_PCB->pid;
+								aux->exit_code = -7;
+								aux->connection = true;
+								aux->consola_askeadora = i;
+
+								pthread_mutex_lock(&mutex_to_delete);
+								list_add(procesos_a_borrar,aux);
+								pthread_mutex_unlock(&mutex_to_delete);
+							}
+							else
+							{
+								//Saco a la cpu de la lista de ejecucion
+								pthread_mutex_lock(&mutex_in_exec);
+								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
+
+								//Y llamo a la funcion que lo borra
+								end_process(pid, -7, i, true);
+
+								pthread_mutex_lock(&mutex_fd_cpus);
+								proceso_conexion* cpu = buscar_conexion_de_proceso(pid);
+								pthread_mutex_unlock(&mutex_fd_cpus);
+
+								cpu->proceso = 0;
+							}
+
 						}
 						if(codigo == ASIGNAR_VALOR_COMPARTIDA)
 						{
@@ -2787,16 +2834,25 @@ int main(int argc, char** argv) {
 							pthread_mutex_unlock(&mutex_in_exec);
 
 							log_info(kernelLog, "Elimine el proceso de la lista de exec\n");
-
-							if(!proceso_para_borrar(PID))
+							int posicion = proceso_para_borrar(PID);
+							if(posicion < 0)
 							{
 								log_info(kernelLog, "El proceso no estaba para borrar\n");
 								end_process(PID, 0, fd_consola, true);
 							}
 							else
 							{
+								pthread_mutex_lock(&mutex_to_delete);
+								just_a_pid* peide = list_remove(procesos_a_borrar,posicion);
+								pthread_mutex_unlock(&mutex_to_delete);
 								log_info(kernelLog, "El proceso estaba para borrar\n");
-								end_process(PID, -6, fd_consola, false);
+
+								if(peide->exit_code == -7)
+									end_process(PID, peide->exit_code, peide->consola_askeadora, peide->connection);
+								else
+									end_process(PID, peide->exit_code, fd_consola, peide->connection);
+
+								free(peide);
 							}
 
 							log_info(kernelLog, "Ya termine toda la operacion de borrado\n");
@@ -2836,7 +2892,9 @@ int main(int argc, char** argv) {
 							list_add(todos_los_procesos,unPCB);
 							pthread_mutex_unlock(&mutex_process_list);
 
-							if(!proceso_para_borrar(unPCB->pid))
+							int posicion = proceso_para_borrar(unPCB->pid);
+
+							if(posicion < 0)
 							{
 								//Meto el modificado en Ready
 								pthread_mutex_lock(&mutex_ready_queue);
@@ -2845,13 +2903,24 @@ int main(int argc, char** argv) {
 							}
 							else
 							{
-								int consola_con = buscar_consola_de_proceso(unPCB->pid);
+								int consola_con = -1;
+								consola_con = buscar_consola_de_proceso(unPCB->pid);
 								log_info(kernelLog, "El proceso estaba para borrar\n");
-								end_process(unPCB->pid, -6, consola_con, false);
+
+								pthread_mutex_lock(&mutex_to_delete);
+								just_a_pid* peide = list_remove(procesos_a_borrar,posicion);
+								pthread_mutex_unlock(&mutex_to_delete);
+
+								if(peide->exit_code == -7)
+									end_process(unPCB->pid, peide->exit_code, peide->consola_askeadora, peide->connection);
+								else
+									end_process(unPCB->pid, peide->exit_code, consola_con, peide->connection);
+								free(peide);
 							}
 
 							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
 							//liberar_PCB(PCB_vieja);
+							printf("I'm a reasonable man, get off my case\n");
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
