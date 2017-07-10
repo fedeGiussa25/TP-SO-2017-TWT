@@ -2820,42 +2820,46 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(unPCB->pid);
 							dp->rafagas ++;
 
+							//Saco la CPU de la lista de ejecucion
+							pthread_mutex_lock(&mutex_in_exec);
+							remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
+
+							//Busco la version anterior del PCB y la saco de Exec
+							pthread_mutex_lock(&mutex_exec_queue);
+							remove_PCB_from_specific_queue(unPCB->pid,exec_queue);
+							pthread_mutex_unlock(&mutex_exec_queue);
+
+							pthread_mutex_lock(&mutex_process_list);
+							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+							PCB_vieja->estado = "Ready";
+							list_add(todos_los_procesos,unPCB);
+							pthread_mutex_unlock(&mutex_process_list);
+
 							if(!proceso_para_borrar(unPCB->pid))
 							{
-								//Saco la CPU de la lista de ejecucion
-								pthread_mutex_lock(&mutex_in_exec);
-								remove_by_fd_socket(lista_en_ejecucion, i);
-								pthread_mutex_unlock(&mutex_in_exec);
-
-								//Busco la version anterior del PCB y la saco de Exec
-								pthread_mutex_lock(&mutex_exec_queue);
-								remove_PCB_from_specific_queue(unPCB->pid,exec_queue);
-								pthread_mutex_unlock(&mutex_exec_queue);
-
-								pthread_mutex_lock(&mutex_process_list);
-								PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-								PCB_vieja->estado = "Ready";
-								list_add(todos_los_procesos,PCB_vieja);
-								pthread_mutex_unlock(&mutex_process_list);
-
 								//Meto el modificado en Ready
 								pthread_mutex_lock(&mutex_ready_queue);
 								queue_push(ready_queue,unPCB);
 								pthread_mutex_unlock(&mutex_ready_queue);
-
-								//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
-								//free(pcb_viejo);
 							}
 							else
 							{
-								pthread_mutex_lock(&mutex_in_exec);
-								remove_by_fd_socket(lista_en_ejecucion, i);
-								pthread_mutex_unlock(&mutex_in_exec);
-
 								int consola_con = buscar_consola_de_proceso(unPCB->pid);
 								log_info(kernelLog, "El proceso estaba para borrar\n");
 								end_process(unPCB->pid, -6, consola_con, false);
 							}
+
+							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
+							//liberar_PCB(PCB_vieja);
+
+							pthread_mutex_lock(&mutex_fd_cpus);
+							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
+							pthread_mutex_unlock(&mutex_fd_cpus);
+
+							cpu->proceso = 0;
+
+							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 						}
 
 						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
@@ -2933,7 +2937,7 @@ int main(int argc, char** argv) {
 							{
 								//Posibles errores:
 								// > -2 -> El archivo no existe
-								// > -3 -> Permisos no validos, se pidio leer un FD menor a 3 o hubo problemas al acceder al archivo para leerlo
+								// > -3 -> Permisos no validos o hubo problemas al acceder al archivo para leerlo
 								// > -20 -> Fallo del FS
 								abort_process(pid,(int)readText,i);
 							}
