@@ -752,7 +752,7 @@ int execute_close(int pid, int fd)
 
 void borrarTablaDeArchivos(int PID){
 	int i = 0, j = 0, mem_ref = 0;
-	tabla_de_archivos_de_proceso* tabla_archivos;
+	tabla_de_archivos_de_proceso* tabla_archivos = 0;
 	bool encontrado = false;
 
 	while(i < list_size(tabla_de_archivos_por_proceso) && !encontrado)
@@ -767,14 +767,15 @@ void borrarTablaDeArchivos(int PID){
 		i++;
 	}
 
-	while(j < list_size(tabla_archivos->lista_de_archivos))
-	{
-		archivo_de_proceso* aux = list_get(tabla_archivos->lista_de_archivos,j);
-		execute_close(PID,aux->fd);
-		j++;
+	if(tabla_archivos > 0){
+		while(j < list_size(tabla_archivos->lista_de_archivos))
+		{
+			archivo_de_proceso* aux = list_get(tabla_archivos->lista_de_archivos,j);
+			execute_close(PID,aux->fd);
+			j++;
+		}
+		list_remove(tabla_de_archivos_por_proceso,mem_ref);
 	}
-
-	list_remove(tabla_de_archivos_por_proceso,mem_ref);
 	free(tabla_archivos);
 }
 
@@ -813,7 +814,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		{
 			if(strcmp(PCB->estado,"Exit")!=0)
 			{
-				//borrarTablaDeArchivos(PID);
+				borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
@@ -832,7 +833,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	}
 
 	pthread_mutex_unlock(&mutex_process_list);
-	if(!encontrado && consola_conectada)
+	if(!encontrado && consola_conectada && exit_code == -7)
 	{
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
 			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
@@ -1833,6 +1834,15 @@ bool puede_crear_archivos(int flag)
 	return false;
 }
 
+bool puede_leer_archivos(int flag)
+{
+	if((flag == READ) || (flag == READ_CREATE) || (flag == READ_WRITE) || (flag == READ_WRITE_CREATE))
+	{
+		return true;
+	}
+	return false;
+}
+
 int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length)
 {
 	uint32_t i = 0, codigo, referencia_tabla_global, offset;
@@ -1934,24 +1944,26 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	return archivoAbierto->fd;
 }
 
-char* execute_read(int pid, int fd, int messageLength)
+int move_cursor(int pid, int fd, int position)
 {
-	char* readText = malloc(messageLength + 1);
-	memset(readText, 0, messageLength + 1);
-
 	if(fd < 3)
 	{
-		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
-		return readText;
+		return -2;
+	}
+
+	if(position > tamanio_pagina)
+	{
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
+		return -15;
 	}
 
 	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
 	//Busco el fd dentro de la tabla
 	int k = 0;
-	uint32_t referencia_tabla_global, offset;
 	bool encontrado = false;
 
 	while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
@@ -1961,6 +1973,50 @@ char* execute_read(int pid, int fd, int messageLength)
 		if(arch_aux->fd == fd)
 		{
 			encontrado = true;
+			arch_aux->offset = position;
+		}
+		k++;
+	}
+	//Si no lo encontre signfica que el proceso nunca abrio ese archivo
+	if(!encontrado)
+	{
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
+		return -2;
+	}
+
+	return 1;
+}
+
+char* execute_read(int pid, int fd, int messageLength)
+{
+	void* readText = malloc(messageLength);
+	memset(readText, 0, messageLength + 1);
+
+	if(fd < 3)
+	{
+		//Quiere leer de consola. Eso no debe pasar --> Error
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
+		return -2;
+	}
+
+	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
+
+	//Busco el fd dentro de la tabla
+	int k = 0;
+	uint32_t referencia_tabla_global, offset;
+	bool encontrado = false;
+	archivo_de_proceso* arch_posta;
+
+	while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
+	{
+		archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
+		//Si lo encuentro
+		if(arch_aux->fd == fd)
+		{
+			encontrado = true;
+			arch_posta = arch_aux;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
 			offset = arch_aux->offset;
 		}
@@ -1971,7 +2027,14 @@ char* execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
-		return readText;
+		return -2;
+	}
+
+	if(!arch_posta->flags->lectura)
+	{
+		printf("Ocurrio un error al leer un archivo, revisar el log\n");
+		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El proceso no tiene permisos para leer el archivo\n", fd, pid);
+		return -3;
 	}
 
 	//Obtengo el path para el fd dado
@@ -1979,23 +2042,34 @@ char* execute_read(int pid, int fd, int messageLength)
 	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
 	pthread_mutex_unlock(&mutex_archivos_globales);
 
-
 	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
-	int codigo = LEER_ARCHIVO_FS;
-	void* buffer = malloc((sizeof(int)*3) + strlen(arch->ruta_del_archivo) + 1);
+	int codigo = LEER_ARCHIVO_FS, size = strlen(arch->ruta_del_archivo);
+	void* buffer = malloc((sizeof(int)*4) + size);
 
 	memcpy(buffer, &codigo, sizeof(int));
-	memcpy(buffer + sizeof(int), &messageLength, sizeof(int));
-	memcpy(buffer + (sizeof(int)*2), &offset, sizeof(int));
-	memcpy(buffer + (sizeof(int)*3), arch->ruta_del_archivo, strlen(arch->ruta_del_archivo));
+	memcpy(buffer + sizeof(int), &size, sizeof(int));
+	memcpy(buffer + sizeof(int)*2, arch->ruta_del_archivo, size);
+	memcpy(buffer + sizeof(int)*2 + size, &offset, sizeof(int));
+	memcpy(buffer + sizeof(int)*3 + size, &messageLength, sizeof(int));
 
-	enviar(sockfd_fs, buffer, (sizeof(int)*3) + strlen(arch->ruta_del_archivo));
-	if(recibir(sockfd_fs, readText, messageLength) == 1)
+	enviar(sockfd_fs, buffer, (sizeof(int)*4) + size);
+	int bytes_recv = recibir(sockfd_fs, readText, messageLength);
+	//Me van a devolver un integer si hay un error asi que si me llega justo eso desconfio
+	if(bytes_recv == sizeof(int) && messageLength != sizeof(int))
 	{
-		//Si recibio 1Byte -> Recibio cadena vacia
-		printf("Ocurrio un error al leer un archivo, revisar el log\n");
-		log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+		if(messageLength != sizeof(int))
+		{
+			printf("Ocurrio un error al leer un archivo, revisar el log\n");
+			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+			return -20;
+		}
+		else if(*(int*)readText == 20 || *(int*)readText == 14 || *(int*)readText == 15 || *(int*)readText == 16){
+			printf("Ocurrio un error al leer un archivo, revisar el log\n");
+			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+			return -20;
+		}
 	}
+
 	free(buffer);
 
 	return readText;
@@ -2855,12 +2929,13 @@ int main(int argc, char** argv) {
 
 							char* readText = execute_read(pid, fd, messageLength);
 
-							if(strcmp(readText, "") == 0)
+							if(readText < 0)
 							{
-								//Si viene una cadena vacia, hubo error. Le mando un codigo -1 a CPU para evitarle laburo
-								//de revisar la cadena
-								codigo = -1;
-								enviar(i, &codigo, sizeof(int));
+								//Posibles errores:
+								// > -2 -> El archivo no existe
+								// > -3 -> Permisos no validos, se pidio leer un FD menor a 3 o hubo problemas al acceder al archivo para leerlo
+								// > -20 -> Fallo del FS
+								abort_process(pid,(int)readText,i);
 							}
 							else
 							{
@@ -2869,6 +2944,8 @@ int main(int argc, char** argv) {
 								enviar(i, &codigo, sizeof(int));
 								enviar(i, readText, messageLength);
 							}
+
+							free(readText);
 						}
 
 						if(codigo == ESCRIBIR_ARCHIVO)
@@ -2891,19 +2968,18 @@ int main(int argc, char** argv) {
 
 							int resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
-							if(resultado < 0){
+							if(resultado < 0)
 								abort_process(pid, resultado, i);
-							}else{
+							else
 								//Independientemente del resultado, le aviso a CPU
 								enviar(i, &resultado, sizeof(int));
-							}
 
 							free(message);
 						}
 
 						if(codigo == CERRAR_ARCHIVO)
 						{
-							uint32_t fd, pid, resultado = 1, sock_consola = 0;
+							uint32_t fd, pid, resultado = 1;
 
 							//Recibo pid y fd
 							recibir(i, &pid, sizeof(uint32_t));
@@ -2932,6 +3008,24 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
 
 							enviar(i, &resultado, sizeof(uint32_t));
+						}
+
+						if(codigo == MOVER_CURSOR){
+							int pid, fd, posicion;
+							recibir(i, &pid, sizeof(int));
+							recibir(i, &fd, sizeof(int));
+							recibir(i, &posicion, sizeof(int));
+
+							datos_proceso* dp = get_datos_proceso(pid);
+							dp->syscalls ++;
+
+							int resultado = move_cursor(pid, fd, posicion);
+
+							if(resultado < 0)
+								abort_process(pid, resultado, i);
+							else
+								//Independientemente del resultado, le aviso a CPU
+								enviar(i, &resultado, sizeof(int));
 						}
 						if(codigo == RESERVAR_MEMORIA)
 						{
