@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <commons/bitarray.h>
+#include <commons/log.h>
 #define PATH_BLQ "Bloques/"
 #define FNF 20 // FILE NOT FOUND
 typedef struct{
@@ -68,6 +69,13 @@ typedef struct {
     char* montaje;
 } fs_config;
 
+char *unir_str(char* str1,char* str2){
+    char *retorno = malloc(strlen(str1) + strlen(str2) + 1);
+    strcpy(retorno,str1);
+    strcat(retorno,str2);
+    return retorno;
+}
+
 void checkArguments(int argc){
     if(argc == 1)
     {
@@ -84,7 +92,7 @@ void checkArguments(int argc){
 
 uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	char *fullPath= 
+	char *fullPath=
 	archivo = fopen(fullPath,"r");
 	if(!archivo){
 		//Agrego el free para evitar memory leaks
@@ -100,9 +108,7 @@ uint32_t sizeFile(char *nombreArchivo,char *rutaBase){
 
 uint32_t exist(char *nombreArchivo,char *rutaBase){
 	FILE *archivo;
-	char *fullPath = malloc(strlen(nombreArchivo) + strlen(rutaBase));
-	strcpy(fullPath,rutaBase);
-	strcat(fullPath,nombreArchivo);
+	char *fullPath = unir_str(rutaBase,nombreArchivo);
 	archivo = fopen(fullPath,"r");
 	uint32_t var = true;
 	if(!archivo){
@@ -122,13 +128,6 @@ char* obtieneNombreArchivo(uint32_t socketReceiver){
 	nombre = malloc(size_name);
 	recibir(socketReceiver,(void *)nombre,size_name);
 	return nombre;
-}
-
-char *unir_str(char* str1,char* str2){
-	char *retorno = malloc(strlen(str1) + strlen(str2) + 1);
-	strcpy(retorno,str1);
-	strcat(retorno,str2);
-	return retorno;
 }
 
 char *path_sin_bar(char* path){
@@ -314,17 +313,21 @@ int32_t Archivo_guardar(char* path,char* montaje,Archivo_t *aux){
     if(archivo == NULL)
         return false;
     t_config *config = config_create(fullPath);
-    config_set_value(config,"TAMANIO",int_to_str(aux->tamanio));
-    config_set_value(config,"BLOQUES",array_to_write(aux));
+    char *dataChar = int_to_str(aux->tamanio);
+    config_set_value(config,"TAMANIO",dataChar);
+    free(dataChar);
+    dataChar = array_to_write(aux);
+    config_set_value(config,"BLOQUES",dataChar);
+    free(dataChar);
     config_save(config);
     config_destroy(config);
     return true;
 }
 
-int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
+int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	if(exist(path,montaje)==true)
 		return false;
-	printf("Tratando de Crear un Archivo en %s\n",path );
+	log_info(log,"Tratando de Crear un Archivo en %s\n",path );
 	char* fullPath = unir_str(montaje,path);
 	FILE *archivo = fopen(fullPath,"w");
 	if(archivo == NULL)
@@ -335,7 +338,7 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data){
 	aux->cantidadElementos = 0;
 	aux->array = NULL;
 	int bloque = primer_bloque_libre(data);
-	printf("El primer bloque libre fue el %d\n",bloque);
+    log_info(log,"El primer bloque libre fue el %d\n",bloque);
 	agregarBloque(aux,bloque);
 	bitarray_set_bit(data,bloque);
 	t_config *config = config_create(fullPath);
@@ -391,18 +394,20 @@ int32_t delete_archivo(char* path,char* montaje,t_bitarray *data){
 	free(fullPath);
     return true;
 }
-int32_t validar_archivo(char* path,char* montaje){
+int32_t validar_archivo(char* path,char* montaje,t_log *log){
 	char *fullPath = unir_str(montaje,path);
 	int32_t valida=false;;
 	
 	t_config *config = config_create(fullPath);
 	if(config == NULL){
-		printf("%s es un archivo inexistente\n",path );
+		log_info(log,"%s es un archivo inexistente\n",path );
 		free(fullPath);
 		return valida;
 	}
-	if(config_has_property(config,"BLOQUES") && config_has_property(config,"TAMANIO"))
-		valida = true;
+	if(config_has_property(config,"BLOQUES") && config_has_property(config,"TAMANIO")){
+        valida = true;
+        log_info(log,"%s es un archivo Valido y completo\n",path );
+    }
 	config_destroy(config);
 	free(fullPath);
 	return valida;
@@ -443,8 +448,9 @@ int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,v
 }
 
 
-void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque){
-	if(validar_archivo(path,montaje) == false){
+void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log){
+	if(validar_archivo(path,montaje,log) == false){
+        log_info(log,"ARCHIVO %s NO VALIDO",path);
 		return FNF;
 	}
     if(size < 1) {
@@ -466,7 +472,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
     void *miDato = malloc(size);
 	for (i = 0; aux[i].id != -1; i++)
 	{
-        void* readAux = readFromBlock(archivo->array[aux[i].id],PATH_BLQ,aux[i].offset,aux[i].size);
+        void* readAux = readFromBlock(archivo->array[aux[i].id],pathBloques,aux[i].offset,aux[i].size);
         if(readAux == NULL) {
             free(miDato);
             free(aux);
@@ -499,8 +505,9 @@ int32_t max(int32_t numA,int32_t numB){
         return numA;
     return numB;
 }
-int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void* buffer,t_bitarray* bitmap,int32_t sizeBloque){
-	if(validar_archivo(path,montaje) == false){
+int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void* buffer,t_bitarray* bitmap,int32_t sizeBloque,char* pathBloques,t_log *log){
+	if(validar_archivo(path,montaje,log) == false){
+        log_info(log,"ARCHIVO %s NO VALIDO",path);
 		return FNF;
 	}
     if(size < 1)
@@ -517,8 +524,10 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
 
     if(bloquesNecesarios >0){
         int32_t bloques = cantidadBloquesLibres(bitmap);
-        if(bloques < bloquesNecesarios)
+        if(bloques < bloquesNecesarios){
+            log_info(log,"NO HAY BLOQUES SUFICIENTES BLOQUES libres %d --- Necesarios %d",bloques,bloquesNecesarios);
             return 16;
+        }
         for(i=0;i<bloquesNecesarios;i++){
             int ubicacionBit= primer_bloque_libre(bitmap);
             agregarBloque(aux,ubicacionBit);
@@ -527,7 +536,7 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     }
     int writed = 0;
     for(i=0;aux[i].id != -1;i++){
-        writeToBlock(archivo->array[aux[i].id],PATH_BLQ,aux[i].offset,aux[i].size,buffer+writed);
+        writeToBlock(archivo->array[aux[i].id],pathBloques,aux[i].offset,aux[i].size,buffer+writed);
         writed+=aux[i].size;
     }
     free(aux);

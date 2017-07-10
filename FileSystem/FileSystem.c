@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <commons/config.h>
+#include <commons/log.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -58,7 +59,7 @@ t_bitarray *ready_to_work(char *pathBitmap,void* data){
 int main(int argc, char** argv)
 {
 	t_config *config;
-
+    t_log *miLog = log_create("out.log","FileSystem",true,LOG_LEVEL_INFO);
 	checkArguments(argc);
 	config = config_create(argv[1]);
 	if(config ==NULL)
@@ -112,7 +113,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	printf("Cada bloque sera de %d bytes\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
+	log_info(miLog,"Cada bloque sera de %d bytes\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
 	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
 	int32_t miSocket = servidor(puerto,1);
 	//end
@@ -133,13 +134,13 @@ int main(int argc, char** argv)
 		switch(msg){
 			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = validar_archivo(nameArchRequest,pathArchivos);
+				msg = validar_archivo(nameArchRequest,pathArchivos,miLog);
 				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
 			case CREAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
-				msg = create_archivo(nameArchRequest,pathArchivos,bitmap);
+				msg = create_archivo(nameArchRequest,pathArchivos,bitmap,miLog);
 				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(uint32_t));
 				break;
@@ -150,7 +151,7 @@ int main(int argc, char** argv)
                     exit(6);
                 if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
                     exit(6);
-                void *data = obtener_datos(nameArchRequest,PATH_ARCH,offset,size,tamanioBloques);
+                void *data = obtener_datos(nameArchRequest,pathArchivos,offset,size,tamanioBloques,pathBloques,miLog);
                 enviar(kernel,data,size);
                 free(data);
                 free(nameArchRequest);
@@ -166,14 +167,14 @@ int main(int argc, char** argv)
                 buffer = malloc(size);
                 if(recibir(kernel,buffer,size) == NULL)
                     exit(6);
-                msg = guardar_datos(nameArchRequest,PATH_ARCH,offset,size,buffer,bitmap,tamanioBloques);
+                msg = guardar_datos(nameArchRequest,pathArchivos,offset,size,buffer,bitmap,tamanioBloques,pathBloques,miLog);
                 enviar(kernel,(void *)&msg,sizeof(uint32_t));
                 free(buffer);
                 free(nameArchRequest);
                 break;
             case DEL_MSG:
                 nameArchRequest = obtieneNombreArchivo(kernel);
-                msg = delete_archivo(nameArchRequest,PATH_ARCH,bitmap);
+                msg = delete_archivo(nameArchRequest,pathArchivos,bitmap);
                 free(nameArchRequest);
                 enviar(kernel,(void *)&msg,sizeof(uint32_t));
                 break;
