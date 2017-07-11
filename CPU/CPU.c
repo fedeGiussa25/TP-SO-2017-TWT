@@ -527,7 +527,7 @@ t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 	memcpy(buffer + sizeof(uint32_t)*3+path_length, &(flags.creacion), sizeof(bool));
 	memcpy(buffer + sizeof(uint32_t)*3+path_length+sizeof(bool), &(flags.lectura), sizeof(bool));
 	memcpy(buffer + sizeof(uint32_t)*3+path_length+sizeof(bool)*2, &(flags.escritura), sizeof(bool));
-	t_descriptor_archivo fd_archivo;
+	int32_t fd_archivo;
 
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)*3+path_length+sizeof(bool)*3);
 
@@ -642,7 +642,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 	memcpy(buffer+sizeof(uint32_t)*2, &descriptor_archivo, sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t)*3, &tamanio, sizeof(uint32_t));
 	enviar(fd_kernel, buffer, sizeof(uint32_t)*4);
-	void* informacion_leida; //Suponiendo que los archivos guardan solo enteros
+	char* informacion_leida = malloc(tamanio);
 
 	recibir(fd_kernel, &resp, sizeof(int32_t));
 
@@ -650,7 +650,9 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 		procesoAbortado=true;
 		log_error(messagesLog,"Proceso: %d abortado al intentar leer en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	} else{
-	recibir(fd_kernel, &informacion_leida, tamanio);
+	recibir(fd_kernel, informacion_leida, tamanio);
+
+
 	//twt_asignar(informacion, informacion_leida);     //Voy a preguntar bien si esto es asi
 	}
 	free(buffer);

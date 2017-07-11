@@ -2014,6 +2014,7 @@ char* execute_read(int pid, int fd, int messageLength)
 		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
+		free(readText);
 		return -2;
 	}
 
@@ -2043,6 +2044,7 @@ char* execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
+		free(readText);
 		return -2;
 	}
 
@@ -2050,6 +2052,7 @@ char* execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El proceso no tiene permisos para leer el archivo\n", fd, pid);
+		free(readText);
 		return -3;
 	}
 
@@ -2077,11 +2080,13 @@ char* execute_read(int pid, int fd, int messageLength)
 		{
 			printf("Ocurrio un error al leer un archivo, revisar el log\n");
 			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+			free(readText);
 			return -20;
 		}
 		else if(*(int*)readText == 20 || *(int*)readText == 14 || *(int*)readText == 15 || *(int*)readText == 16){
 			printf("Ocurrio un error al leer un archivo, revisar el log\n");
 			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
+			free(readText);
 			return -20;
 		}
 	}
@@ -3002,23 +3007,30 @@ int main(int argc, char** argv) {
 
 							char* readText = execute_read(pid, fd, messageLength);
 
-							if(readText < 0)
+							int resultado = (int) readText;
+
+
+
+							if(resultado < 0)
 							{
 								//Posibles errores:
 								// > -2 -> El archivo no existe
 								// > -3 -> Permisos no validos o hubo problemas al acceder al archivo para leerlo
 								// > -20 -> Fallo del FS
-								abort_process(pid,(int)readText,i);
+								abort_process(pid,resultado,i);
 							}
 							else
 							{
 								codigo = 1;
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
+
+
 								enviar(i, readText, messageLength);
+								free(readText);
 							}
 
-							free(readText);
+
 						}
 
 						if(codigo == ESCRIBIR_ARCHIVO)
