@@ -82,33 +82,6 @@ t_log* messagesLog;
  * (el twt es por the walking thread :))
  */
 
-void liberar_PCB(PCB *pcb){
-	free(pcb->indice_de_codigo);
-	free(pcb->estado);
-	free(pcb->lista_de_etiquetas);
-
-	int cant_reg_stack = list_size(pcb->stack_index), i;
-
-	for(i=0; i< cant_reg_stack; i++){
-		registroStack *unReg = list_remove(pcb->stack_index, 0);
-		int cant_vars = list_size(unReg->vars), cant_args = list_size(unReg->args), j, k;
-		for(j=0; j<cant_vars; j++){
-			variable *unaVar = list_remove(unReg->vars, 0);
-			free(unaVar);
-		}
-		list_destroy(unReg->vars);
-		for(k=0; k<cant_args; k++){
-			variable *unArg = list_remove(unReg->args, 0);
-			free(unArg);
-		}
-		list_destroy(unReg->args);
-		free(unReg);
-	}
-
-	list_destroy(pcb->stack_index);
-	free(pcb);
-}
-
 void eliminar_proceso(u_int32_t PID){
 
 	u_int32_t codigo = ELIMINAR_PROCESO;
@@ -558,7 +531,7 @@ t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)*3+path_length+sizeof(bool)*3);
 
-	recibir(fd_kernel, &fd_archivo, sizeof(uint32_t));
+	recibir(fd_kernel, &fd_archivo, sizeof(int32_t));
 
 	if(fd_archivo < 0){
 		procesoAbortado=true;
@@ -572,13 +545,13 @@ void twt_borrar (t_descriptor_archivo direccion)
 	log_info(messagesLog,"Borrar archivo: %s\n", direccion);
 	uint32_t fd_a_borrar = direccion;
 	uint32_t codigo = BORRAR_ARCHIVO;
-	uint32_t resp;
+	int32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*3);
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t)*2, &fd_a_borrar, sizeof(uint32_t));
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)*3);
-	recibir(fd_kernel, &resp, sizeof(uint32_t));
+	recibir(fd_kernel, &resp, sizeof(int32_t));
 
 	if(resp < 0){
 		procesoAbortado=true;
@@ -593,14 +566,14 @@ void twt_cerrar (t_descriptor_archivo descriptor_archivo)
 	log_info(messagesLog,"Cerrar archivo, file descriptor: %d\n", descriptor_archivo);
 	uint32_t codigo = CERRAR_ARCHIVO;
 	uint32_t fd_a_cerrar = descriptor_archivo;
-	uint32_t resp;
+	int32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*3);
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t)*2, &fd_a_cerrar, sizeof(uint32_t));
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)*3);
 
-	recibir(fd_kernel, &resp, sizeof(uint32_t));
+	recibir(fd_kernel, &resp, sizeof(int32_t));
 
 	if(resp < 0){
 		procesoAbortado=true;
@@ -613,7 +586,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 {
 	log_info(messagesLog,"Mover el cursor en el archivo con: %d a posicion: %d\n", descriptor_archivo, posicion);
 	uint32_t codigo = MOVER_CURSOR;
-	uint32_t resp;
+	int32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*4);
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
@@ -621,7 +594,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 	memcpy(buffer+sizeof(uint32_t)*3, &posicion, sizeof(uint32_t));
 	enviar(fd_kernel, buffer, sizeof(u_int32_t)*4);
 
-	recibir(fd_kernel, &resp, sizeof(uint32_t));
+	recibir(fd_kernel, &resp, sizeof(int32_t));
 
 	if(resp < 0){
 		procesoAbortado=true;
@@ -635,7 +608,7 @@ void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t
 	memset(informacion+tamanio, '\0', 1);
 	log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
 	int desc_salida=descriptor_archivo;
-	int resp;
+	int32_t resp;
 	if(desc_salida==0)
 	{
 		desc_salida = 1; //El parser devuelve 0	como FD de salida, no se por que
@@ -649,7 +622,7 @@ void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t
 	memcpy(buffer+sizeof(uint32_t)*4, informacion, tamanio);
 	enviar(fd_kernel, buffer, sizeof(uint32_t)*4+tamanio);
 
-	recibir(fd_kernel, &resp, sizeof(int));
+	recibir(fd_kernel, &resp, sizeof(int32_t));
 
 	if(resp < 0){
 		procesoAbortado=true;
@@ -662,7 +635,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 {
 	log_info(messagesLog,"Leer archivo, file decriptor: %d\n", descriptor_archivo);
 	uint32_t codigo = LEER_ARCHIVO;
-	uint32_t resp;
+	int32_t resp;
 	void* buffer = malloc(sizeof(uint32_t)*4);
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer+sizeof(uint32_t), &(nuevaPCB->pid), sizeof(uint32_t));
@@ -671,7 +644,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 	enviar(fd_kernel, buffer, sizeof(uint32_t)*4);
 	void* informacion_leida; //Suponiendo que los archivos guardan solo enteros
 
-	recibir(fd_kernel, &resp, sizeof(uint32_t));
+	recibir(fd_kernel, &resp, sizeof(int32_t));
 
 	if(resp < 0){
 		procesoAbortado=true;

@@ -1,7 +1,7 @@
 #!/usr/bin/ansisop
 begin
 	variables a, b
-	signal SEM1
+	signal b
 	a = 3
 	b = 5
 	a = b + 12

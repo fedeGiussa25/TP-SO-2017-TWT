@@ -890,3 +890,29 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 	//strcpy(pcb->estado, estado);
 
 }
+void liberar_PCB(PCB *pcb){
+	free(pcb->indice_de_codigo);
+	free(pcb->estado);
+	free(pcb->lista_de_etiquetas);
+
+	int cant_reg_stack = list_size(pcb->stack_index), i;
+
+	for(i=0; i< cant_reg_stack; i++){
+		registroStack *unReg = list_remove(pcb->stack_index, 0);
+		int cant_vars = list_size(unReg->vars), cant_args = list_size(unReg->args), j, k;
+		for(j=0; j<cant_vars; j++){
+			variable *unaVar = list_remove(unReg->vars, 0);
+			free(unaVar);
+		}
+		list_destroy(unReg->vars);
+		for(k=0; k<cant_args; k++){
+			variable *unArg = list_remove(unReg->args, 0);
+			free(unArg);
+		}
+		list_destroy(unReg->args);
+		free(unReg);
+	}
+
+	list_destroy(pcb->stack_index);
+	free(pcb);
+}

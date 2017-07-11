@@ -611,7 +611,7 @@ int main(int argc, char** argv)
 	printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
 
 	//Creo logs (Los logs pueden mostrar por pantalla, asi que reemplazo los printf por esto)
-	messagesLog = log_create("../../Files/Logs/ConsoleMessages.log", "Consola", false, LOG_LEVEL_INFO);	//false para que no muestre por pantalla los msj
+	messagesLog = log_create("../../Files/Logs/ConsoleMessages.log", "Consola", true, LOG_LEVEL_INFO);	//false para que no muestre por pantalla los msj
 	log_info(messagesLog, "\n\n////////////////////////////////////////////////\n\n");
 
 	char *command = malloc(20);
