@@ -2124,7 +2124,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	if(archivo == 0 || archivo == 2)
 	{
 		//Estos fd NUNCA se van a usar, si me los piden hubo un error
-		//end_process(pid, -2, sock_consola, true);
 		printf("Ocurrio un error al escribir un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo que se intenta escribir no existe\n", archivo, pid);
 		return -2;
@@ -2238,7 +2237,7 @@ int execute_delete(int pid, int fd){
 	{
 		printf("Ocurrio un error al borrar un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al borrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
-		return -1;
+		return -2;
 	}
 	log_info(kernelLog, "El proceso %d existe\n", pid);
 	i = 0;
@@ -2262,7 +2261,7 @@ int execute_delete(int pid, int fd){
 	{
 		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
-		return -1;
+		return -3;
 	}
 
 	i--; //La posicion del archivo en la tabla
@@ -2289,13 +2288,18 @@ int execute_delete(int pid, int fd){
 			log_info(kernelLog, "Elimine las entradas en las tablas local y global %d\n");
 			return reciever;
 		}
+		else
+		{
+			log_info(kernelLog, "Error: el Filesystem no pudo borrar el archivo %d\n");
+			return -20;
+		}
 	}
 	else
 	{
 		log_info(kernelLog, "Error: varios procesos tienen abierto el archivo %d\n");
-		return -1;
+		//Hay varios procesos que lo abrieron => No se puede borrar
+		return -21;
 	}
-	return -1;
 }
 
 //TODO el main
@@ -2981,7 +2985,6 @@ int main(int argc, char** argv) {
 							{
 								//Codigo de error -11:
 								//El fs no pudo crear el archivo, se produjo error
-								//end_process(pid, sockfd_memoria, -11, sock_consola);
 								int32_t codigo_error = -11;
 								abort_process(pid, codigo_error, i);
 							}
@@ -3009,8 +3012,6 @@ int main(int argc, char** argv) {
 
 							int resultado = (int) readText;
 
-
-
 							if(resultado < 0)
 							{
 								//Posibles errores:
@@ -3025,11 +3026,9 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
 
-
 								enviar(i, readText, messageLength);
 								free(readText);
 							}
-
 
 						}
 
@@ -3056,7 +3055,6 @@ int main(int argc, char** argv) {
 							if(resultado < 0)
 								abort_process(pid, resultado, i);
 							else
-								//Independientemente del resultado, le aviso a CPU
 								enviar(i, &resultado, sizeof(int));
 
 							free(message);
@@ -3109,7 +3107,6 @@ int main(int argc, char** argv) {
 							if(resultado < 0)
 								abort_process(pid, resultado, i);
 							else
-								//Independientemente del resultado, le aviso a CPU
 								enviar(i, &resultado, sizeof(int));
 						}
 						if(codigo == RESERVAR_MEMORIA)
@@ -3197,8 +3194,10 @@ int main(int argc, char** argv) {
 									error = -9;
 									abort_process(pid, error, i);
 								}
+							}
 
-							}else{
+							else
+							{
 								//Si llegamos aca, significa que el flaco se quiso hacer el lunga y reservar mas que una pagina
 								printf("Ocurrio un error al reservar memoria, revisar el log\n");
 								log_error(kernelLog, "Error: No es posible reservar un espacio mayor que una pagina\n");
@@ -3289,6 +3288,25 @@ int main(int argc, char** argv) {
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 							free(buffer_codigo);
+						}
+						if(codigo == BORRAR_ARCHIVO)
+						{
+							uint32_t PID, fd, resultado;
+							recibir(i,&PID,sizeof(uint32_t));
+							recibir(i,&fd,sizeof(uint32_t));
+
+							datos_proceso* dp = get_datos_proceso(pid);
+							dp->syscalls ++;
+
+							log_info(kernelLog, "Me pidieron borrar un archivo con las siguientes caracteristicas:\n");
+							log_info(kernelLog, "  PID: %d\n",pid);
+							log_info(kernelLog, "  FD: %d\n",fd);
+
+							resultado = execute_delete(PID,fd);
+							if(resultado < 0)
+								abort_process(PID,resultado,fd);
+							else
+								enviar(i, &resultado, sizeof(int));
 						}
 						memset(buf,0,256);
 					}
