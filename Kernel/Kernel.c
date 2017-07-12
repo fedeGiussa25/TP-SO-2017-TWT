@@ -907,7 +907,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 
 void print_PCB_list(char* state){
 	bool todos;
-	if((strcmp(state, "all")) == 0)
+	if((strcasecmp(state, "all")) == 0)
 		todos = true;
 	else todos = false;
 	int i = 0, number_of_prints = 0;
@@ -1903,11 +1903,10 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 		recibir(sockfd_fs, &pudo_crear_archivo, sizeof(pudo_crear_archivo));
 
-		if(pudo_crear_archivo)
+		if(pudo_crear_archivo > 0)
 		{
 			log_info(kernelLog, "Se creo re bien\n");
 			//Si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
-			offset = 0;
 		}
 		else
 		{
@@ -1964,7 +1963,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
 	archivoAbierto->flags = permisos;
-	archivoAbierto->offset = offset;
+	archivoAbierto->offset = 0;
 	archivoAbierto->referencia_a_tabla_global = referencia_tabla_global;
 	list_add(tabla_archivos->lista_de_archivos, archivoAbierto);
 	return archivoAbierto->fd;
@@ -2043,7 +2042,6 @@ int execute_read(int pid, int fd, int messageLength)
 			encontrado = true;
 			arch_posta = arch_aux;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
-			offset = arch_aux->offset;
 		}
 		k++;
 	}
@@ -2068,21 +2066,29 @@ int execute_read(int pid, int fd, int messageLength)
 	pthread_mutex_unlock(&mutex_archivos_globales);
 
 	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
-	int codigo = LEER_ARCHIVO_FS, size = strlen(arch->ruta_del_archivo);
-	void* buffer = malloc((sizeof(int)*4) + size);
+	int codigo = LEER_ARCHIVO_FS, size = strlen(arch->ruta_del_archivo)+1;
+	void* buffer = malloc((sizeof(uint32_t)*4) + size);
 
-	memcpy(buffer, &codigo, sizeof(int));
-	memcpy(buffer + sizeof(int), &size, sizeof(int));
-	memcpy(buffer + sizeof(int)*2, arch->ruta_del_archivo, size);
-	memcpy(buffer + sizeof(int)*2 + size, &offset, sizeof(int));
-	memcpy(buffer + sizeof(int)*3 + size, &messageLength, sizeof(int));
+	printf("\n");
+	printf("Codigo: %d\n", codigo);
+	printf("Tamaño Path: %d\n", size);
+	printf("Path: %s\n", arch->ruta_del_archivo);
+	printf("Offset: %d\n", arch_posta->offset);
+	printf("Tamaño mensaje: %d\n", messageLength);
+	printf("\n");
 
-	enviar(sockfd_fs, buffer, (sizeof(int)*4) + size);
+	memcpy(buffer, &codigo, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t), &size, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*2, arch->ruta_del_archivo, size);
+	memcpy(buffer + sizeof(uint32_t)*2 + size, &offset, sizeof(uint32_t));
+	memcpy(buffer + sizeof(uint32_t)*3 + size, &messageLength, sizeof(uint32_t));
+
+	enviar(sockfd_fs, buffer, (sizeof(uint32_t)*4) + size);
 	int bytes_recv = recibir(sockfd_fs, &readText, messageLength);
 	//Me van a devolver un integer si hay un error asi que si me llega justo eso desconfio
-	if(bytes_recv == sizeof(int) && messageLength != sizeof(int))
+	if(bytes_recv == sizeof(uint32_t))
 	{
-		if(messageLength != sizeof(int))
+		if(messageLength != sizeof(uint32_t))
 		{
 			printf("Ocurrio un error al leer un archivo, revisar el log\n");
 			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
@@ -2160,8 +2166,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					archivo_global* arch = list_get(tabla_global_de_archivos, pos_en_tabla_global);
 					pthread_mutex_unlock(&mutex_archivos_globales);
 
-					int offset = arch_aux->offset;
-
 					//Envio a fs el codigo para que reconozca que quiero escribir algo, el path del archivo, el offset,
 					//el tamanio del mensaje a escribir y lo que quiero escribir en el;
 					//luego recibo de fs el resultado de la operacion
@@ -2170,6 +2174,17 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					codigo = ESCRIBIR_ARCHIVO_FS;
 					int size_arch = strlen(arch->ruta_del_archivo) +1;
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
+
+					int offset = 0;
+
+					printf("\n");
+					printf("Codigo: %d\n", codigo);
+					printf("Tamaño Path: %d\n", size_arch);
+					printf("Path: %s\n", arch->ruta_del_archivo);
+					printf("Offset: %d\n", arch_aux->offset);
+					printf("Tamaño mensaje: %d\n", messageLength);
+					printf("Mensaje: %s\n", message);
+					printf("\n");
 
 					memcpy(buffer, &codigo, sizeof(uint32_t));
 					memcpy(buffer + sizeof(uint32_t), &size_arch, sizeof(uint32_t));
@@ -2190,9 +2205,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 						log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
 						return -11;
 					}
-
-					//Aumento el puntero del archivo
-					offset += messageLength;
 				}
 
 				if(!(banderas->escritura))
@@ -2907,7 +2919,7 @@ int main(int argc, char** argv) {
 							pthread_mutex_lock(&mutex_process_list);
 							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
 							PCB_vieja->estado = "Ready";
-							list_add(todos_los_procesos,unPCB);
+							list_add(todos_los_procesos,PCB_vieja);
 							pthread_mutex_unlock(&mutex_process_list);
 
 							int posicion = proceso_para_borrar(unPCB->pid);
