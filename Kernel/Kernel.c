@@ -1237,6 +1237,11 @@ void set_multiprog(){
 		data_config.grado_multiprog = grado;
 		plan_go = true;
 		printf("El grado de multiprogramacion fue cambiado a %d\n", data_config.grado_multiprog);
+		int diferencia = procesos_actuales - data_config.grado_multiprog;
+		while(diferencia > 0){
+			pthread_mutex_unlock(&mutex_planificacion);
+			diferencia--;
+		}
 	}
 	printf("\n");
 }
@@ -2009,17 +2014,15 @@ int move_cursor(int pid, int fd, int position)
 	return 1;
 }
 
-char* execute_read(int pid, int fd, int messageLength)
+int execute_read(int pid, int fd, int messageLength)
 {
-	void* readText = malloc(messageLength);
-	memset(readText, 0, messageLength + 1);
+	int readText;
 
 	if(fd < 3)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
-		free(readText);
 		return -2;
 	}
 
@@ -2049,7 +2052,6 @@ char* execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
-		free(readText);
 		return -2;
 	}
 
@@ -2057,7 +2059,6 @@ char* execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El proceso no tiene permisos para leer el archivo\n", fd, pid);
-		free(readText);
 		return -3;
 	}
 
@@ -2077,7 +2078,7 @@ char* execute_read(int pid, int fd, int messageLength)
 	memcpy(buffer + sizeof(int)*3 + size, &messageLength, sizeof(int));
 
 	enviar(sockfd_fs, buffer, (sizeof(int)*4) + size);
-	int bytes_recv = recibir(sockfd_fs, readText, messageLength);
+	int bytes_recv = recibir(sockfd_fs, &readText, messageLength);
 	//Me van a devolver un integer si hay un error asi que si me llega justo eso desconfio
 	if(bytes_recv == sizeof(int) && messageLength != sizeof(int))
 	{
@@ -2085,13 +2086,11 @@ char* execute_read(int pid, int fd, int messageLength)
 		{
 			printf("Ocurrio un error al leer un archivo, revisar el log\n");
 			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
-			free(readText);
 			return -20;
 		}
-		else if(*(int*)readText == 20 || *(int*)readText == 14 || *(int*)readText == 15 || *(int*)readText == 16){
+		else if(readText == 20 || readText == 14 || readText == 15 || readText == 16){
 			printf("Ocurrio un error al leer un archivo, revisar el log\n");
 			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
-			free(readText);
 			return -20;
 		}
 	}
@@ -2646,8 +2645,7 @@ int main(int argc, char** argv) {
 								list_add(procesos_a_borrar,aux);
 								pthread_mutex_unlock(&mutex_to_delete);
 							}
-							else
-							{
+							else{
 								//Saco a la cpu de la lista de ejecucion
 								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
@@ -2681,16 +2679,17 @@ int main(int argc, char** argv) {
 
 							if(existe == true)
 							{
-							log_info(kernelLog, "Hay que modificar la variable %s con el valor %d\n", id_var, value);
+								log_info(kernelLog, "Hay que modificar la variable %s con el valor %d\n", id_var, value);
 
-							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
-							asignar_valor_variable_compartida(id_var, value);
-							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
+								pthread_mutex_lock(&mutex_vCompartidas_ansisop);
+								asignar_valor_variable_compartida(id_var, value);
+								pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
 
-							head=1;
-							send(i, &head, sizeof(u_int32_t), 0);
-							print_vars();
-							} else //Si no existe la compartida
+								head=1;
+								send(i, &head, sizeof(u_int32_t), 0);
+								print_vars();
+							}
+							else //Si no existe la compartida
 							{
 								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
 								int32_t codigo_error = -15;
@@ -2714,18 +2713,19 @@ int main(int argc, char** argv) {
 
 							if(existe == true)
 							{
-							log_info(kernelLog, "Hay que obtener el valor de la variable %s\n", id_var);
+								log_info(kernelLog, "Hay que obtener el valor de la variable %s\n", id_var);
 
-							head=1;
-							send(i, &head, sizeof(u_int32_t), 0);
+								head=1;
+								send(i, &head, sizeof(u_int32_t), 0);
 
-							pthread_mutex_lock(&mutex_vCompartidas_ansisop);
-							value = obtener_valor_variable_compartida(id_var);
-							pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
-							log_info(kernelLog, "La variable %s tiene valor %d\n", id_var, value);
+								pthread_mutex_lock(&mutex_vCompartidas_ansisop);
+								value = obtener_valor_variable_compartida(id_var);
+								pthread_mutex_unlock(&mutex_vCompartidas_ansisop);
+								log_info(kernelLog, "La variable %s tiene valor %d\n", id_var, value);
 
-							send(i, &value, sizeof(u_int32_t), 0);
-							} else //Si no existe la compartida
+								send(i, &value, sizeof(u_int32_t), 0);
+							}
+							else //Si no existe la compartida
 							{
 								log_info(kernelLog, "Abortar proceso, no existe la variable compartida");
 								int32_t codigo_error = -15;
@@ -2832,6 +2832,8 @@ int main(int argc, char** argv) {
 							}
 
 							free(id_sem);
+							pthread_mutex_unlock(&mutex_planificacion);
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						if(codigo == PROCESO_FINALIZADO_CORRECTAMENTE)
@@ -2916,6 +2918,8 @@ int main(int argc, char** argv) {
 								pthread_mutex_lock(&mutex_ready_queue);
 								queue_push(ready_queue,unPCB);
 								pthread_mutex_unlock(&mutex_ready_queue);
+
+								pthread_mutex_unlock(&mutex_planificacion);
 							}
 							else
 							{
@@ -2945,7 +2949,6 @@ int main(int argc, char** argv) {
 							cpu->proceso = 0;
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
-							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
@@ -3016,9 +3019,7 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(pid);
 							dp->syscalls ++;
 
-							char* readText = execute_read(pid, fd, messageLength);
-
-							int resultado = (int) readText;
+							int resultado = execute_read(pid, fd, messageLength);
 
 							if(resultado < 0)
 							{
@@ -3034,8 +3035,7 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
 
-								enviar(i, readText, messageLength);
-								free(readText);
+								enviar(i, &resultado, messageLength);
 							}
 
 						}
