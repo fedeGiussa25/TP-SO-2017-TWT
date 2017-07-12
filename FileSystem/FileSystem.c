@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <commons/config.h>
 #include <commons/log.h>
@@ -32,8 +33,8 @@ char *pathArchivos;
 char *pathMetadata;
 char *pathBloques;
 fs_config data_config;
-uint32_t tamanioBloques;
-uint32_t cantidadBloques;
+int32_t tamanioBloques;
+int32_t cantidadBloques;
 
 
 
@@ -135,14 +136,16 @@ int main(int argc, char** argv)
 			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
 				msg = validar_archivo(nameArchRequest,pathArchivos,miLog);
+                if(msg == false)
+                    delete_archivo(nameArchRequest,pathArchivos,miLog);
 				free(nameArchRequest);
-				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+				enviar(kernel,(void *)&msg,sizeof(int32_t));
 				break;
 			case CREAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
 				msg = create_archivo(nameArchRequest,pathArchivos,bitmap,miLog);
 				free(nameArchRequest);
-				enviar(kernel,(void *)&msg,sizeof(uint32_t));
+				enviar(kernel,(void *)&msg,sizeof(int32_t));
 				break;
             case READ_MSG:
                 nameArchRequest = obtieneNombreArchivo(kernel);
@@ -168,7 +171,7 @@ int main(int argc, char** argv)
                 if(recibir(kernel,buffer,size) == NULL)
                     exit(6);
                 msg = guardar_datos(nameArchRequest,pathArchivos,offset,size,buffer,bitmap,tamanioBloques,pathBloques,miLog);
-                enviar(kernel,(void *)&msg,sizeof(uint32_t));
+                enviar(kernel,(void *)&msg,sizeof(int32_t));
                 free(buffer);
                 free(nameArchRequest);
                 break;

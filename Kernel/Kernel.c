@@ -2169,7 +2169,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 					//Primero serializo
 					codigo = ESCRIBIR_ARCHIVO_FS;
-					int size_arch = strlen(arch->ruta_del_archivo);
+					int size_arch = strlen(arch->ruta_del_archivo) +1;
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
 					memcpy(buffer, &codigo, sizeof(uint32_t));

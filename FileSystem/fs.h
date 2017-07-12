@@ -279,13 +279,16 @@ void createDefaultMetadata(char* rutaBase){
 	free(path);
 }
 
-void agregarBloque(Archivo_t *aux,uint32_t bloque){
+void agregarBloque(Archivo_t *aux,uint32_t bloque,t_log *log){
 	char* str_bloque = int_to_str(bloque);
-	if(aux->array == NULL)
-		aux->array = malloc((aux->cantidadElementos + 1) * sizeof(char*));
+	print_data_archivo(aux,log);
+	if(aux->array == NULL){
+
+        aux->array = malloc((aux->cantidadElementos + 1) * sizeof(char*)+1);
+    }
 	else
 		aux->array = realloc(aux->array,(aux->cantidadElementos + 1) * sizeof(char*));
-	aux->array[aux->cantidadElementos] =(char*)malloc(strlen(str_bloque));
+	aux->array[aux->cantidadElementos] =(char*)malloc(strlen(str_bloque)+1);
 	strcpy(aux->array[aux->cantidadElementos],str_bloque);
 	aux->cantidadElementos+=1; 
 	free(str_bloque);
@@ -306,13 +309,21 @@ char* array_to_write(Archivo_t *aux){
 	return charArray;
 }
 
-int32_t Archivo_guardar(char* path,char* montaje,Archivo_t *aux){
-    char* fullPath = unir_str(montaje,path);
-    FILE *archivo = fopen(fullPath,"w");
-    free(fullPath);
-    if(archivo == NULL)
+int32_t Archivo_guardar(char* path,char* montaje,Archivo_t *aux,t_log *log){
+    char *fullPath = unir_str(montaje,path);
+    log_info(log,"el Path de todos lo Pathes %s hijo de %s y %s",fullPath,montaje,path);
+    FILE *archivo = fopen(fullPath,"r");
+    if(archivo == NULL){
+        free(fullPath);
         return false;
+    }
+    fclose(archivo);
     t_config *config = config_create(fullPath);
+    free(fullPath);
+    if(config == NULL)
+    {
+        log_error(log,"FALLA CON LA CONFIG");
+    }
     char *dataChar = int_to_str(aux->tamanio);
     config_set_value(config,"TAMANIO",dataChar);
     free(dataChar);
@@ -339,7 +350,7 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	aux->array = NULL;
 	int bloque = primer_bloque_libre(data);
     log_info(log,"El primer bloque libre fue el %d\n",bloque);
-	agregarBloque(aux,bloque);
+	agregarBloque(aux,bloque,log);
 	bitarray_set_bit(data,bloque);
 	t_config *config = config_create(fullPath);
 	config_set_value(config,"TAMANIO", "0");
@@ -354,10 +365,11 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	return true;
 }
 
-void print_data_archivo(Archivo_t *aux){
+void print_data_archivo(Archivo_t *aux,t_log *log){
 	int i = 0;
+	log_info(log,"CANTIDAD ELEMNTOS == %d -- TAMAÑO %d",aux->cantidadElementos,aux->tamanio);
 	for(i=0;i<aux->cantidadElementos;i++)
-		printf("elemnto \t%d\t%s\n",i,aux->array[i] );
+		log_info(log,"elemnto \t%d\t\'%s\'\n",i,aux->array[i] );
 }
 
 void kill_archivo(Archivo_t *aux){
@@ -385,6 +397,18 @@ void cleanBloques(Archivo_t *aux,t_bitarray *data){
 }
 int32_t delete_archivo(char* path,char* montaje,t_bitarray *data){
 	char* fullPath = unir_str(montaje,path);
+    t_config *config = config_create(fullPath);
+    if(config == NULL){
+        free(fullPath);
+        return false;
+    }
+    if((!config_has_property(config,"BLOQUES") ||  !config_has_property(config,"TAMANIO"))){
+        remove(fullPath);
+        config_destroy(config);
+        free(fullPath);
+        return true;
+    }
+    config_destroy(config);
 	Archivo_t *aux = get_data_Archivo(fullPath);
     if(aux == NULL)
         return false;
@@ -431,7 +455,7 @@ void* readFromBlock(char* block,char* montajeBlck,int32_t offset,int32_t size){
     return data;
 }
 
-int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,void* buffer){
+int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,void* buffer,t_log *log){
     char* pathBlock = unir_str(block,".bin");
     char* fullPath = unir_str(montajeBlck,pathBlock);
     free(pathBlock);
@@ -530,17 +554,22 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
         }
         for(i=0;i<bloquesNecesarios;i++){
             int ubicacionBit= primer_bloque_libre(bitmap);
-            agregarBloque(aux,ubicacionBit);
+            agregarBloque(archivo,ubicacionBit,log);
             bitarray_set_bit(bitmap,ubicacionBit);
         }
     }
     int writed = 0;
     for(i=0;aux[i].id != -1;i++){
-        writeToBlock(archivo->array[aux[i].id],pathBloques,aux[i].offset,aux[i].size,buffer+writed);
+        if(!writeToBlock(archivo->array[aux[i].id],pathBloques,aux[i].offset,aux[i].size,buffer+writed,log)){
+            log_error(log,"FALLA AL ABRIR EL BLOQUE -> %s -- de id -> %d",archivo->array[aux[i].id],aux[i].id);
+            return false;
+        }
         writed+=aux[i].size;
     }
+    archivo->tamanio = max(archivo->tamanio,offset + size);
     free(aux);
-    Archivo_guardar(path,montaje,archivo);
-    return true;
+    log_info(log,"%s == MONTAJE ---- %s == PATH",montaje,path);
+    return Archivo_guardar(path,montaje,archivo,log);
+
 
 }
