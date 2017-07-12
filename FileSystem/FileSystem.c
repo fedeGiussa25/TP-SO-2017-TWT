@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 	t_bitarray *bitmap = ready_to_work(miBitmap,dataArchivo);
 	free(miBitmap);
 	int32_t aux = find_or_create(montaje,PATH_BLQ);
-	if(aux == 0 || !exist("0.bin",PATH_BLQ)){
+	if(aux == 0 || !exist("0.bin",pathBloques)){
 		printf("%d\n",cantidadBloques);
 
 		for(i=0;i<cantidadBloques;i++){
@@ -115,7 +115,6 @@ int main(int argc, char** argv)
 	}
 
 	log_info(miLog,"Cada bloque sera de %d bytes\nHabra %d Bloques \n",tamanioBloques,cantidadBloques);
-	//EL ATOI NO ANDA BIEN Y TIRA UN 0 EN VEZ DEL PUERTO
 	int32_t miSocket = servidor(puerto,1);
 	//end
 
@@ -154,9 +153,13 @@ int main(int argc, char** argv)
                     exit(6);
                 if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
                     exit(6);
-                void *data = obtener_datos(nameArchRequest,pathArchivos,offset,size,tamanioBloques,pathBloques,miLog);
-                enviar(kernel,data,size);
-                free(data);
+                int8_t code;
+                void *data = obtener_datos(nameArchRequest,pathArchivos,offset,size,tamanioBloques,pathBloques,miLog,&code);
+                enviar(kernel,(void*)&code,sizeof(code));
+                if(data != NULL){
+                    enviar(kernel,data,size);
+                    free(data);
+                }
                 free(nameArchRequest);
                 break;
             case WRITE_MSG:

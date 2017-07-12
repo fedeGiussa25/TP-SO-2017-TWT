@@ -472,23 +472,29 @@ int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,v
 }
 
 
-void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log){
-	if(validar_archivo(path,montaje,log) == false){
+void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log,int8_t *error){
+	*error = 0;
+    if(validar_archivo(path,montaje,log) == false){
         log_info(log,"ARCHIVO %s NO VALIDO",path);
-		return FNF;
+        *error =-FNF;
+		return NULL;
 	}
     if(size < 1) {
-        return 14;
+        *error= -14;
+        return NULL;
     }
     if(offset<0) {
-        return 15;
+        *error=-15;
+        return NULL;
+
     }
     char* fullPath = unir_str(montaje,path);
     Archivo_t *archivo = get_data_Archivo(fullPath);
     if(archivo->tamanio - size-offset >0) {
         kill_archivo(archivo);
         free(fullPath);
-        return 16;
+        *error = -16;
+        return NULL;
     }
     int32_t i;
 	Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
@@ -502,6 +508,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
             free(aux);
             free(fullPath);
             kill_archivo(archivo);
+            *error =-19;
             return NULL;
         }
         memcpy(miDato+cargado,readAux,aux[i].size);
@@ -510,6 +517,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
 	}
 	free(aux);
     kill_archivo(archivo);
+    *error = 1;
 	return miDato;
 }
 
@@ -560,6 +568,7 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     }
     int writed = 0;
     for(i=0;aux[i].id != -1;i++){
+        log_info(log,"POR OPERAR CON EL BLOQUE %s, los datos de size %d offset %d ",archivo->array[aux[i].id],aux[i].size,aux[i].offset);
         if(!writeToBlock(archivo->array[aux[i].id],pathBloques,aux[i].offset,aux[i].size,buffer+writed,log)){
             log_error(log,"FALLA AL ABRIR EL BLOQUE -> %s -- de id -> %d",archivo->array[aux[i].id],aux[i].id);
             return false;
@@ -570,6 +579,4 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     free(aux);
     log_info(log,"%s == MONTAJE ---- %s == PATH",montaje,path);
     return Archivo_guardar(path,montaje,archivo,log);
-
-
 }

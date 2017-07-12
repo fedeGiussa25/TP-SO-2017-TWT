@@ -1,4 +1,4 @@
-./makeConfig Kernel/Kernel.config Consola/Consola.config CPU/CPU.config Memoria/Memoria.config FileSystem/FileSystem.config
+######./makeConfig Kernel/Kernel.config Consola/Consola.config CPU/CPU.config Memoria/Memoria.config FileSystem/FileSystem.config
 cd Kernel
 gcc -lcommons -lpthread -lparser-ansisop Kernel.c -o Debug/Kernel
 cd ../Memoria 
