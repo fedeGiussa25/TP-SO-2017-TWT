@@ -59,6 +59,9 @@ pthread_mutex_t mutex_wait_queue;
 //Mutex para lista de datos
 pthread_mutex_t mutex_lista_datos;
 
+//Mutex para evitar espera activa
+pthread_mutex_t mutex_planificacion;
+
 
 // Structs de conexiones
 //Todo lo de structs de PCB
@@ -899,6 +902,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			free(sendbuf_consola_mensajera);
 		}
 	}
+	pthread_mutex_unlock(&mutex_planificacion);
 }
 
 void print_PCB_list(char* state){
@@ -1701,6 +1705,7 @@ void planificacion(){
 		//Si esta funcionando la planificacion
 		if(plan_go)
 		{
+			pthread_mutex_lock(&mutex_planificacion);
 			int i;
 			//Me fijo si hay procesos en la cola New y si no llegue al tope de multiprog
 			//Si es asi, pasa un proceso de New a Ready
@@ -2571,6 +2576,7 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_fd_cpus);
 
 								log_info(kernelLog, "Hay %d cpus conectadas\n\n", list_size(lista_cpus));
+								pthread_mutex_unlock(&mutex_planificacion);
 							}
 
 							if(processID == ID_CONSOLA)		//Si en cambio el processID es 2, es una Consola
@@ -2617,6 +2623,7 @@ int main(int argc, char** argv) {
 								int error = -1;
 								send(i, &error, sizeof(int), 0);
 							}
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						//Si el codigo es 3 significa que debo terminar el proceso
@@ -2938,6 +2945,7 @@ int main(int argc, char** argv) {
 							cpu->proceso = 0;
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
