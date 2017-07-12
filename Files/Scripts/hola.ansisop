@@ -10,9 +10,9 @@ begin
 
   abrir f LEC /archivo.bin
 
- escribir f b 100
+ 	escribir f b 1
 
-  leer f a 100
+  leer f a 1
 
   cerrar f
 

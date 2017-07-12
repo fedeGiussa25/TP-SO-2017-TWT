@@ -166,7 +166,7 @@ typedef struct{
 
 typedef struct{
 	char* ruta_del_archivo;
-	int instancias_abiertas;
+	int32_t instancias_abiertas;
 } archivo_global;
 
 typedef struct{
@@ -2013,23 +2013,24 @@ int move_cursor(int pid, int fd, int position)
 	return 1;
 }
 
-int execute_read(int pid, int fd, int messageLength)
+void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 {
-	int readText;
+	void* readText = malloc(messageLength);
+	int32_t fail = -20;
 
 	if(fd < 3)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
-		return -2;
+		*error = fail;
 	}
 
 	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
 	//Busco el fd dentro de la tabla
 	int k = 0;
-	uint32_t referencia_tabla_global, offset;
+	int32_t referencia_tabla_global, offset;
 	bool encontrado = false;
 	archivo_de_proceso* arch_posta;
 
@@ -2050,14 +2051,14 @@ int execute_read(int pid, int fd, int messageLength)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
-		return -2;
+		*error = fail;
 	}
 
 	if(!arch_posta->flags->lectura)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El proceso no tiene permisos para leer el archivo\n", fd, pid);
-		return -3;
+		*error = fail;
 	}
 
 	//Obtengo el path para el fd dado
@@ -2066,8 +2067,10 @@ int execute_read(int pid, int fd, int messageLength)
 	pthread_mutex_unlock(&mutex_archivos_globales);
 
 	//Serializo datos (codigo + mesageLength + offset + path) y se los mando a FS, para que me de el texto leido
-	int codigo = LEER_ARCHIVO_FS, size = strlen(arch->ruta_del_archivo)+1;
+	int32_t codigo = LEER_ARCHIVO_FS, size = strlen(arch->ruta_del_archivo)+1;
 	void* buffer = malloc((sizeof(uint32_t)*4) + size);
+
+	offset = arch_posta->offset;
 
 	printf("\n");
 	printf("Codigo: %d\n", codigo);
@@ -2078,28 +2081,26 @@ int execute_read(int pid, int fd, int messageLength)
 	printf("\n");
 
 	memcpy(buffer, &codigo, sizeof(uint32_t));
-	memcpy(buffer + sizeof(uint32_t), &size, sizeof(uint32_t));
-	memcpy(buffer + sizeof(uint32_t)*2, arch->ruta_del_archivo, size);
-	memcpy(buffer + sizeof(uint32_t)*2 + size, &offset, sizeof(uint32_t));
-	memcpy(buffer + sizeof(uint32_t)*3 + size, &messageLength, sizeof(uint32_t));
+	memcpy(buffer + sizeof(int32_t), &size, sizeof(int32_t));
+	memcpy(buffer + sizeof(int32_t)*2, arch->ruta_del_archivo, size);
+	memcpy(buffer + sizeof(int32_t)*2 + size, &offset, sizeof(int32_t));
+	memcpy(buffer + sizeof(int32_t)*3 + size, &messageLength, sizeof(int32_t));
 
-	enviar(sockfd_fs, buffer, (sizeof(uint32_t)*4) + size);
-	int bytes_recv = recibir(sockfd_fs, &readText, messageLength);
-	//Me van a devolver un integer si hay un error asi que si me llega justo eso desconfio
-	if(bytes_recv == sizeof(uint32_t))
-	{
-		if(messageLength != sizeof(uint32_t))
-		{
-			printf("Ocurrio un error al leer un archivo, revisar el log\n");
-			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
-			return -20;
-		}
-		else if(readText == 20 || readText == 14 || readText == 15 || readText == 16){
-			printf("Ocurrio un error al leer un archivo, revisar el log\n");
-			log_error(kernelLog, "Error en el proceso %d: El FS no pudo realizar la lectura\n", pid);
-			return -20;
-		}
+	enviar(sockfd_fs, buffer, (sizeof(int32_t)*4) + size);
+	int32_t codigo_recv;
+
+	int32_t datosRecibidos = recv(sockfd_fs,(void*)&codigo_recv, sizeof(int32_t),0);
+	printf("Codigo: %d -- bytesRecibidos=%d\n", codigo_recv,datosRecibidos);
+	if(codigo_recv == 1){
+		recv(sockfd_fs,(void*)readText, messageLength,0);
+		/*
+		printf("Readtext: %s\n", (char *) readText);
+		printf("Readtext: %d\n", *(int8_t) readText);
+		*/
+		*error = 1;
 	}
+	else
+		*error = fail;
 
 	free(buffer);
 
@@ -2194,7 +2195,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					memcpy(buffer + (sizeof(uint32_t)*4) + size_arch, message, messageLength);
 
 					enviar(sockfd_fs, buffer, (sizeof(uint32_t)*4) + size_arch + messageLength);
-					recibir(sockfd_fs, &escritura_correcta, sizeof(bool));
+					recibir(sockfd_fs, &escritura_correcta, sizeof(int32_t));
 
 					free(buffer);
 
@@ -3031,15 +3032,16 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(pid);
 							dp->syscalls ++;
 
-							int resultado = execute_read(pid, fd, messageLength);
+							int32_t error = 0;
+							void* resultado = execute_read(pid, fd, messageLength,&error);
 
-							if(resultado < 0)
+							if(error < 0)
 							{
 								//Posibles errores:
 								// > -2 -> El archivo no existe
 								// > -3 -> Permisos no validos o hubo problemas al acceder al archivo para leerlo
 								// > -20 -> Fallo del FS
-								abort_process(pid,resultado,i);
+								abort_process(pid,-20,i);
 							}
 							else
 							{
@@ -3047,7 +3049,7 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
 
-								enviar(i, &resultado, messageLength);
+								enviar(i, resultado, messageLength);
 							}
 
 						}

@@ -472,7 +472,7 @@ int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,v
 }
 
 
-void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log,int8_t *error){
+void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log,int32_t *error){
 	*error = 0;
     if(validar_archivo(path,montaje,log) == false){
         log_info(log,"ARCHIVO %s NO VALIDO",path);
@@ -490,7 +490,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
     }
     char* fullPath = unir_str(montaje,path);
     Archivo_t *archivo = get_data_Archivo(fullPath);
-    if(archivo->tamanio - size-offset >0) {
+    if(archivo->tamanio - size-offset<0) {
         kill_archivo(archivo);
         free(fullPath);
         *error = -16;
@@ -518,6 +518,7 @@ void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_
 	free(aux);
     kill_archivo(archivo);
     *error = 1;
+    printf("LLEGUE AL FINAL DE OBTENER_DATOS");
 	return miDato;
 }
 

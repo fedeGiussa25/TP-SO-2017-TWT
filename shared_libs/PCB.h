@@ -74,15 +74,15 @@ typedef struct { //Estructura auxiliar para ejecutar el manejador de scripts
 	void* realbuf; //El script serializado
 }script_manager_setup;
 
-uint32_t enviar(uint32_t socketd, void *buf,uint32_t bytestoSend){
-	uint32_t numbytes;
+int32_t enviar(uint32_t socketd, void *buf,int32_t bytestoSend){
+	int32_t numbytes;
 	if (numbytes = send(socketd, buf, bytestoSend, 0) <= 0){
 		perror("Error al Enviar\n");
 	}
 	return numbytes;
 }
-uint32_t recibir(uint32_t socketd, void *buf,uint32_t bytestoRecv){
-	uint32_t numbytes =recv(socketd, buf, bytestoRecv, 0);
+int32_t recibir(uint32_t socketd, void *buf,int32_t bytestoRecv){
+	int32_t numbytes =recv(socketd, buf, bytestoRecv, 0);
 	if(numbytes <=0){
 		if ((numbytes) <0) {
 			perror("recv");	

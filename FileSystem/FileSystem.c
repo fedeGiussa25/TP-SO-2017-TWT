@@ -153,10 +153,14 @@ int main(int argc, char** argv)
                     exit(6);
                 if(recibir(kernel,&size,sizeof(int32_t)) == NULL)
                     exit(6);
-                int8_t code;
-                void *data = obtener_datos(nameArchRequest,pathArchivos,offset,size,tamanioBloques,pathBloques,miLog,&code);
-                enviar(kernel,(void*)&code,sizeof(code));
-                if(data != NULL){
+
+                log_info(miLog,"Quieren Leer %d desde %d para %s",size,offset,nameArchRequest);
+                void *data = obtener_datos(nameArchRequest,pathArchivos,offset,size,tamanioBloques,pathBloques,miLog,&msg);
+                //log_info(miLog,"EL CODIGO DE LECTURA ES %d y su size %d",msg,sizeof(msg));
+                printf("El valor de codigo que mandamos es %d\n", msg);
+                printf("ENVIANDO %d BYTES\n",send(kernel,(void*)&msg,sizeof(int32_t),0));
+                if(/*data != NULL*/ msg ==1){
+                	printf("MSG ES 1");
                     enviar(kernel,data,size);
                     free(data);
                 }
