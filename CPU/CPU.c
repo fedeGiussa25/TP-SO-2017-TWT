@@ -262,15 +262,18 @@ void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 	value = valor;
 
 	//Le envio a Memoria:
-	void* buffer = malloc(sizeof(int)*4+sizeof(u_int32_t));
+	void* buffer = malloc(sizeof(int)*5+sizeof(u_int32_t));
+
+	int size_dato = sizeof(int);
 
 	memcpy(buffer, &codigo, sizeof(u_int32_t));
 	memcpy(buffer+sizeof(u_int32_t), &nuevaPCB->pid, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int), &pagina, sizeof(int));
 	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*2, &offset, sizeof(int));
-	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &value, sizeof(int));
+	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &size_dato, sizeof(int));
+	memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*4, &value, size_dato);
 
-	send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t),0);
+	send(fd_memoria, buffer, sizeof(int)*5+sizeof(u_int32_t),0);
 
 	log_info(messagesLog,"Asignar valor %d en pagina: %d offset: %d\n", value, pagina, offset);
 
@@ -605,7 +608,7 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 }
 void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t_valor_variable tamanio)
 {
-	memset(informacion+tamanio, '\0', 1);
+	//memset(informacion+tamanio, '\0', 1);
 	log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
 	int desc_salida=descriptor_archivo;
 	int32_t resp;
@@ -650,8 +653,24 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 		procesoAbortado=true;
 		log_error(messagesLog,"Proceso: %d abortado al intentar leer en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
 	} else{
-	recibir(fd_kernel, informacion_leida, tamanio);
+		recibir(fd_kernel, informacion_leida, tamanio);
+		int pagina, offset;
+		int cod = ASIGNAR_VALOR; //codigo 4 es solicitud escritura a memoria
 
+		pagina = informacion / tamanioPagina;
+		offset = informacion % tamanioPagina; //el resto de la division
+
+		//Le envio a Memoria:
+		void* buffer = malloc(sizeof(int)*5+sizeof(u_int32_t));
+
+		memcpy(buffer, &cod, sizeof(u_int32_t));
+		memcpy(buffer+sizeof(u_int32_t), &nuevaPCB->pid, sizeof(int));
+		memcpy(buffer+sizeof(u_int32_t)+sizeof(int), &pagina, sizeof(int));
+		memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*2, &offset, sizeof(int));
+		memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &tamanio, sizeof(int));
+		memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*4, informacion_leida,tamanio);
+
+		send(fd_memoria, buffer, sizeof(int)*5+sizeof(u_int32_t),0);
 
 	//twt_asignar(informacion, informacion_leida);     //Voy a preguntar bien si esto es asi
 	}

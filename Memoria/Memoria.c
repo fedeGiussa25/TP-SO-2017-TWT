@@ -1006,13 +1006,17 @@ void *thread_proceso(int fd){
 				free(buffer);
 			}
 			if(codigo == GUARDAR_VALOR){
+				int tamanio;
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
-				recv(fd, &value, sizeof(int), 0);
+				recv(fd, &tamanio, sizeof(int), 0);
 
-				escritura(PID, pagina, offset, sizeof(int), &value);
+				void *datos = malloc(tamanio);
 
+				recv(fd, datos, sizeof(int), 0);
+				escritura(PID, pagina, offset, tamanio, datos);
+				free(datos);
 			}
 			if(codigo == ELIMINAR_PROCESO){
 				recv(fd, &PID, sizeof(int), 0);

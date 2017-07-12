@@ -1,0 +1,21 @@
+begin
+ 
+ variables a, f, b
+
+  alocar a 100
+	
+ alocar b 100
+
+ *b = 6457
+
+  abrir f LEC /archivo.bin
+
+ escribir f b 100
+
+  leer f a 100
+
+  cerrar f
+
+  liberar a
+
+end
