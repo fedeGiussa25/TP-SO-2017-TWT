@@ -661,7 +661,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 		offset = informacion % tamanioPagina; //el resto de la division
 
 		//Le envio a Memoria:
-		void* buffer = malloc(sizeof(int)*5+sizeof(u_int32_t));
+		void* buffer = malloc(sizeof(int)*4+sizeof(u_int32_t)+tamanio);
 
 		memcpy(buffer, &cod, sizeof(u_int32_t));
 		memcpy(buffer+sizeof(u_int32_t), &nuevaPCB->pid, sizeof(int));
