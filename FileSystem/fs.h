@@ -395,28 +395,33 @@ void cleanBloques(Archivo_t *aux,t_bitarray *data){
         bitarray_clean_bit(data,posicion);
     }
 }
-int32_t delete_archivo(char* path,char* montaje,t_bitarray *data){
+int32_t delete_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	char* fullPath = unir_str(montaje,path);
+
     t_config *config = config_create(fullPath);
     if(config == NULL){
         free(fullPath);
+		log_error(log,"EL ARCHIVO NO EXISTE");
         return false;
     }
     if((!config_has_property(config,"BLOQUES") ||  !config_has_property(config,"TAMANIO"))){
-        remove(fullPath);
+        log_info(log,"EL ARCHIVO NO TIENE EL FORMATO PERO IGUALEMENTE ES BORRADO");
+		remove(fullPath);
         config_destroy(config);
         free(fullPath);
         return true;
     }
     config_destroy(config);
 	Archivo_t *aux = get_data_Archivo(fullPath);
-    if(aux == NULL)
-        return false;
-	int i;
+	if(aux == NULL){
+		log_error(log,"no se pudo crear el ARCHIVO_T --- SALIENDO ");
+		free(fullPath);
+		return false;
+	}
 	cleanBloques(aux,data);
 	remove(fullPath);
 	free(fullPath);
-    return true;
+	return true;
 }
 int32_t validar_archivo(char* path,char* montaje,t_log *log){
 	char *fullPath = unir_str(montaje,path);
@@ -539,14 +544,15 @@ int32_t max(int32_t numA,int32_t numB){
     return numB;
 }
 int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void* buffer,t_bitarray* bitmap,int32_t sizeBloque,char* pathBloques,t_log *log){
-	if(validar_archivo(path,montaje,log) == false){
-        log_info(log,"ARCHIVO %s NO VALIDO",path);
-		return FNF;
+	log_info(log,"Recibi para verificar %s con %d offset y %d size",path,offset,size);
+    if(validar_archivo(path,montaje,log) == false){
+        log_error(log,"ARCHIVO %s NO VALIDO",path);
+		return -FNF;
 	}
     if(size < 1)
-        return 14;
+        return -14;
     if(offset<0)
-        return 15;
+        return -15;
     char* fullPath = unir_str(montaje,path);
     Archivo_t *archivo = get_data_Archivo(fullPath);
     free(fullPath);
@@ -558,8 +564,8 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     if(bloquesNecesarios >0){
         int32_t bloques = cantidadBloquesLibres(bitmap);
         if(bloques < bloquesNecesarios){
-            log_info(log,"NO HAY BLOQUES SUFICIENTES BLOQUES libres %d --- Necesarios %d",bloques,bloquesNecesarios);
-            return 16;
+            log_error(log,"NO HAY BLOQUES SUFICIENTES BLOQUES libres %d --- Necesarios %d",bloques,bloquesNecesarios);
+            return -16;
         }
         for(i=0;i<bloquesNecesarios;i++){
             int ubicacionBit= primer_bloque_libre(bitmap);
@@ -578,6 +584,6 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     }
     archivo->tamanio = max(archivo->tamanio,offset + size);
     free(aux);
-    log_info(log,"%s == MONTAJE ---- %s == PATH",montaje,path);
+    log_info(log,"SALIENDO DE GUARDAR");
     return Archivo_guardar(path,montaje,archivo,log);
 }

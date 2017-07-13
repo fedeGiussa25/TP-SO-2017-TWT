@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 				nameArchRequest = obtieneNombreArchivo(kernel);
 				msg = validar_archivo(nameArchRequest,pathArchivos,miLog);
                 if(msg == false)
-                    delete_archivo(nameArchRequest,pathArchivos,miLog);
+                    delete_archivo(nameArchRequest,pathArchivos,bitmap,miLog);
 				free(nameArchRequest);
 				enviar(kernel,(void *)&msg,sizeof(int32_t));
 				break;
@@ -159,8 +159,8 @@ int main(int argc, char** argv)
                 //log_info(miLog,"EL CODIGO DE LECTURA ES %d y su size %d",msg,sizeof(msg));
                 printf("El valor de codigo que mandamos es %d\n", msg);
                 printf("ENVIANDO %d BYTES\n",send(kernel,(void*)&msg,sizeof(int32_t),0));
-                if(/*data != NULL*/ msg ==1){
-                	printf("MSG ES 1");
+                if(data!=NULL && msg == 1){
+                	log_info(miLog,"ENVIANDO BUFFER LEIDO");
                     enviar(kernel,data,size);
                     free(data);
                 }
@@ -177,14 +177,19 @@ int main(int argc, char** argv)
                 buffer = malloc(size);
                 if(recibir(kernel,buffer,size) == NULL)
                     exit(6);
+
+                log_info(miLog,"Quieren escribir %d desde %d para %s",size,offset,nameArchRequest);
+
                 msg = guardar_datos(nameArchRequest,pathArchivos,offset,size,buffer,bitmap,tamanioBloques,pathBloques,miLog);
+                log_info(miLog,"EL CODIGO DE OPERACION ES %d",msg);
                 enviar(kernel,(void *)&msg,sizeof(int32_t));
                 free(buffer);
                 free(nameArchRequest);
                 break;
             case DEL_MSG:
                 nameArchRequest = obtieneNombreArchivo(kernel);
-                msg = delete_archivo(nameArchRequest,pathArchivos,bitmap);
+				log_info(miLog,"ARCHIVO A Borrar %s",nameArchRequest);
+                msg = delete_archivo(nameArchRequest,pathArchivos,bitmap,miLog);
                 free(nameArchRequest);
                 enviar(kernel,(void *)&msg,sizeof(uint32_t));
                 break;
