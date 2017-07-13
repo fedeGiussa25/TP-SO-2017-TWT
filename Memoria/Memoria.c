@@ -993,7 +993,8 @@ void *thread_proceso(int fd){
 				recv(fd, &inicio, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
 
-				char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
+				//char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
+				void *instruccion = lectura(PID, pagina, inicio, offset);
 				int tamanio = offset - 1;
 				void *buffer = malloc(sizeof(int) + tamanio +1);
 				memset(buffer, 0, sizeof(int) + tamanio +1);

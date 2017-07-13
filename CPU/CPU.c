@@ -224,7 +224,8 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 
 	//Mandamos a memoria la solicitud de lectura:
 
-	int codigo = BUSCAR_VALOR;
+	//int codigo = BUSCAR_VALOR;
+	int codigo = PEDIR_INSTRUCCION;
 	int pag = direccion_variable / tamanioPagina;
 	int offset = direccion_variable % tamanioPagina;
 	int tamanio = sizeof(int);
@@ -242,9 +243,9 @@ t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 	//Obtengo el valor:
 
 	int valorVariable;
-
-	recv(fd_memoria, &valorVariable,sizeof(int),0);
-
+	recv(fd_memoria, &tamanio,sizeof(int),0);
+	//recv(fd_memoria, &valorVariable,sizeof(int),0);
+	recv(fd_memoria, &valorVariable,tamanio+1,0);
 	log_info(messagesLog,"La variable fue dereferenciada, tiene valor: %d\n", valorVariable);
 
 	return valorVariable;
@@ -545,7 +546,7 @@ t_descriptor_archivo twt_abrir (t_direccion_archivo direccion, t_banderas flags)
 }
 void twt_borrar (t_descriptor_archivo direccion)
 {
-	log_info(messagesLog,"Borrar archivo: %s\n", direccion);
+	log_info(messagesLog,"Borrar archivo: %d\n", direccion);
 	uint32_t fd_a_borrar = direccion;
 	uint32_t codigo = BORRAR_ARCHIVO;
 	int32_t resp;
