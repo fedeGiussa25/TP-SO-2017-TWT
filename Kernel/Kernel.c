@@ -883,7 +883,6 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			else
 				codigo_para_abortar_proceso = 7;
 
-			printf("I'm a reasonable man, get off my case\n");
 			int consola = 0;
 			consola = buscar_consola_de_proceso(PID);
 			memcpy(sendbuf_consola,&codigo_para_abortar_proceso,sizeof(uint32_t));
@@ -893,11 +892,9 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			//Le mando 1 para que sepa que se pudo borrar
 			uint32_t codigo_de_cancelado_ok = 1;
 
-			printf("I'm a reasonable man, get off my case\n");
 			memcpy(sendbuf_consola_mensajera,&codigo_de_cancelado_ok,sizeof(uint32_t));
 			send(sock_consola,sendbuf_consola_mensajera,sizeof(uint32_t),0);
 
-			printf("I'm a reasonable man, get off my case\n");
 			free(sendbuf_consola);
 			free(sendbuf_consola_mensajera);
 		}
@@ -2147,6 +2144,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		enviar(sock_consola, buffer, (sizeof(int)*2) + messageLength);
 
 		free(buffer);
+		log_info(kernelLog, "Imprimi en consola el texto %s\n", message);
 	}
 
 	if(archivo == 0 || archivo == 2)
@@ -2158,31 +2156,27 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	}
 
 	int* encontrado = malloc(sizeof(int));
+	memset(encontrado,0,sizeof(int));
+
 	if(archivo > FD_INICIAL_ARCHIVOS)
 	{
 		tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
 		//Busco el fd dentro de la tabla
 		int k = 0;
-
+		printf("%d\n",list_size(tabla_archivos->lista_de_archivos));
 		while(k < list_size(tabla_archivos->lista_de_archivos) && !(*encontrado))
 		{
 			archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
 			//Si lo encuentro
+			log_info(kernelLog, "Encontre el archivo\n");
 			if(arch_aux->fd == archivo)
 			{
 				//Agarro el flag para ese archivo
-				printf("Escritura: %d\n", arch_aux->flags->escritura);
-				printf("Lectura: %d\n", arch_aux->flags->lectura);
-				printf("Creacion: %d\n", arch_aux->flags->creacion);
 				*encontrado = true;
-
 				if(arch_aux->flags->escritura == 0)
 				{
 					//Termino el proceso con exit code -4
-					printf("Escritura: %d\n", arch_aux->flags->escritura);
-					printf("Lectura: %d\n", arch_aux->flags->lectura);
-					printf("Creacion: %d\n", arch_aux->flags->creacion);
 					printf("El proceso no tiene permiso para escribir el archivo seleccionado\n");
 					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
 					return -4;
@@ -2190,11 +2184,9 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 				if(arch_aux->flags->escritura == 1)
 				{
+					log_info(kernelLog, "El proceso tiene permisos validos\n");
 					//Saco la posicion en la tabla global
 					int pos_en_tabla_global = arch_aux->referencia_a_tabla_global;
-					printf("Escritura: %d\n", arch_aux->flags->escritura);
-					printf("Lectura: %d\n", arch_aux->flags->lectura);
-					printf("Creacion: %d\n", arch_aux->flags->creacion);
 
 					//El list_get devuelve un puntero, y un string es ya un puntero, por eso tengo char**
 					pthread_mutex_lock(&mutex_archivos_globales);
@@ -2228,6 +2220,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					memcpy(buffer + (sizeof(uint32_t)*3) + size_arch, &messageLength, sizeof(uint32_t));
 					memcpy(buffer + (sizeof(uint32_t)*4) + size_arch, message, messageLength);
 
+					log_info(kernelLog, "Se mando el texto a escribir al FS\n");
 					enviar(sockfd_fs, buffer, (sizeof(uint32_t)*4) + size_arch + messageLength);
 					recibir(sockfd_fs, &escritura_correcta, sizeof(int32_t));
 
@@ -2254,6 +2247,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 			return -4;
 		}
 	}
+	log_info(kernelLog, "La escritura se realizo correctamente\n");
 	free(encontrado);
 	return 1;
 }
@@ -3092,10 +3086,11 @@ int main(int argc, char** argv) {
 							dp->syscalls ++;
 
 							void* message = malloc(messageLength);
-							memset(message, 0, messageLength);
 
 							//Recibo el mensaje a escribir
 							recibir(i, message, messageLength);
+
+							log_info(kernelLog,"Me pidieron escribir %s en el archivo %d del proceso %d",message,archivo,pid);
 
 							int resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
