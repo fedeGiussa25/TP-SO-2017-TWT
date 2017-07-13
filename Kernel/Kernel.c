@@ -2309,7 +2309,7 @@ int execute_delete(int pid, int fd){
 	if(arch->instancias_abiertas == 1)
 	{
 		log_info(kernelLog, "El archivo %s tiene una sola instancia en la tabla global, se puede borrar\n" ,arch->ruta_del_archivo);
-		uint32_t size = strlen(arch->ruta_del_archivo);
+		uint32_t size = strlen(arch->ruta_del_archivo)+4;
 		uint32_t reciever;
 		void* buffer = malloc(sizeof(uint32_t)*2 + size);
 
