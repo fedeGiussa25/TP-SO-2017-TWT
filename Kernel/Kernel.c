@@ -1871,7 +1871,7 @@ bool puede_leer_archivos(int flag)
 
 int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_length)
 {
-	uint32_t i = 0, codigo, referencia_tabla_global, offset;
+	uint32_t i = 0, codigo, referencia_tabla_global;
 	uint32_t encontrado = false, pudo_crear_archivo = false;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 
@@ -1962,7 +1962,24 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
-	archivoAbierto->flags = permisos;
+
+	t_banderas* banderita = malloc(sizeof(t_banderas));
+	printf("Permisos creacion: %d\n",permisos->creacion);
+	if(permisos->creacion)
+		banderita->creacion = 1;
+	else banderita->creacion = 0;
+
+	printf("Permisos escritura: %d\n",permisos->escritura);
+		if(permisos->creacion)
+			banderita->escritura = 1;
+		else banderita->escritura = 0;
+
+	printf("Permisos lectura: %d\n",permisos->lectura);
+		if(permisos->creacion)
+			banderita->lectura = 1;
+		else banderita->lectura = 0;
+
+	archivoAbierto->flags = banderita;
 	archivoAbierto->offset = 0;
 	archivoAbierto->referencia_a_tabla_global = referencia_tabla_global;
 	list_add(tabla_archivos->lista_de_archivos, archivoAbierto);
@@ -2140,27 +2157,44 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		return -2;
 	}
 
+	int* encontrado = malloc(sizeof(int));
 	if(archivo > FD_INICIAL_ARCHIVOS)
 	{
 		tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
 		//Busco el fd dentro de la tabla
 		int k = 0;
-		bool encontrado = false;
 
-		while(k < list_size(tabla_archivos->lista_de_archivos) && !encontrado)
+		while(k < list_size(tabla_archivos->lista_de_archivos) && !(*encontrado))
 		{
 			archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
 			//Si lo encuentro
 			if(arch_aux->fd == archivo)
 			{
 				//Agarro el flag para ese archivo
-				t_banderas* banderas = arch_aux->flags;
-				encontrado = true;
-				if(banderas->escritura)
+				printf("Escritura: %d\n", arch_aux->flags->escritura);
+				printf("Lectura: %d\n", arch_aux->flags->lectura);
+				printf("Creacion: %d\n", arch_aux->flags->creacion);
+				*encontrado = true;
+
+				if(arch_aux->flags->escritura == 0)
+				{
+					//Termino el proceso con exit code -4
+					printf("Escritura: %d\n", arch_aux->flags->escritura);
+					printf("Lectura: %d\n", arch_aux->flags->lectura);
+					printf("Creacion: %d\n", arch_aux->flags->creacion);
+					printf("El proceso no tiene permiso para escribir el archivo seleccionado\n");
+					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
+					return -4;
+				}
+
+				if(arch_aux->flags->escritura == 1)
 				{
 					//Saco la posicion en la tabla global
 					int pos_en_tabla_global = arch_aux->referencia_a_tabla_global;
+					printf("Escritura: %d\n", arch_aux->flags->escritura);
+					printf("Lectura: %d\n", arch_aux->flags->lectura);
+					printf("Creacion: %d\n", arch_aux->flags->creacion);
 
 					//El list_get devuelve un puntero, y un string es ya un puntero, por eso tengo char**
 					pthread_mutex_lock(&mutex_archivos_globales);
@@ -2202,33 +2236,25 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					if(!escritura_correcta)
 					{
 						//Termino el proceso con exit code -11 -> El fs no pudo escribir el archivo
-						printf("Ocurrio un error al escribir un archivo, revisar el log\n");
+						printf("El fs no pudo modificar el archivo seleccionado\n");
 						log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
 						return -11;
 					}
-				}
-
-				if(!(banderas->escritura))
-				{
-					//Termino el proceso con exit code -4
-					//end_process(pid, -4, sock_consola, true);
-					printf("Ocurrio un error al escribir un archivo revisar el log\n");
-					log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El proceso no tiene permiso para escribir el archivo seleccionado\n", archivo, pid);
-					return -4;
 				}
 			}
 			k++;
 		}
 
 		//Si no lo encontre signfica que el proceso nunca abrio ese archivo
-		if(!encontrado)
+		if(!(*encontrado))
 		{
 			//end_process(pid,-4,sock_consola, true);
-			printf("Ocurrio un error al escribir un archivo, revisar el log\n");
+			printf("El archivo pedido nunca fue abierto por el proceso\n");
 			log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
 			return -4;
 		}
 	}
+	free(encontrado);
 	return 1;
 }
 
@@ -3048,7 +3074,6 @@ int main(int argc, char** argv) {
 								codigo = 1;
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
-
 								enviar(i, resultado, messageLength);
 							}
 
