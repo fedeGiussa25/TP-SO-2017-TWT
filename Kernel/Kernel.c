@@ -2253,8 +2253,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 }
 
 int execute_delete(int pid, int fd){
-	int i = 0;
-	int referencia_tabla_global;
+	uint32_t i = 0, ubicacion_tabla_archivos, referencia_tabla_global, codigo_borrar = 15;
 	tabla_de_archivos_de_proceso* tabla_archivos;
 	bool encontrado = false;
 
@@ -2289,6 +2288,7 @@ int execute_delete(int pid, int fd){
 		{
 			log_info(kernelLog, "Encontre el archivo %d para el proceso %d\n", fd, pid);
 			encontrado = true;
+			ubicacion_tabla_archivos = i;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
 		}
 		i++;
@@ -2301,7 +2301,6 @@ int execute_delete(int pid, int fd){
 		return -3;
 	}
 
-	i--; //La posicion del archivo en la tabla
 	pthread_mutex_lock(&mutex_archivos_globales);
 	archivo_global* arch = list_get(tabla_global_de_archivos, referencia_tabla_global);
 	pthread_mutex_unlock(&mutex_archivos_globales);
@@ -2309,18 +2308,31 @@ int execute_delete(int pid, int fd){
 	//Significa que solo esta abierto por este proceso
 	if(arch->instancias_abiertas == 1)
 	{
-		uint32_t size = strlen(arch->ruta_del_archivo), reciever;
-		void* buffer = malloc(sizeof(uint32_t) + size);
-		memcpy(buffer, &size, sizeof(uint32_t));
-		memcpy(buffer + sizeof(uint32_t), &(arch->ruta_del_archivo), size);
+		log_info(kernelLog, "El archivo %s tiene una sola instancia en la tabla global, se puede borrar\n" ,arch->ruta_del_archivo);
+		uint32_t size = strlen(arch->ruta_del_archivo);
+		uint32_t reciever;
+		void* buffer = malloc(sizeof(uint32_t)*2 + size);
+
+		printf("\n");
+		printf("Size: %d\n", size);
+		printf("Nombre archivo: %s\n", arch->ruta_del_archivo);
+		printf("\n");
+
+		memcpy(buffer, &codigo_borrar, sizeof(uint32_t));
+		memcpy(buffer + sizeof(uint32_t), &size, sizeof(uint32_t));
+		memcpy(buffer + sizeof(uint32_t)*2, arch->ruta_del_archivo, size);
+
+		log_info(kernelLog, "Envie el archivo a borrar al FS\n");
 		enviar(sockfd_fs, buffer, sizeof(uint32_t) + size);
 		recibir(sockfd_fs, &reciever, sizeof(uint32_t));
+		log_info(kernelLog, "Recibi una respuesta del FS\n");
+
 		free(buffer);
 		if(reciever)
 		{
 			list_remove(tabla_global_de_archivos, referencia_tabla_global);
 			free(arch);
-			list_remove(tabla_archivos->lista_de_archivos,i);
+			list_remove(tabla_archivos->lista_de_archivos,ubicacion_tabla_archivos);
 			free(arch_aux);
 			log_info(kernelLog, "Elimine las entradas en las tablas local y global %d\n");
 			return reciever;
@@ -2940,7 +2952,7 @@ int main(int argc, char** argv) {
 							pthread_mutex_lock(&mutex_process_list);
 							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
 							PCB_vieja->estado = "Ready";
-							list_add(todos_los_procesos,PCB_vieja);
+							list_add(todos_los_procesos,unPCB);
 							pthread_mutex_unlock(&mutex_process_list);
 
 							int posicion = proceso_para_borrar(unPCB->pid);
@@ -2973,7 +2985,6 @@ int main(int argc, char** argv) {
 
 							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
 							//liberar_PCB(PCB_vieja);
-							printf("I'm a reasonable man, get off my case\n");
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
