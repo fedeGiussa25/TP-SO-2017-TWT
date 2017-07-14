@@ -22,7 +22,7 @@ t_log* messagesLog;
 enum{
 	HANDSHAKE = 1,
 	NUEVO_PROCESO = 2,
-	BUSCAR_INSTRUCCION = 3,
+	LEER = 3,
 	GUARDAR_VALOR = 4,
 	ELIMINAR_PROCESO = 5,
 	OBTENER_VALOR = 6,
@@ -709,7 +709,8 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 		frame = buscar_en_indice(posicion_en_indice, PID, pagina);
 		if(frame < 0){
 			printf("Page not Found\n");
-			memcpy(instruccion, "", strlen(""));
+			//memcpy(instruccion, "\0", strlen("\0"));
+			instruccion = NULL;
 			return instruccion;
 		}
 
@@ -986,7 +987,7 @@ void *thread_proceso(int fd){
 				free(espacio);
 				free(aux);
 			}
-			if(codigo == BUSCAR_INSTRUCCION){
+			if(codigo == LEER){
 
 				recv(fd, &PID, sizeof(u_int32_t), 0);
 				recv(fd, &pagina, sizeof(int), 0);
@@ -995,16 +996,25 @@ void *thread_proceso(int fd){
 
 				//char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
 				void *instruccion = lectura(PID, pagina, inicio, offset);
-				int tamanio = offset - 1;
-				void *buffer = malloc(sizeof(int) + tamanio +1);
-				memset(buffer, 0, sizeof(int) + tamanio +1);
-				memcpy(buffer, &tamanio, sizeof(int));
-				memcpy(buffer+sizeof(int), instruccion, tamanio);
-				memset(buffer+sizeof(int)+tamanio,'\0',1);
+				int error;
+				if(instruccion != NULL){
+					int tamanio = offset - 1;
+					error = 1;
+					void *buffer = malloc(sizeof(int)*2 + tamanio +1);
+					//memset(buffer, 0, sizeof(int) + tamanio +1);
+					memcpy(buffer, &error, sizeof(int));
+					memcpy(buffer+sizeof(int), &tamanio, sizeof(int));
+					memcpy(buffer+sizeof(int)*2, instruccion, tamanio);
+					memset(buffer+sizeof(int)*2+tamanio,'\0',1);
 
-				send(fd, buffer, sizeof(int) + tamanio + 1, 0);
-				free(instruccion);
-				free(buffer);
+					send(fd, buffer, sizeof(int)*2 + tamanio + 1, 0);
+					free(instruccion);
+					free(buffer);
+				}else{
+					printf("Hiciste algo mal\n");
+					error = -1;
+					send(fd, &error,sizeof(int),0);
+				}
 			}
 			if(codigo == GUARDAR_VALOR){
 				int tamanio;

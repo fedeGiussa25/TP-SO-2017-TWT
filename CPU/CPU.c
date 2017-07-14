@@ -67,7 +67,7 @@ cpu_config data_config;
 int fd_kernel;
 int fd_memoria;
 int tamanioPagina;
-bool stackOverflow;
+bool excepcionMemoria;
 bool programaTerminado;
 bool procesoBloqueado;
 bool procesoAbortado;
@@ -133,7 +133,7 @@ t_puntero twt_definirVariable (t_nombre_variable identificador_variable)
 	{
 		//printf("Stack Overflow al definir variable %c\n", identificador_variable);
 		log_info(messagesLog, "StackOverflow al definir la variable o argumento: %c\n", identificador_variable);
-		stackOverflow=true;
+		excepcionMemoria=true;
 		codigo_error = -20;
 		return -1;
 	}
@@ -220,35 +220,46 @@ t_puntero twt_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 }
 t_valor_variable twt_dereferenciar (t_puntero direccion_variable)
 {
-	log_info(messagesLog,"Dereferenciar la direccion: %d\n", direccion_variable);
+	if(excepcionMemoria == false){
+		log_info(messagesLog,"Dereferenciar la direccion: %d\n", direccion_variable);
 
-	//Mandamos a memoria la solicitud de lectura:
+		//Mandamos a memoria la solicitud de lectura:
 
-	//int codigo = BUSCAR_VALOR;
-	int codigo = PEDIR_INSTRUCCION;
-	int pag = direccion_variable / tamanioPagina;
-	int offset = direccion_variable % tamanioPagina;
-	int tamanio = sizeof(int);
+		//int codigo = BUSCAR_VALOR;
+		int codigo = PEDIR_INSTRUCCION;
+		int pag = direccion_variable / tamanioPagina;
+		int offset = direccion_variable % tamanioPagina;
+		int tamanio = sizeof(int);
 
-	void* buffer = malloc(sizeof(u_int32_t)+sizeof(int)*4);
+		void* buffer = malloc(sizeof(u_int32_t)+sizeof(int)*4);
 
-	memcpy(buffer, &codigo, sizeof(int));
-	memcpy(buffer+sizeof(int), &nuevaPCB->pid, sizeof(u_int32_t));
-	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pag, sizeof(int));
-	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &offset, sizeof(int));
-	memcpy(buffer+sizeof(int)*3+sizeof(u_int32_t), &tamanio, sizeof(int));
+		memcpy(buffer, &codigo, sizeof(int));
+		memcpy(buffer+sizeof(int), &nuevaPCB->pid, sizeof(u_int32_t));
+		memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pag, sizeof(int));
+		memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &offset, sizeof(int));
+		memcpy(buffer+sizeof(int)*3+sizeof(u_int32_t), &tamanio, sizeof(int));
 
-	send(fd_memoria, buffer, sizeof(u_int32_t)+sizeof(int)*4,0);
+		send(fd_memoria, buffer, sizeof(u_int32_t)+sizeof(int)*4,0);
 
-	//Obtengo el valor:
+		//Obtengo el valor:
+		int valorVariable,error;
+		recv(fd_memoria, &error, sizeof(int),0);
+		if(error > 0){
+			recv(fd_memoria, &tamanio,sizeof(int),0);
+			//recv(fd_memoria, &valorVariable,sizeof(int),0);
+			recv(fd_memoria, &valorVariable,tamanio+1,0);
+			log_info(messagesLog,"La variable fue dereferenciada, tiene valor: %d\n", valorVariable);
+		}else{
+			printf("La posicion accedida es invalida, se terminara el proceso en breve\n");
+			log_error(messagesLog,"La posicion accedida es invalida\n");
+			valorVariable = -1;
+			excepcionMemoria = true;
+		}
 
-	int valorVariable;
-	recv(fd_memoria, &tamanio,sizeof(int),0);
-	//recv(fd_memoria, &valorVariable,sizeof(int),0);
-	recv(fd_memoria, &valorVariable,tamanio+1,0);
-	log_info(messagesLog,"La variable fue dereferenciada, tiene valor: %d\n", valorVariable);
-
-	return valorVariable;
+		return valorVariable;
+	}else{
+		return -1;
+	}
 }
 void twt_asignar (t_puntero direccion_variable, t_valor_variable valor)
 {
@@ -609,30 +620,33 @@ void twt_moverCursor (t_descriptor_archivo descriptor_archivo, t_valor_variable 
 }
 void twt_escribir (t_descriptor_archivo descriptor_archivo, void* informacion, t_valor_variable tamanio)
 {
-	//memset(informacion+tamanio, '\0', 1);
-	log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
-	int desc_salida=descriptor_archivo;
-	int32_t resp;
-	if(desc_salida==0)
-	{
-		desc_salida = 1; //El parser devuelve 0	como FD de salida, no se por que
-	}
-	uint32_t codigo = ESCRIBIR_ARCHIVO;
-	void* buffer = malloc(sizeof(uint32_t)*4+tamanio);
-	memcpy(buffer, &codigo, sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t), &desc_salida, sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t)*2, &(nuevaPCB->pid), sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t)*3, &tamanio, sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t)*4, informacion, tamanio);
-	enviar(fd_kernel, buffer, sizeof(uint32_t)*4+tamanio);
+	if(excepcionMemoria == false){
+		//memset(informacion+tamanio, '\0', 1);
+		log_info(messagesLog,"Escribir '%s'en el archivo, file decriptor: %d\n", (char*) informacion, descriptor_archivo);
+		int desc_salida=descriptor_archivo;
+		int32_t resp;
+		if(desc_salida==0)
+		{
+			desc_salida = 1; //El parser devuelve 0	como FD de salida, no se por que
+		}
+		uint32_t codigo = ESCRIBIR_ARCHIVO;
+		void* buffer = malloc(sizeof(uint32_t)*4+tamanio);
+		memcpy(buffer, &codigo, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t), &desc_salida, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*2, &(nuevaPCB->pid), sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*3, &tamanio, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*4, informacion, tamanio);
+		enviar(fd_kernel, buffer, sizeof(uint32_t)*4+tamanio);
 
-	recibir(fd_kernel, &resp, sizeof(int32_t));
+		recibir(fd_kernel, &resp, sizeof(int32_t));
 
-	if(resp < 0){
-		procesoAbortado=true;
-		log_error(messagesLog,"Proceso: %d abortado al intentar escribir en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
+		if(resp < 0){
+			procesoAbortado=true;
+			log_error(messagesLog,"Proceso: %d abortado al intentar escribir en el archivo, file descriptor: %d\n", nuevaPCB->pid, descriptor_archivo);
+		}
+		free(buffer);
 	}
-	free(buffer);
+
 	return;
 }
 void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t_valor_variable tamanio)
@@ -802,7 +816,7 @@ char* pedirCodigoAMemoria(u_int32_t pid, int page_counter)
 }
 
 char* obtener_instruccion(PCB *pcb){
-	int codigo = PEDIR_INSTRUCCION;
+	int codigo = PEDIR_INSTRUCCION, error;
 	int messageLength, bytes, instruccion_a_buscar, inicio, offset, pagina_de_codigo = 0;
 
 	instruccion_a_buscar = pcb->program_counter;
@@ -818,6 +832,7 @@ char* obtener_instruccion(PCB *pcb){
 
 	send(fd_memoria, buffer, sizeof(u_int32_t)+ sizeof(int)*4,0);
 
+	recv(fd_memoria,&error,sizeof(int),0);
 	bytes = recv(fd_memoria,&messageLength,sizeof(int),0);
 	verificar_conexion_socket(fd_memoria,bytes);
 
@@ -929,7 +944,7 @@ int main(int argc, char **argv) {
 		log_info(messagesLog, "Se recibio un PCB\n");
 
 		print_PCB(nuevaPCB);
-		stackOverflow = false;
+		excepcionMemoria = false;
 		programaTerminado = false;
 		procesoBloqueado = false;
 		procesoAbortado = false;
@@ -937,7 +952,7 @@ int main(int argc, char **argv) {
 
 		if(quantum < 0){
 			printf("Estoy ejecutando en FIFO\n");
-			while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false) && (procesoAbortado == false))
+			while((nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones) && (programaTerminado == false) && (excepcionMemoria==false) && (procesoBloqueado == false) && (procesoAbortado == false))
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
@@ -955,7 +970,7 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
-			}else if(stackOverflow == true){
+			}else if(excepcionMemoria == true){
 				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
 				enviar(fd_kernel, &codigo, sizeof(uint32_t));
 				int32_t error_cod = -5;
@@ -970,7 +985,7 @@ int main(int argc, char **argv) {
 		}
 		else{
 			printf("Estoy ejecutando en Round Robin\n");
-			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (stackOverflow==false) && (procesoBloqueado == false) && (procesoAbortado == false))
+			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (excepcionMemoria==false) && (procesoBloqueado == false) && (procesoAbortado == false))
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
 				printf("Instruccion: %s\n", instruccion);
@@ -992,12 +1007,13 @@ int main(int argc, char **argv) {
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
 
-			} else if((quantum == 0) && procesoAbortado == false && stackOverflow == false){
+			} else if((quantum == 0) && procesoAbortado == false && excepcionMemoria == false){
 				codigo = FIN_DE_QUANTUM;
+				usleep(quantum_sleep*1000);
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
-			} else if(stackOverflow == true){
+			} else if(excepcionMemoria == true){
 				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
 				enviar(fd_kernel, &codigo, sizeof(uint32_t));
 				int32_t error_cod = -5;
