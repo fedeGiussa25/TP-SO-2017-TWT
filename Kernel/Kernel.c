@@ -503,6 +503,50 @@ void delete_PCB(PCB* pcb){
 }
 
 
+PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
+	bool _remove_element(void* list_element)
+	    {
+		PCB *unPCB = (PCB*) list_element;
+		return unPCB->pid == PID;
+	    }
+	PCB* PCB_buscado =  list_remove_by_condition(lista,*_remove_element);
+	return PCB_buscado;
+}
+
+
+semaforo_cola *remove_semaforo_by_ID(t_list *lista, char* ID){
+	bool _remove_element(void* list_element)
+	    {
+		semaforo_cola *unSem = (semaforo_cola *) list_element;
+		return strcmp(ID, unSem->sem->ID)==0;
+	    }
+	semaforo_cola *semaforo_buscada = list_remove_by_condition(lista, *_remove_element);
+	return semaforo_buscada;
+}
+
+void signal(char *id_semaforo){
+	//pthread_mutex_lock(&mutex_semaforos_ansisop);
+	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
+	unSem->sem->valor = unSem->sem->valor + 1;
+
+	if(queue_size(unSem->cola_de_bloqueados)>0)
+	{
+		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
+		pthread_mutex_lock(&mutex_process_list);
+		PCB *PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+		PCB_a_modif->estado = "Ready";
+		list_add(todos_los_procesos, PCB_a_modif);
+		pthread_mutex_unlock(&mutex_process_list);
+		pthread_mutex_lock(&mutex_ready_queue);
+		queue_push(ready_queue, unPCB);
+		pthread_mutex_unlock(&mutex_ready_queue);
+		log_info(kernelLog, "El proceso %d paso de Wait a Ready\n",unPCB->pid);
+	}
+
+	list_add(semaforos, unSem);
+	//pthread_mutex_unlock(&mutex_semaforos_ansisop);
+}
+
 void remove_from_semaphore(uint32_t PID){
 	int i, encontrado = 0;
 	int cant_semaforos = list_size(semaforos);
@@ -512,6 +556,7 @@ void remove_from_semaphore(uint32_t PID){
 		encontrado = queue_exists(PID, unSem->cola_de_bloqueados);
 		if(encontrado == 1){
 			remove_PCB_from_specific_queue(PID, unSem->cola_de_bloqueados);
+			signal(unSem->sem->ID);
 		}
 	}
 }
@@ -529,12 +574,6 @@ void remove_from_queue(PCB* pcb){
 		pthread_mutex_lock(&mutex_ready_queue);
 		remove_PCB_from_specific_queue(pcb->pid,ready_queue);
 		pthread_mutex_unlock(&mutex_ready_queue);
-	}
-	else if(strcmp(pcb->estado,"Exec")==0)//No va a funcionar asi por siempre pero lo dejo como placeholder
-	{
-		pthread_mutex_lock(&mutex_exec_queue);
-		remove_PCB_from_specific_queue(pcb->pid,exec_queue);
-		pthread_mutex_unlock(&mutex_exec_queue);
 	}
 	else if(strcmp(pcb->estado, "Block")==0)
 	{
@@ -658,27 +697,18 @@ int proceso_para_borrar(int processID){
 proceso_conexion* buscar_conexion_de_proceso(int processID){
 	pthread_mutex_lock(&mutex_fd_cpus);
 	int i = 0, dimension = list_size(lista_cpus);
-	proceso_conexion* hola;
 	while(i < dimension)
 		{
 			proceso_conexion* aux = list_get(lista_cpus,i);
 			if(aux->proceso == processID)
-				hola = aux;
+			{
+				pthread_mutex_unlock(&mutex_fd_cpus);
+				return aux;
+			}
 			i++;
 		}
 	pthread_mutex_unlock(&mutex_fd_cpus);
-	return hola;
-}
-
-
-PCB *get_PCB_by_ID(t_list *lista, uint32_t PID){
-	bool _remove_element(void* list_element)
-	    {
-		PCB *unPCB = (PCB*) list_element;
-		return unPCB->pid == PID;
-	    }
-	PCB* PCB_buscado =  list_remove_by_condition(lista,*_remove_element);
-	return PCB_buscado;
+	return -1;
 }
 
 int execute_close(int pid, int fd)
@@ -837,6 +867,7 @@ void borrar_PBCs_usados(int peide)
 	}
 }
 
+
 void end_process(int PID, int exit_code, int sock_consola, bool consola_conectada){
 	int i = 0;
 	bool encontrado = 0;
@@ -924,7 +955,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			free(sendbuf_consola_mensajera);
 		}
 	}
-	pthread_mutex_unlock(&mutex_planificacion);
+	log_info(kernelLog, "Se ha finalizado todo el proceso de borrado\n");
 }
 
 void print_PCB_list(char* state){
@@ -1152,6 +1183,7 @@ void finish_process(){
 			end_process(PID,-7,consola,true);
 		else
 			end_process(PID,-7,consola,false);
+		pthread_mutex_unlock(&mutex_planificacion);
 	}
 }
 
@@ -1172,6 +1204,7 @@ void abort_process(uint32_t pid, int32_t codigo_error, uint32_t fd_cpu){
 	else hay_consola = true;
 
 	end_process(pid, codigo_error, fd_consola, hay_consola);
+	pthread_mutex_unlock(&mutex_planificacion);
 }
 
 void set_multiprog(){
@@ -1233,6 +1266,10 @@ void menu()
 			print_commands();
 		else if((strcmp(command, "end") == 0))
 			finish_process();
+		else if((strcmp(command, "volo") == 0))
+			printf("%d\n",list_size(lista_en_ejecucion));
+		else if((strcmp(command, "giussa") == 0))
+			printf("%d\n",list_size(procesos_a_borrar));
 		else
 		{
 			printf("Comando incorrecto. Ingrese otro comando: \n");
@@ -1415,16 +1452,6 @@ variable_compartida *remove_by_ID(t_list *lista, char* ID){
 	return variable_buscada;
 }
 
-semaforo_cola *remove_semaforo_by_ID(t_list *lista, char* ID){
-	bool _remove_element(void* list_element)
-	    {
-		semaforo_cola *unSem = (semaforo_cola *) list_element;
-		return strcmp(ID, unSem->sem->ID)==0;
-	    }
-	semaforo_cola *semaforo_buscada = list_remove_by_condition(lista, *_remove_element);
-	return semaforo_buscada;
-}
-
 void asignar_valor_variable_compartida(char* ID, u_int32_t value){
 	variable_compartida *variable_a_modificar = remove_by_ID(variables_compartidas, ID);
 	variable_a_modificar->valor = value;
@@ -1467,29 +1494,6 @@ int32_t wait(char *id_semaforo, uint32_t PID){
 	list_add(semaforos, unSem);
 	pthread_mutex_unlock(&mutex_semaforos_ansisop);
 	return unSem->sem->valor;
-}
-
-void signal(char *id_semaforo){
-	pthread_mutex_lock(&mutex_semaforos_ansisop);
-	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
-	unSem->sem->valor = unSem->sem->valor + 1;
-
-	if(queue_size(unSem->cola_de_bloqueados)>0)
-	{
-		PCB *unPCB = queue_pop(unSem->cola_de_bloqueados);
-		pthread_mutex_lock(&mutex_process_list);
-		PCB *PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-		PCB_a_modif->estado = "Ready";
-		list_add(todos_los_procesos, PCB_a_modif);
-		pthread_mutex_unlock(&mutex_process_list);
-		pthread_mutex_lock(&mutex_ready_queue);
-		queue_push(ready_queue, unPCB);
-		pthread_mutex_unlock(&mutex_ready_queue);
-		log_info(kernelLog, "El proceso %d paso de Wait a Ready\n",unPCB->pid);
-	}
-
-	list_add(semaforos, unSem);
-	pthread_mutex_unlock(&mutex_semaforos_ansisop);
 }
 
 bool tiene_heap(uint32_t pid){
@@ -2401,7 +2405,7 @@ int main(int argc, char** argv) {
 
 	fdmax = listener;
 
-	pthread_mutex_init(&mutex_semaforos_ansisop, NULL);
+//	pthread_mutex_init(&mutex_semaforos_ansisop, NULL);
 
 	//Hilo menu + print command
 	print_commands();
@@ -2452,6 +2456,7 @@ int main(int argc, char** argv) {
 								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
 								end_process(cpu_a_quitar->proceso, -20, consola, true);
 
+								pthread_mutex_unlock(&mutex_planificacion);
 								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
 								pthread_mutex_unlock(&mutex_in_exec);
@@ -2481,7 +2486,7 @@ int main(int argc, char** argv) {
 									if((strcmp(pcb->estado,"Exit")) != 0)
 									{
 										log_info(kernelLog, "Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
-										if(proceso_en_ejecucion(consola_a_quitar->proceso) && (strcmp(pcb->estado,"Exec")) == 0)
+										if(proceso_en_ejecucion(pid))
 										{
 											log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
 											just_a_pid* aux = malloc(sizeof(just_a_pid));
@@ -2497,6 +2502,9 @@ int main(int argc, char** argv) {
 										{
 											log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
 											end_process(pcb->pid, -6, i, false);
+											pthread_mutex_unlock(&mutex_planificacion);
+
+											log_info(kernelLog, "Proceso borrado ahora\n");
 										}
 									} else log_info(kernelLog, "El proceso ya ha sido finalizado\n");
 								}
@@ -2588,7 +2596,7 @@ int main(int argc, char** argv) {
 							recv(i,&pid,sizeof(int),0);
 							PCB* actual_PCB = get_PCB(pid);
 
-							if(proceso_en_ejecucion(pid) && strcmp(actual_PCB->estado,"Exec") == 0){
+							if(strcmp(actual_PCB->estado,"Exec") == 0){
 								//Si esta en ejecucion lo dejo esperando a que lo cancelen
 								just_a_pid* aux = malloc(sizeof(just_a_pid));
 								aux->proceso = actual_PCB->pid;
@@ -2596,12 +2604,15 @@ int main(int argc, char** argv) {
 								aux->connection = true;
 								aux->consola_askeadora = i;
 
+								log_info(kernelLog, "El proceso esta en ejecucion, se borrara al terminar su rafaga\n");
+
 								pthread_mutex_lock(&mutex_to_delete);
 								list_add(procesos_a_borrar,aux);
 								pthread_mutex_unlock(&mutex_to_delete);
 							}
 							else{
 								//Saco a la cpu de la lista de ejecucion
+								log_info(kernelLog, "El proceso no esta en ejecucion, se borrara ahora\n");
 								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
 								pthread_mutex_unlock(&mutex_in_exec);
@@ -2609,11 +2620,16 @@ int main(int argc, char** argv) {
 								//Y llamo a la funcion que lo borra
 								end_process(pid, -7, i, true);
 
-								pthread_mutex_lock(&mutex_fd_cpus);
-								proceso_conexion* cpu = buscar_conexion_de_proceso(pid);
-								pthread_mutex_unlock(&mutex_fd_cpus);
 
-								cpu->proceso = 0;
+								log_info(kernelLog, "Proceso borrado ahora\n");
+
+								proceso_conexion* cpu = buscar_conexion_de_proceso(pid);
+
+								if(cpu != -1){
+									cpu->proceso = 0;
+								}
+								log_info(kernelLog, "CPU actualizada\n");
+								pthread_mutex_unlock(&mutex_planificacion);
 							}
 
 						}
@@ -2707,59 +2723,94 @@ int main(int argc, char** argv) {
 							existe = existeSemaforo(id_sem);
 							pthread_mutex_unlock(&mutex_semaforos_ansisop);
 
-							if(existe == true)
-							{
+							int posicion = proceso_para_borrar(PID);
 
-								head = 1; //Existe el semaforo
-
-								valor = wait(id_sem, PID);
-								print_vars();
-
-								send(i, &head, sizeof(int32_t),0);
-								send(i, &valor, sizeof(int32_t), 0);
-
-								if(valor < 0)
+							if(posicion < 0){
+								if(existe == true)
 								{
-									uint32_t primerMensaje;
-									recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
-									PCB *unPCB = recibirPCBV2(i);
-									//print_PCB2(unPCB);
+									head = 1; //Existe el semaforo
 
-									pthread_mutex_lock(&mutex_in_exec);
-									remove_by_fd_socket(lista_en_ejecucion, i);
-									pthread_mutex_unlock(&mutex_in_exec);
+									valor = wait(id_sem, PID);
+									print_vars();
 
-									log_info(kernelLog, "check 1\n");
-									pthread_mutex_lock(&mutex_semaforos_ansisop);
-									semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
+									send(i, &head, sizeof(int32_t),0);
+									send(i, &valor, sizeof(int32_t), 0);
 
-									log_info(kernelLog, "check 2\n");
-									pthread_mutex_lock(&mutex_exec_queue);
-									remove_PCB_from_specific_queue(PID, exec_queue);
-									pthread_mutex_unlock(&mutex_exec_queue);
+									if(valor < 0)
+									{
+										uint32_t primerMensaje;
+										recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
-									pthread_mutex_lock(&mutex_process_list);
-									PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
-									PCB_a_modif->estado = "Block";
-									list_add(todos_los_procesos, PCB_a_modif);
-									pthread_mutex_unlock(&mutex_process_list);
+										PCB *unPCB = recibirPCBV2(i);
+										//print_PCB2(unPCB);
 
-									log_info(kernelLog, "check 3\n");
-									queue_push(unSem->cola_de_bloqueados, unPCB);
-									list_add(semaforos, unSem);
-									pthread_mutex_unlock(&mutex_semaforos_ansisop);
-									log_info(kernelLog, "El proceso %d paso de Exec a Wait\n",unPCB->pid);
-									log_info(kernelLog, "Termino todo el envio\n");
+										pthread_mutex_lock(&mutex_in_exec);
+										remove_by_fd_socket(lista_en_ejecucion, i);
+										pthread_mutex_unlock(&mutex_in_exec);
+
+										log_info(kernelLog, "check 1\n");
+										pthread_mutex_lock(&mutex_semaforos_ansisop);
+										semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
+
+										log_info(kernelLog, "check 2\n");
+										pthread_mutex_lock(&mutex_exec_queue);
+										remove_PCB_from_specific_queue(PID, exec_queue);
+										pthread_mutex_unlock(&mutex_exec_queue);
+
+										pthread_mutex_lock(&mutex_process_list);
+										PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+										PCB_a_modif->estado = "Block";
+										list_add(todos_los_procesos, PCB_a_modif);
+										pthread_mutex_unlock(&mutex_process_list);
+
+										log_info(kernelLog, "check 3\n");
+										queue_push(unSem->cola_de_bloqueados, unPCB);
+										list_add(semaforos, unSem);
+										pthread_mutex_unlock(&mutex_semaforos_ansisop);
+										log_info(kernelLog, "El proceso %d paso de Exec a Blockn",unPCB->pid);
+										log_info(kernelLog, "Termino todo el envio\n");
+
+										pthread_mutex_lock(&mutex_fd_cpus);
+										proceso_conexion* cpu = buscar_conexion_de_cpu(i);
+										pthread_mutex_unlock(&mutex_fd_cpus);
+
+										cpu->proceso = 0;
+									}
+									pthread_mutex_unlock(&mutex_planificacion);
+									pthread_mutex_unlock(&mutex_planificacion);
+								}
+								else //Si no existe el semaforo
+								{
+									log_info(kernelLog, "Abortar proceso, semaforo inexistente");
+									int32_t codigo_error = -15;
+									abort_process(pid, codigo_error, i);
 								}
 							}
-							else //Si no existe el semaforo
+							else
 							{
-								log_info(kernelLog, "Abortar proceso, semaforo inexistente");
-								int32_t codigo_error = -15;
-								abort_process(pid, codigo_error, i);
-							}
+								int consola_con = -1;
+								consola_con = buscar_consola_de_proceso(PID);
+								log_info(kernelLog, "El proceso %d estaba para borrar\n", PID);
+								pthread_mutex_lock(&mutex_to_delete);
+								just_a_pid* peide = list_remove(procesos_a_borrar,posicion);
+								pthread_mutex_unlock(&mutex_to_delete);
+								log_info(kernelLog, "El proceso estaba para borrar\n");
+								if(peide->exit_code == -7)
+									end_process(PID, peide->exit_code, peide->consola_askeadora, peide->connection);
+								else
+									end_process(PID, peide->exit_code, consola_con, peide->connection);
+								free(peide);
 
+								pthread_mutex_lock(&mutex_fd_cpus);
+								proceso_conexion* cpu = buscar_conexion_de_cpu(i);
+								pthread_mutex_unlock(&mutex_fd_cpus);
+
+								cpu->proceso = 0;
+
+								log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
+								pthread_mutex_unlock(&mutex_planificacion);
+							}
 							free(id_sem);
 						}
 
@@ -2837,6 +2888,7 @@ int main(int argc, char** argv) {
 							cpu->proceso = 0;
 
 							log_info(kernelLog, "Se settea el proceso actual de la CPU en 0\n");
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						//Si un proceso termino su rafaga...
@@ -2875,8 +2927,6 @@ int main(int argc, char** argv) {
 								pthread_mutex_lock(&mutex_ready_queue);
 								queue_push(ready_queue,unPCB);
 								pthread_mutex_unlock(&mutex_ready_queue);
-
-								pthread_mutex_unlock(&mutex_planificacion);
 							}
 							else
 							{
@@ -2906,6 +2956,7 @@ int main(int argc, char** argv) {
 							cpu->proceso = 0;
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 
 						//Los if relacionados a archivos se ejecutan cuando CPU pide hacer algo con un archivo de FS
@@ -3254,6 +3305,7 @@ int main(int argc, char** argv) {
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 							free(buffer_codigo);
+							pthread_mutex_unlock(&mutex_planificacion);
 						}
 						if(codigo == BORRAR_ARCHIVO)
 						{
