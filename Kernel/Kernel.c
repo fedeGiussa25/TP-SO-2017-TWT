@@ -225,6 +225,9 @@ t_list* tabla_global_de_archivos;
 //Listado de datos
 t_list* lista_datos_procesos;
 
+//Lista de PCBs previos
+t_list* PCBs_usados;
+
 //Sockets Memoria y FS
 int sockfd_memoria, sockfd_fs;
 
@@ -812,6 +815,28 @@ int liberarHeap(int PID){
 }
 
 
+int existe_PCB_usado(int peide){
+	int i = 0, dimension = list_size(PCBs_usados);
+	while(i < dimension){
+		PCB* aux = list_get(PCBs_usados,i);
+		if(aux->pid == peide){
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+void borrar_PBCs_usados(int peide)
+{
+	int pos_use = existe_PCB_usado(peide);
+	if(pos_use >= 0){
+		PCB* usado = list_remove(PCBs_usados,pos_use);
+		usado->estado = malloc(sizeof(char)*5);
+		liberar_PCB(usado);
+	}
+}
+
 void end_process(int PID, int exit_code, int sock_consola, bool consola_conectada){
 	int i = 0;
 	bool encontrado = 0;
@@ -823,6 +848,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		{
 			if(strcmp(PCB->estado,"Exit")!=0)
 			{
+				borrar_PBCs_usados(PID);
 				borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
@@ -843,7 +869,6 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	pthread_mutex_unlock(&mutex_process_list);
 	if(encontrado == 0 && consola_conectada && exit_code == -7)
 	{
-			printf("No lo encontre");
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
 			printf("El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
 	 		log_info(kernelLog, "El PID seleccionado todavia no ha sido asignado a ningun proceso\n");
@@ -860,7 +885,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		if(bytes_lost != 0)
 				log_info(kernelLog, "Memory leak: se perdieron %d bytes\n",bytes_lost);
 			else
-				log_info(kernelLog, "No hubo Memory leaks, bien ahi!\n");
+				log_info(kernelLog, "No hubo Memory leaks\n");
 
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
@@ -870,7 +895,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		send(sockfd_memoria,sendbuf_mem,sizeof(uint32_t)*2,0);
 		free(sendbuf_mem);
 
-		log_info(kernelLog, "Ya le avise a memoria que borre el proceso\n");
+		log_info(kernelLog, "Se ha mandado a memoria que borre el proceso\n");
 
 		if(consola_conectada){
 			void* sendbuf_consola_mensajera = malloc(sizeof(uint32_t));
@@ -1046,7 +1071,6 @@ void pcb_state()
 			PCB* PCB = list_get(todos_los_procesos,i);
 			if(*PID == PCB->pid)
 			{
-			//	print_PCB(PCB);
 				printf("Proceso: %d\n",PCB->pid);
 				printf("Estado: %s\n", PCB->estado);
 				if(!strcmp(PCB->estado,"Exit"))
@@ -1113,77 +1137,6 @@ void get_data_from_process(){
 	if(datapro > 0){
 		data_menu(*PID,datapro);
 	} else printf("Error: PID invalido. Sera de vuelto al menu principal/n");
-}
-
-void file_handler(int sockfs, int tipo){
-	//Pongo los tipos de codigo que puedo mandar
-	uint32_t codigo_size = FILE_SIZE;
-	uint32_t codigo_exists = FILE_EXISTS;
-	uint32_t codigo_fail = -20;
-
-	//Por ahora cacheo el nombre del archivo por pantalla
-	char* archivo = malloc(100);
-	printf("Ingrese el nombre del archivo: ");
-	scanf("%s",archivo);
-
-	uint32_t dimension = strlen(archivo);
-
-	void* buffer = malloc(sizeof(uint32_t)*2+dimension);
-
-	//Meto el codigo segun corresponda
-	switch(tipo)
-	{
-		case FILE_SIZE:
-			memcpy(buffer,&codigo_size,sizeof(uint32_t));
-			log_info(kernelLog, "Codigo: %d\n", codigo_size);
-			break;
-		case FILE_EXISTS:
-			memcpy(buffer,&codigo_exists,sizeof(uint32_t));
-			log_info(kernelLog, "Codigo: %d\n", codigo_exists);
-			break;
-		default:
-			memcpy(buffer,&codigo_fail,sizeof(uint32_t));
-			break;
-	}
-
-	//Meto el resto del mensaje
-	memcpy(buffer+sizeof(uint32_t),&dimension,sizeof(uint32_t));
-	memcpy(buffer+sizeof(uint32_t)*2,archivo,sizeof(uint32_t));
-
-	log_info(kernelLog, "Dimension: %d\n", dimension);
-	log_info(kernelLog, "Archivo: %s\n", archivo);
-
-	//Mando el mensaje y espero la respuesta
-	send(sockfs,buffer,sizeof(uint32_t)*2+dimension,0);
-	uint32_t respuesta = 0;
-	recv(sockfs,&respuesta,sizeof(uint32_t),0);
-
-	//Dependiendo del tipo de operacion respondo de manera distinta
-	switch(tipo)
-	{
-			case FILE_SIZE:
-				if(respuesta >= 1)
-					log_info(kernelLog, "El archivo %s tiene un tamaño de %d\n", archivo, respuesta);
-				if(respuesta == 0)
-					printf("Ocurrio un error, revisar el log\n");
-					log_error(kernelLog, "Algo raro paso, probablemente se haya desconetado FS\n");
-				if(respuesta == -1)
-					log_info(kernelLog, "El archivo %s no existe\n", archivo);
-				break;
-			case FILE_EXISTS:
-				if(respuesta == true)
-					log_info(kernelLog, "El archivo %s existe\n",archivo);
-				if(respuesta == false)
-					log_info(kernelLog, "El archivo %s no existe\n",archivo);
-				break;
-			default:
-				break;
-	}
-	if(respuesta == -10)
-	{
-		printf("Ocurrio un error, revisar el log\n");
-		log_error(kernelLog, "Algo salio muy mal\n");
-	}
 }
 
 void finish_process(){
@@ -1590,17 +1543,7 @@ void print_heap(t_list* heap_proceso){
 		log_info(kernelLog, "Puntero %d, pagina: %d, direccion: %d, espacio: %d\n", i, unPuntero->pagina, unPuntero->direccion, unPuntero->size);
 	}
 }
-/*
-int espacio_ocupado(t_list *heap_proceso){
-	int size = 0, i, tamanio = list_size(heap_proceso);
-	for(i=0; i< tamanio; i++){
-		heapMetadata *unPuntero = list_get(heap_proceso, i);
-		size = size + unPuntero->size;
-	}
-	return size;
-}
-*/
-//Fin de funciones de capa memoria
+
 
 int esta_en_uso(int fd){
 	int i;
@@ -1639,15 +1582,10 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 	void *sendbuf;
 	int numbytes, page_counter, direccion;
 
-	//Le mando el codigo y el largo a la memoria
-	//INICIO SERIALIZACION PARA MEMORIAAAAA
 	sendbuf = (void*) PCB_cerealV2(sms,pcb_to_use,&(data_config.stack_size),MEMPCB);
-	log_info(kernelLog, "Mandamos a memoria!\n");
+	log_info(kernelLog, "Se ha mandado el proceso a memoria para que sea guardado\n");
 	send(sms->fd_mem, sendbuf, sms->messageLength+sizeof(int)*3+sizeof(u_int32_t),0);
-	//YA SERIALIZE Y MANDE A MEMORIA MIAMEEEEEEEEEE
 
-	//Me quedo esperando que responda memoria
-	log_info(kernelLog, "Y esperamos!\n");
 
 	numbytes = recv(sms->fd_mem, &page_counter, sizeof(int),0);
 	recv(sms->fd_mem, &direccion, sizeof(int),0);
@@ -1657,7 +1595,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 		//significa que hay espacio y guardo las cosas
 		if(page_counter > 0)
 		{
-			log_info(kernelLog, "El proceso PID %d se ha guardado en memoria \n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso %d se ha guardado en memoria \n",pcb_to_use->pid);
 			pcb_to_use->page_counter = page_counter;
 			pcb_to_use->primerPaginaStack=page_counter-data_config.stack_size; //pagina donde arranca el stack
 			pcb_to_use->direccion_inicio_codigo = direccion;
@@ -1675,7 +1613,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 				i++;
 			}
 			pthread_mutex_unlock(&mutex_fd_consolas);
-			log_info(kernelLog, "El proceso %d paso de New a Ready\n\n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso %d paso de New a Ready\n",pcb_to_use->pid);
 
 			pthread_mutex_lock(&mutex_procesos_actuales);
 			procesos_actuales++;
@@ -1693,7 +1631,7 @@ void guardado_en_memoria(script_manager_setup* sms, PCB* pcb_to_use){
 			pthread_mutex_lock(&mutex_exit_queue);
 			queue_push(exit_queue,pcb_to_use);
 			pthread_mutex_unlock(&mutex_exit_queue);
-			log_info(kernelLog, "El proceso PID %d ha pasado de New a Ready \n\n",pcb_to_use->pid);
+			log_info(kernelLog, "El proceso PID %d ha pasado de New a Exit \n",pcb_to_use->pid);
 
 			send(sms->fd_consola,&page_counter,sizeof(int),0);
 		}
@@ -1875,22 +1813,16 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	//Le pregunto a fs si ese archivo existe
 	//Primero serializo data
 	codigo = BUSCAR_ARCHIVO_FS;
-//	void* serializedData = malloc(sizeof(uint32_t) + path_length);
-
-	log_info(kernelLog, "Codigo: %d\n", codigo);
-	log_info(kernelLog, "Path length: %d\n", path_length);
-	log_info(kernelLog, "Path: %s\n", path);
 
 	enviar(sockfd_fs, &codigo, sizeof(uint32_t));
 	enviar(sockfd_fs, &path_length, sizeof(uint32_t));
 	enviar(sockfd_fs, path, path_length);
 
 	recibir(sockfd_fs, &encontrado, sizeof(encontrado));
-	log_info(kernelLog, "Encontrado: %d\n", encontrado);
 
 	if((encontrado != 1) && (permisos->creacion))
 	{
-		log_info(kernelLog, "El archivo no existe pero puedo crearlo!\n");
+		log_info(kernelLog, "El archivo no existe pero se ha abierto con permisos de creacion\n");
 		//Le dice al fs que cree el archivo
 		codigo = CREAR_ARCHIVO_FS;
 
@@ -1902,7 +1834,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 
 		if(pudo_crear_archivo > 0)
 		{
-			log_info(kernelLog, "Se creo re bien\n");
+			log_info(kernelLog, "El archivo %s fue creado correctamente\n", path);
 			//Si pudo crear el archivo, seteo el offset (desplazamiento dentro del archivo) en 0 (porque es nuevo)
 		}
 		else
@@ -1931,7 +1863,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 		{
 			existe = true;
 			aux->instancias_abiertas++;
-			log_info(kernelLog, "Encontre el archivo en la tabla global\n");
+			log_info(kernelLog, "Se ha encontrado el archivo en la tabla global\n");
 		}
 		i++;
 	}
@@ -1939,7 +1871,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	//Si no esta en la tabla global, creo otra entrada en dicha tabla
 	if(!existe)
 	{
-		log_info(kernelLog, "No encontre el archivo en la tabla global asi que lo agrego\n");
+		log_info(kernelLog, "No se ha encontrado el archivo en la tabla global por lo que sera creado\n");
 		archivo_global* nuevo = malloc(sizeof(archivo_global));
 		nuevo->instancias_abiertas = 1;
 		nuevo->ruta_del_archivo = path;
@@ -1955,7 +1887,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
 
-	log_info(kernelLog, "Setteando el nuevo archivo!\n");
+	log_info(kernelLog, "Setteando la entrada del archivo %s en la tabla de archivos locales del proceso %d\n", path, pid);
 	//Agrego la data de este archivo a la tabla del proceso que abre el archivo
 	tabla_archivos->current_fd++;
 	archivoAbierto->fd = tabla_archivos->current_fd;
@@ -2036,7 +1968,7 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
-		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
+		log_error(kernelLog, "Error de lectura en el proceso %d: File descriptor no valido\n", pid);
 		*error = fail;
 	}
 
@@ -2057,6 +1989,7 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 			encontrado = true;
 			arch_posta = arch_aux;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
+			log_info(kernelLog, "Se ha encontrado la entrada del archivo %d en la tabla de archivos locales del proceso %d\n", fd, pid);
 		}
 		k++;
 	}
@@ -2086,14 +2019,6 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 
 	offset = arch_posta->offset;
 
-	printf("\n");
-	printf("Codigo: %d\n", codigo);
-	printf("Tamaño Path: %d\n", size);
-	printf("Path: %s\n", arch->ruta_del_archivo);
-	printf("Offset: %d\n", arch_posta->offset);
-	printf("Tamaño mensaje: %d\n", messageLength);
-	printf("\n");
-
 	memcpy(buffer, &codigo, sizeof(uint32_t));
 	memcpy(buffer + sizeof(int32_t), &size, sizeof(int32_t));
 	memcpy(buffer + sizeof(int32_t)*2, arch->ruta_del_archivo, size);
@@ -2101,20 +2026,19 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	memcpy(buffer + sizeof(int32_t)*3 + size, &messageLength, sizeof(int32_t));
 
 	enviar(sockfd_fs, buffer, (sizeof(int32_t)*4) + size);
+	log_info(kernelLog, "Se ha enviado la peticion de lectura al FS\n");
 	int32_t codigo_recv;
 
 	int32_t datosRecibidos = recv(sockfd_fs,(void*)&codigo_recv, sizeof(int32_t),0);
-	printf("Codigo: %d -- bytesRecibidos=%d\n", codigo_recv,datosRecibidos);
 	if(codigo_recv == 1){
+		log_info(kernelLog, "El FS realizo la lecutra exitosamente\n");
 		recv(sockfd_fs,(void*)readText, messageLength,0);
-		/*
-		printf("Readtext: %s\n", (char *) readText);
-		printf("Readtext: %d\n", *(int8_t) readText);
-		*/
 		*error = 1;
 	}
-	else
+	else{
+		log_error(kernelLog, "Error: el FS fallo al hacer la lectura\n");
 		*error = fail;
+	}
 
 	free(buffer);
 
@@ -2144,7 +2068,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		enviar(sock_consola, buffer, (sizeof(int)*2) + messageLength);
 
 		free(buffer);
-		log_info(kernelLog, "Imprimi en consola el texto %s\n", message);
+		log_info(kernelLog, "El texto %s ha sido impreso en la consola correspondiente\n", message);
 	}
 
 	if(archivo == 0 || archivo == 2)
@@ -2169,7 +2093,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 		{
 			archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
 			//Si lo encuentro
-			log_info(kernelLog, "Encontre el archivo\n");
+			log_info(kernelLog, "El archivo fue encontrado\n");
 			if(arch_aux->fd == archivo)
 			{
 				//Agarro el flag para ese archivo
@@ -2272,10 +2196,10 @@ int execute_delete(int pid, int fd){
 	if(!encontrado)
 	{
 		printf("Ocurrio un error al borrar un archivo, revisar el log\n");
-		log_error(kernelLog, "Error al borrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
+		log_error(kernelLog, "Error al borrar el archivo %d para el proceso %d: no se ha encontrado la tabla de archivos del proceso\n", fd, pid);
 		return -2;
 	}
-	log_info(kernelLog, "El proceso %d existe\n", pid);
+	log_info(kernelLog, "Se ha encontrado la tabla de archivos del proceso %d\n", pid);
 	i = 0;
 	encontrado = false;
 	archivo_de_proceso* arch_aux;
@@ -2286,7 +2210,7 @@ int execute_delete(int pid, int fd){
 		arch_aux = list_get(tabla_archivos->lista_de_archivos, i);
 		if(arch_aux->fd == fd)
 		{
-			log_info(kernelLog, "Encontre el archivo %d para el proceso %d\n", fd, pid);
+			log_info(kernelLog, "Se ha encontrado el archivo %d para el proceso %d\n", fd, pid);
 			encontrado = true;
 			ubicacion_tabla_archivos = i;
 			referencia_tabla_global = arch_aux->referencia_a_tabla_global;
@@ -2297,7 +2221,7 @@ int execute_delete(int pid, int fd){
 	if(!encontrado)
 	{
 		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
-		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
+		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: El archivo nunca fue abierto\n", fd, pid);
 		return -3;
 	}
 
@@ -2313,19 +2237,14 @@ int execute_delete(int pid, int fd){
 		uint32_t reciever;
 		void* buffer = malloc(sizeof(uint32_t)*2 + size);
 
-		printf("\n");
-		printf("Size: %d\n", size);
-		printf("Nombre archivo: %s\n", arch->ruta_del_archivo);
-		printf("\n");
-
 		memcpy(buffer, &codigo_borrar, sizeof(uint32_t));
 		memcpy(buffer + sizeof(uint32_t), &size, sizeof(uint32_t));
 		memcpy(buffer + sizeof(uint32_t)*2, arch->ruta_del_archivo, size);
 
-		log_info(kernelLog, "Envie el archivo a borrar al FS\n");
+		log_info(kernelLog, "Se ha enviado el archivo a borrar al FS\n");
 		enviar(sockfd_fs, buffer, sizeof(uint32_t) + size);
 		recibir(sockfd_fs, &reciever, sizeof(uint32_t));
-		log_info(kernelLog, "Recibi una respuesta del FS\n");
+		log_info(kernelLog, "Se ha recibido una respuesta del FS\n");
 
 		free(buffer);
 		if(reciever)
@@ -2334,7 +2253,7 @@ int execute_delete(int pid, int fd){
 			free(arch);
 			list_remove(tabla_archivos->lista_de_archivos,ubicacion_tabla_archivos);
 			free(arch_aux);
-			log_info(kernelLog, "Elimine las entradas en las tablas local y global %d\n");
+			log_info(kernelLog, "Se han eliminado las entradas del archivo en las tablas local y global %d\n");
 			return reciever;
 		}
 		else
@@ -2350,6 +2269,7 @@ int execute_delete(int pid, int fd){
 		return -21;
 	}
 }
+
 
 //TODO el main
 
@@ -2380,6 +2300,7 @@ int main(int argc, char** argv) {
 	lista_en_ejecucion = list_create();
 	tabla_de_archivos_por_proceso = list_create();
 	procesos_a_borrar = list_create();
+	PCBs_usados = list_create();
 	proceso_conexion *nueva_conexion_cpu;
 	proceso_conexion *nueva_conexion_consola;
 
@@ -2516,17 +2437,6 @@ int main(int argc, char** argv) {
 					memset(buf, 0, 256*sizeof(char));	//limpiamos el buffer
 					if ((nbytes = recv(i, &codigo, sizeof(int), 0)) <= 0)
 					{
-						if (nbytes == 0)
-						{
-							log_error(kernelLog, "Selectserver: socket %d hung up\n", i);
-						}
-						else
-						{
-							int errornum = errno;
-							printf("Ocurrio un error, revisar el log\n");
-							log_error(kernelLog, "Se ha producido un error con un recv: %s\n", strerror(errornum));
-						}
-
 						bool fue_CPU = false;
 						//Dado que no sabemos a que proceso pertenece dicho socket,
 						//hacemos que se fije en ambas listas para encontrar el elemento y liberarlo
@@ -2896,7 +2806,7 @@ int main(int argc, char** argv) {
 							remove_by_fd_socket(lista_en_ejecucion, i);
 							pthread_mutex_unlock(&mutex_in_exec);
 
-							log_info(kernelLog, "Elimine el proceso de la lista de exec\n");
+							log_info(kernelLog, "Se elimino el proceso de la lista de exec\n");
 							int posicion = proceso_para_borrar(PID);
 							if(posicion < 0)
 							{
@@ -2926,7 +2836,7 @@ int main(int argc, char** argv) {
 
 							cpu->proceso = 0;
 
-							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
+							log_info(kernelLog, "Se settea el proceso actual de la CPU en 0\n");
 						}
 
 						//Si un proceso termino su rafaga...
@@ -2934,7 +2844,6 @@ int main(int argc, char** argv) {
 						{
 							//Lo recibo...
 							PCB *unPCB = recibirPCBV2(i);
-							//print_PCB2(unPCB);
 
 							datos_proceso* dp = get_datos_proceso(unPCB->pid);
 							dp->rafagas ++;
@@ -2952,14 +2861,17 @@ int main(int argc, char** argv) {
 							pthread_mutex_lock(&mutex_process_list);
 							PCB* PCB_vieja = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
 							PCB_vieja->estado = "Ready";
-							list_add(todos_los_procesos,unPCB);
+							list_add(todos_los_procesos,PCB_vieja);
 							pthread_mutex_unlock(&mutex_process_list);
+
+							log_info(kernelLog, "El proceso %d ha terminado una rafaga\n", PCB_vieja->pid);
 
 							int posicion = proceso_para_borrar(unPCB->pid);
 
 							if(posicion < 0)
 							{
 								//Meto el modificado en Ready
+								log_info(kernelLog, "El proceso %d ha sido colocado en la Ready queue\n", PCB_vieja->pid);
 								pthread_mutex_lock(&mutex_ready_queue);
 								queue_push(ready_queue,unPCB);
 								pthread_mutex_unlock(&mutex_ready_queue);
@@ -2970,7 +2882,7 @@ int main(int argc, char** argv) {
 							{
 								int consola_con = -1;
 								consola_con = buscar_consola_de_proceso(unPCB->pid);
-								log_info(kernelLog, "El proceso estaba para borrar\n");
+								log_info(kernelLog, "El proceso %d estaba para borrar\n", PCB_vieja->pid);
 
 								pthread_mutex_lock(&mutex_to_delete);
 								just_a_pid* peide = list_remove(procesos_a_borrar,posicion);
@@ -2983,8 +2895,9 @@ int main(int argc, char** argv) {
 								free(peide);
 							}
 
-							//Libero el PCB viejo (no funciona, por ahora se queda el PCB :v
-							//liberar_PCB(PCB_vieja);
+							borrar_PBCs_usados(PCB_vieja->pid);
+
+							list_add(PCBs_usados,unPCB);
 
 							pthread_mutex_lock(&mutex_fd_cpus);
 							proceso_conexion* cpu = buscar_conexion_de_cpu(i);
@@ -3021,7 +2934,7 @@ int main(int argc, char** argv) {
 							recibir(i, &(permisos->lectura), sizeof(bool));
 							recibir(i, &(permisos->escritura), sizeof(bool));
 
-							log_info(kernelLog, "Me pidieron abrir un archivo con las siguientes caracteristicas:\n");
+							log_info(kernelLog, "Se ha realizado una peticion de apertura de archivo con las siguientes caracteristicas:\n");
 							log_info(kernelLog, "PID: %d\n",pid);
 							log_info(kernelLog, "Path length: %d\n", path_length);
 							log_info(kernelLog, "Path: %s\n", file_path);
