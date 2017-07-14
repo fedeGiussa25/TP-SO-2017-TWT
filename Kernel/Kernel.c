@@ -1214,7 +1214,7 @@ void abort_process(uint32_t pid, int32_t codigo_error, uint32_t fd_cpu){
 
 	int proceso_borrado = proceso_para_borrar(pid);
 	bool hay_consola;
-	if(proceso_borrado < 0)
+	if(proceso_borrado > 0)
 		hay_consola = false;
 	else hay_consola = true;
 
