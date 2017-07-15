@@ -2485,7 +2485,7 @@ int main(int argc, char** argv) {
 									if((strcmp(pcb->estado,"Exit")) != 0)
 									{
 										log_info(kernelLog, "Se desconecto la Consola %d, que estaba esperando el proceso %d\n",consola_a_quitar->sock_fd,consola_a_quitar->proceso);
-										if(proceso_en_ejecucion(pid))
+										if(proceso_en_ejecucion(pcb->pid))
 										{
 											log_info(kernelLog, "El proceso esta en ejecucion, se debe esperar hasta que termine su rafaga\n");
 											just_a_pid* aux = malloc(sizeof(just_a_pid));
@@ -2715,6 +2715,10 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(PID);
 							dp->syscalls ++;
 
+							pthread_mutex_lock(&mutex_in_exec);
+							proceso_conexion* cpu = remove_by_fd_socket(lista_en_ejecucion, i);
+							pthread_mutex_unlock(&mutex_in_exec);
+
 							int posicion = proceso_para_borrar(PID);
 
 							if(posicion < 0){
@@ -2724,6 +2728,10 @@ int main(int argc, char** argv) {
 								pthread_mutex_lock(&mutex_semaforos_ansisop);
 								existe = existeSemaforo(id_sem);
 								pthread_mutex_unlock(&mutex_semaforos_ansisop);
+
+								pthread_mutex_lock(&mutex_in_exec);
+								list_add(lista_en_ejecucion, cpu);
+								pthread_mutex_unlock(&mutex_in_exec);
 
 								if(existe == true)
 								{
@@ -2758,9 +2766,8 @@ int main(int argc, char** argv) {
 										pthread_mutex_unlock(&mutex_exec_queue);
 
 										pthread_mutex_lock(&mutex_process_list);
-										PCB* PCB_a_modif = get_PCB_by_ID(todos_los_procesos,unPCB->pid);
+										PCB* PCB_a_modif = get_PCB(unPCB->pid);
 										PCB_a_modif->estado = "Block";
-										list_add(todos_los_procesos, PCB_a_modif);
 										pthread_mutex_unlock(&mutex_process_list);
 
 										log_info(kernelLog, "check 3\n");
@@ -2777,7 +2784,6 @@ int main(int argc, char** argv) {
 										cpu->proceso = 0;
 									}
 									pthread_mutex_unlock(&mutex_planificacion);
-									pthread_mutex_unlock(&mutex_planificacion);
 								}
 								else //Si no existe el semaforo
 								{
@@ -2789,10 +2795,6 @@ int main(int argc, char** argv) {
 
 							else
 							{
-								pthread_mutex_lock(&mutex_in_exec);
-								remove_by_fd_socket(lista_en_ejecucion, i);
-								pthread_mutex_unlock(&mutex_in_exec);
-
 								int consola_con = -1, resultado = -1;
 								consola_con = buscar_consola_de_proceso(PID);
 
