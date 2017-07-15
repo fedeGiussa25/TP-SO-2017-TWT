@@ -953,6 +953,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 			free(sendbuf_consola_mensajera);
 		}
 	}
+	printf("\n");
 	log_info(kernelLog, "Se ha finalizado todo el proceso de borrado\n");
 }
 
@@ -1075,6 +1076,7 @@ void print_commands()
 	printf("\t files		- Lista de los archivos de un proceso\n");
 	printf("\t data		- Informacion estadistica de un proceso\n");
 	printf("\t grado		- Modifica el grado de multiprogramacion\n");
+	printf("\t qsleep		- Modifica el quantum sleep");
 	printf("\t menu		- Mostrar menu\n\n");
 }
 
@@ -1227,6 +1229,23 @@ void set_multiprog(){
 	printf("\n");
 }
 
+void set_qsleep(){
+	int qsleep;
+	printf("Ingrese el nuevo quantum sleep (sleep actual: %d)\n", data_config.quantum_sleep);
+	scanf("%d", &qsleep);
+	if(qsleep < 1)
+		printf("Error: el quantum sleep debe ser mayor a 0\n");
+	else
+	{
+		//Por las dudas detengo la planificacion durante esta operacion
+		plan_go = false;
+		data_config.quantum_sleep = qsleep;
+		plan_go = true;
+		printf("El quantum sleep fue cambiado a %d\n", data_config.quantum_sleep);
+	}
+	printf("\n");
+}
+
 void menu()
 {
 	while(1)
@@ -1268,6 +1287,8 @@ void menu()
 			printf("%d\n",list_size(lista_en_ejecucion));
 		else if((strcmp(command, "giussa") == 0))
 			printf("%d\n",list_size(procesos_a_borrar));
+		else if((strcmp(command, "qsleep") == 0))
+			set_qsleep();
 		else
 		{
 			printf("Comando incorrecto. Ingrese otro comando: \n");
