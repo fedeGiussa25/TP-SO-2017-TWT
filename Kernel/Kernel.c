@@ -560,7 +560,6 @@ int proceso_para_borrar(int processID){
 	just_a_pid *aux;
 	while(i < dimension){
 		aux = list_get(procesos_a_borrar,i);
-		log_info(kernelLog, "%d\n", aux->proceso);
 		if(aux->proceso == processID)
 		{
 			pthread_mutex_unlock(&mutex_to_delete);
@@ -1896,17 +1895,14 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	archivoAbierto->fd = tabla_archivos->current_fd;
 
 	t_banderas* banderita = malloc(sizeof(t_banderas));
-	printf("Permisos creacion: %d\n",permisos->creacion);
 	if(permisos->creacion)
 		banderita->creacion = 1;
 	else banderita->creacion = 0;
 
-	printf("Permisos escritura: %d\n",permisos->escritura);
 		if(permisos->creacion)
 			banderita->escritura = 1;
 		else banderita->escritura = 0;
 
-	printf("Permisos lectura: %d\n",permisos->lectura);
 		if(permisos->creacion)
 			banderita->lectura = 1;
 		else banderita->lectura = 0;
@@ -2091,7 +2087,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 		//Busco el fd dentro de la tabla
 		int k = 0;
-		printf("%d\n",list_size(tabla_archivos->lista_de_archivos));
 		while(k < list_size(tabla_archivos->lista_de_archivos) && !(*encontrado))
 		{
 			archivo_de_proceso* arch_aux = list_get(tabla_archivos->lista_de_archivos, k);
@@ -2130,15 +2125,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
 					int offset = 0;
-
-					printf("\n");
-					printf("Codigo: %d\n", codigo);
-					printf("Tamaño Path: %d\n", size_arch);
-					printf("Path: %s\n", arch->ruta_del_archivo);
-					printf("Offset: %d\n", arch_aux->offset);
-					printf("Tamaño mensaje: %d\n", messageLength);
-					printf("Mensaje: %s\n", message);
-					printf("\n");
 
 					memcpy(buffer, &codigo, sizeof(uint32_t));
 					memcpy(buffer + sizeof(uint32_t), &size_arch, sizeof(uint32_t));
@@ -2557,6 +2543,7 @@ int main(int argc, char** argv) {
 						if(codigo == NUEVO_PROGRAMA)
 						{
 							//Agarro el resto del mensaje
+							printf("Ha llegado un script nuevo desde una consola\n");
 							log_info(kernelLog, "Ding, dong, bing, bong! Me llego un script!\n");
 
 							recv(i, &messageLength, sizeof(int), 0);
@@ -2594,6 +2581,8 @@ int main(int argc, char** argv) {
 							int pid;
 							recv(i,&pid,sizeof(int),0);
 							PCB* actual_PCB = get_PCB(pid);
+
+							printf("Recibi una operacion de eliminacion de proceso desde una consola\n");
 
 							if(strcmp(actual_PCB->estado,"Exec") == 0){
 								//Si esta en ejecucion lo dejo esperando a que lo cancelen
@@ -2850,7 +2839,6 @@ int main(int argc, char** argv) {
 							}
 
 							free(id_sem);
-							pthread_mutex_unlock(&mutex_planificacion);
 							pthread_mutex_unlock(&mutex_planificacion);
 						}
 

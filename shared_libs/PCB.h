@@ -532,7 +532,7 @@ void send_PCB(uint32_t sock_fd, PCB *pcb, uint32_t codigo){
 
 	send(sock_fd, ultimateBuffer, sizeof(uint32_t) + tamanio_total_buffer,0);
 
-	printf("Mande un PCB :D\n\n");
+	printf("Se ha enviado un PCB\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
 	free(ultimateBuffer); //Vos tambien.
 }
@@ -634,7 +634,7 @@ PCB* recibirPCB(uint32_t fd_socket)
 	{
 		recv(fd_socket, &cantArgumentos, sizeof(int),0);
 
-		printf("cant argums: %d\n", cantArgumentos);
+		//printf("cant argums: %d\n", cantArgumentos);
 		registroStack* nuevoReg = malloc(sizeof(registroStack));
 
 		nuevoReg->args = list_create();
@@ -667,7 +667,7 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 
 		nuevoReg->vars= list_create();
-		printf("cant vars: %d\n", cantVariables);
+		//printf("cant vars: %d\n", cantVariables);
 		if(cantVariables>0) //Si tiene variables
 		{
 		//Recibo variables:
