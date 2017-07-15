@@ -27,7 +27,7 @@ Bloque_t *blocks_to_process(int32_t sizeBloque,int32_t offset,int32_t size){
     Bloque_t *arrayBloques = NULL;
     int32_t bytesProcess = 0,cuentaVueltas = 0;
     while(bytesProcess<size){
-        int32_t partialSize;
+        int32_t partialSize=0;
         if(bytesProcess== 0)
             arrayBloques = malloc(sizeof(Bloque_t));
         else
@@ -571,7 +571,7 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     int32_t i;
     Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
     for(i=0;aux[i].id != -1;i++);
-    int32_t bloquesNecesarios = i - archivo->cantidadElementos;
+    int32_t bloquesNecesarios = i-1 - archivo->cantidadElementos;
 
     if(bloquesNecesarios >0){
         int32_t bloques = cantidadBloquesLibres(bitmap);
