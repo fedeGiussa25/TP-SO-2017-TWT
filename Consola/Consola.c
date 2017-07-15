@@ -620,6 +620,8 @@ int main(int argc, char** argv)
 
 	//Muestro lista de comandos
 	print_commands();
+	
+	closeAllThreads = false;
 
 	while(1)
 	{
