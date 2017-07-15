@@ -27,7 +27,7 @@
 //#include "../config_shortcuts/config_shortcuts.c"
 
 
-bool closeAllThreads = false;
+bool closeAllThreads;
 int idProceso = 2;
 t_list* thread_list;
 t_log *messagesLog;
@@ -433,6 +433,12 @@ void script_thread(thread_setup* ts)
 		counter++;*/
 	}
 
+	if(closeAllThreads)
+	{
+		log_info(messagesLog, "El hilo que ejecutaba el script %s (PID: %d) ha sido terminado por desconexion de la consola\n", ts->script, esteHilo->pid);
+		remover_de_lista(esteHilo);
+	}
+
 	//Seteo estructura para tiempo de finalizacion del programa
 	t2 = time(NULL);
 	local2 = localtime(&t2);
@@ -487,7 +493,12 @@ void iniciar_programa()
 	ts->threadID = (int)script_tret;
 	pthread_mutex_unlock(&mutex);
 
-	if((tret_value = pthread_create(&script_tret, NULL,(void*) script_thread, ts)) != 0)
+	//Genero un atributo de pthread para que lo cree como "detached"
+	pthread_attr_t attribute;
+	pthread_attr_init(&attribute);
+	pthread_attr_setdetachstate(&attribute, PTHREAD_CREATE_DETACHED);
+
+	if((tret_value = pthread_create(&script_tret, &attribute, (void*) script_thread, ts)) != 0)
 	{
 		log_error(messagesLog, "Se ha producido un error al crear un hilo\n");
 		printf("Error en pthread_create, linea 490\n");
@@ -495,12 +506,14 @@ void iniciar_programa()
 	else
 	{
 		log_info(messagesLog, "Hilo creado satisfactoriamente\n");
-		pthread_detach(script_tret);
+		pthread_detach(&script_tret);
 	}
+
+	pthread_attr_destroy(&attribute);
 }
 
 
-void finalizar_programa(int pid, char* tipo_de_finalizacion)
+void finalizar_programa(int pid)
 {
 	printf("Se finalizara el proceso seleccionado\n");
 
@@ -508,17 +521,12 @@ void finalizar_programa(int pid, char* tipo_de_finalizacion)
 	int sockfd_kernel;
 	uint32_t respuesta;
 	uint32_t codigo_finalizacion = 3;
-	uint32_t codigo_desconexion = 9;
 
 	sockfd_kernel = handshake_kernel("main");
 
 	void *buffer = malloc(sizeof(uint32_t)*2);
 
-	if(strcmp(tipo_de_finalizacion,"End")==0)
-		memcpy(buffer, &codigo_finalizacion, sizeof(uint32_t));
-
-	if(strcmp(tipo_de_finalizacion,"Disconnect")==0)
-		memcpy(buffer, &codigo_desconexion, sizeof(uint32_t));
+	memcpy(buffer, &codigo_finalizacion, sizeof(uint32_t));
 
 	memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
 
@@ -527,7 +535,7 @@ void finalizar_programa(int pid, char* tipo_de_finalizacion)
 
 	recv(sockfd_kernel,&respuesta, sizeof(uint32_t),0);
 
-	if(respuesta==0)
+	if(respuesta == 0)
 		log_info(messagesLog, "El proceso seleccionado no ha sido creado o ya ha sido borrado\n");
 
 	free(buffer);
@@ -538,22 +546,14 @@ void finalizar_programa(int pid, char* tipo_de_finalizacion)
 
 void desconectar_consola()
 {
-	printf("Se desconectaran los hilos\n");
+	printf("Se desconectaron los hilos\n");
 	log_info(messagesLog, "Se desconectaron los hilos\n");
-	pthread_mutex_lock(&thlist_mutex);
-	int i = 0, dimension = list_size(thread_list);
-	pthread_mutex_unlock(&thlist_mutex);
-	while(i < dimension){
-		pthread_mutex_lock(&thlist_mutex);
-		hilo_t* unHilo = list_get(thread_list,i);
-		pthread_mutex_unlock(&thlist_mutex);
 
-		finalizar_programa(unHilo->pid,"Disconnect");
+	closeAllThreads = true;
 
-		pthread_mutex_lock(&thlist_mutex);;
-		dimension = list_size(thread_list);
-		pthread_mutex_unlock(&thlist_mutex);
-	}
+	sleep(2);
+
+	closeAllThreads = false;
 }
 
 
@@ -613,13 +613,15 @@ int main(int argc, char** argv)
 	printf("PUERTO_KERNEL = %s\n", data_config.puerto_kernel);
 
 	//Creo logs (Los logs pueden mostrar por pantalla, asi que reemplazo los printf por esto)
-	messagesLog = log_create("../../Files/Logs/ConsoleMessages.log", "Consola", true, LOG_LEVEL_INFO);	//false para que no muestre por pantalla los msj
+	messagesLog = log_create("../../Files/Logs/ConsoleMessages.log", "Consola", false, LOG_LEVEL_INFO);	//false para que no muestre por pantalla los msj
 	log_info(messagesLog, "\n\n////////////////////////////////////////////////\n\n");
 
 	char *command = malloc(20);
 
 	//Muestro lista de comandos
 	print_commands();
+	
+	closeAllThreads = false;
 
 	while(1)
 	{
@@ -638,13 +640,12 @@ int main(int argc, char** argv)
 				log_info(messagesLog, "Se ha producido un error en un scanf\n");
 				printf("Error en scanf, linea 634\n");
 			}
-			finalizar_programa(*pid, "End");
+			finalizar_programa(*pid);
 			free(pid);
 			printf("\nIngrese un comando: ");
 		}
 		else if((strcmp(command, "dcon")) == 0)
 		{
-			closeAllThreads = 0;
 			desconectar_consola();
 			printf("\nIngrese un comando: ");
 		}
