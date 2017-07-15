@@ -875,6 +875,30 @@ void print_PCB(PCB* pcb){
 	printf("\n");
 }
 
+bool cpuOciosa;
+bool desconectarCPU;
+
+void manejador_SIGUSR1()
+{
+	printf("Se recibio la señal SIGUSR1\n");
+
+	if(cpuOciosa == false) //Termino rafaga actual
+	{
+		desconectarCPU = true;
+		log_info(messagesLog, "SIGUSR1: cuando termine la rafaga actual se desconectara esta CPU\n");
+		printf("SIGUSR1: cuando termine la rafaga actual se desconectara esta CPU\n");
+	} else
+	{
+		log_info(messagesLog, "SIGUSR1: Se desconecta esta CPU\n");
+		printf("SIGUSR1: Se desconecta esta CPU\n");
+		log_destroy(messagesLog);
+		close(fd_kernel);
+		close(fd_memoria);
+		exit(1);
+	}
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -930,8 +954,13 @@ int main(int argc, char **argv) {
 	uint32_t codigo, quantum_sleep;
 	int32_t  quantum;
 
+	desconectarCPU = false;
+
+	signal(SIGUSR1, manejador_SIGUSR1);
+
 	while(1)
-	{
+		{
+		cpuOciosa = true;
 		log_info(messagesLog, "Esperando proceso para ejecutar...\n");
 		printf("Esperando proceso para ejecutar...\n");
 		recv(fd_kernel, &quantum, sizeof(int32_t), 0);
@@ -944,6 +973,8 @@ int main(int argc, char **argv) {
 		log_info(messagesLog, "Se recibio un PCB\n");
 
 		print_PCB(nuevaPCB);
+
+		cpuOciosa = false;
 		excepcionMemoria = false;
 		programaTerminado = false;
 		procesoBloqueado = false;
@@ -965,11 +996,25 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}else if(procesoBloqueado == true){
 				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}else if(excepcionMemoria == true){
 				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
 				enviar(fd_kernel, &codigo, sizeof(uint32_t));
@@ -977,10 +1022,24 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, error_cod);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}
 			else{
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}
 		}
 		else{
@@ -1000,12 +1059,26 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Proceso %d terminado correctamente\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			} else if(procesoBloqueado == true)
 			{
 				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 
 			} else if((quantum == 0) && procesoAbortado == false && excepcionMemoria == false){
 				codigo = FIN_DE_QUANTUM;
@@ -1013,6 +1086,13 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			} else if(excepcionMemoria == true){
 				codigo = PROCESO_FINALIZO_ERRONEAMENTE;
 				enviar(fd_kernel, &codigo, sizeof(uint32_t));
@@ -1020,10 +1100,24 @@ int main(int argc, char **argv) {
 				send_PCBV2(fd_kernel, nuevaPCB, error_cod);
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}
 			else{
 				log_error(messagesLog, "Terminacion fallida del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
+				if(desconectarCPU)
+				{
+					log_destroy(messagesLog);
+					close(fd_kernel);
+					close(fd_memoria);
+					exit(1);
+				}
 			}
 		}
 	}
