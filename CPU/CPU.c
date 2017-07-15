@@ -1006,12 +1006,17 @@ int main(int argc, char **argv) {
 					exit(1);
 				}
 			}else if(procesoBloqueado == true){
+				if(desconectarCPU==false)
+				{
 				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
-				if(desconectarCPU)
-				{
+				} else{
+					codigo = PROCESO_FINALIZO_ERRONEAMENTE;
+					enviar(fd_kernel, &codigo, sizeof(uint32_t));
+					int32_t error_cod = -17;
+					send_PCBV2(fd_kernel, nuevaPCB, error_cod);
 					log_destroy(messagesLog);
 					close(fd_kernel);
 					close(fd_memoria);
@@ -1070,12 +1075,18 @@ int main(int argc, char **argv) {
 				}
 			} else if(procesoBloqueado == true)
 			{
+				if(desconectarCPU==false)
+				{
 				codigo = PROCESO_FINALIZO_CORRECTAMENTE;
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				printf("Se bloqueo el proceso\n");
 				liberar_PCB(nuevaPCB);
-				if(desconectarCPU)
+				} else
 				{
+					codigo = PROCESO_FINALIZO_ERRONEAMENTE;
+					enviar(fd_kernel, &codigo, sizeof(uint32_t));
+					int32_t error_cod = -17;
+					send_PCBV2(fd_kernel, nuevaPCB, error_cod);
 					log_destroy(messagesLog);
 					close(fd_kernel);
 					close(fd_memoria);
@@ -1083,13 +1094,19 @@ int main(int argc, char **argv) {
 				}
 
 			} else if((quantum == 0) && procesoAbortado == false && excepcionMemoria == false){
+				if(desconectarCPU==false)
+				{
 				codigo = FIN_DE_QUANTUM;
 				usleep(quantum_sleep*1000);
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);
-				if(desconectarCPU)
+				}else
 				{
+					codigo = PROCESO_FINALIZO_ERRONEAMENTE;
+					enviar(fd_kernel, &codigo, sizeof(uint32_t));
+					int32_t error_cod = -17;
+					send_PCBV2(fd_kernel, nuevaPCB, error_cod);
 					log_destroy(messagesLog);
 					close(fd_kernel);
 					close(fd_memoria);
