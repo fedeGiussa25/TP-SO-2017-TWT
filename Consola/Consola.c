@@ -598,11 +598,13 @@ int main(int argc, char** argv)
 	// Se fija si le pasaron los argumentos correctos al main
 
 	checkArguments(argc);
-	char *cfgPath = malloc(sizeof("../../Consola/") + strlen(argv[1])+1); //el programa se ejecuta en la carpeta 'Debug'; '../' hace que vaya un directorio arriba -> '../../' va 2 directorios arriba
+	/*char *cfgPath = malloc(sizeof("../../Consola/") + strlen(argv[1])+1); //el programa se ejecuta en la carpeta 'Debug'; '../' hace que vaya un directorio arriba -> '../../' va 2 directorios arriba
 	strcpy(cfgPath, "../../Consola/");
 
 	//Cargo archivo config e imprimo datos
-	config = config_create_from_relative_with_check(argv, cfgPath);
+	config = config_create_from_relative_with_check(argv, cfgPath);*/
+
+	config = config_create(argv[1]);
 
 	data_config.ip_kernel = config_get_string_value(config, "IP_KERNEL");
 	data_config.puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
@@ -684,7 +686,7 @@ int main(int argc, char** argv)
 
 	log_destroy(messagesLog);
 	config_destroy(config);
-	free(cfgPath);
+	//free(cfgPath);
 	free(command);
 	return 0;
 }
