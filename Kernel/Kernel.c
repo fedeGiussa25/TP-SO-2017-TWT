@@ -732,7 +732,7 @@ int execute_close(int pid, int fd)
 	{
 		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: el proceso no existe\n", fd, pid);
-		return -1;
+		return -2;
 	}
 
 	log_info(kernelLog, "El proceso %d existe\n", pid);
@@ -759,7 +759,7 @@ int execute_close(int pid, int fd)
 	{
 		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d - El archivo nunca fue abierto\n", fd, pid);
-		return -1;
+		return -12;
 	}
 
 	i = 0;
@@ -1076,7 +1076,7 @@ void print_commands()
 	printf("\t files		- Lista de los archivos de un proceso\n");
 	printf("\t data		- Informacion estadistica de un proceso\n");
 	printf("\t grado		- Modifica el grado de multiprogramacion\n");
-	printf("\t qsleep		- Modifica el quantum sleep");
+	printf("\t qsleep		- Modifica el quantum sleep\n");
 	printf("\t menu		- Mostrar menu\n\n");
 }
 
@@ -1982,14 +1982,13 @@ int move_cursor(int pid, int fd, int position)
 void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 {
 	void* readText = malloc(messageLength);
-	int32_t fail = -20;
 
 	if(fd < 3)
 	{
 		//Quiere leer de consola. Eso no debe pasar --> Error
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d: File descriptor no valido\n", pid);
-		*error = fail;
+		*error = -2;
 	}
 
 	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
@@ -2018,14 +2017,14 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El archivo nunca fue abierto por el proceso\n", fd, pid);
-		*error = fail;
+		*error = -12;
 	}
 
 	if(!arch_posta->flags->lectura)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al leer el archivo %d para el proceso %d: El proceso no tiene permisos para leer el archivo\n", fd, pid);
-		*error = fail;
+		*error = -3;
 	}
 
 	//Obtengo el path para el fd dado
@@ -2049,7 +2048,7 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	log_info(kernelLog, "Se ha enviado la peticion de lectura al FS\n");
 	int32_t codigo_recv;
 
-	int32_t datosRecibidos = recv(sockfd_fs,(void*)&codigo_recv, sizeof(int32_t),0);
+	recv(sockfd_fs,(void*)&codigo_recv, sizeof(int32_t),0);
 	if(codigo_recv == 1){
 		log_info(kernelLog, "El FS realizo la lecutra exitosamente\n");
 		recv(sockfd_fs,(void*)readText, messageLength,0);
@@ -2057,7 +2056,7 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	}
 	else{
 		log_error(kernelLog, "Error: el FS fallo al hacer la lectura\n");
-		*error = fail;
+		*error = -14;
 	}
 
 	free(buffer);
@@ -2165,7 +2164,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 						//Termino el proceso con exit code -11 -> El fs no pudo escribir el archivo
 						printf("El fs no pudo modificar el archivo seleccionado\n");
 						log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El fs no pudo modificar el archivo seleccionado\n", archivo, pid);
-						return -11;
+						return -14;
 					}
 				}
 			}
@@ -2178,7 +2177,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 			//end_process(pid,-4,sock_consola, true);
 			printf("El archivo pedido nunca fue abierto por el proceso\n");
 			log_error(kernelLog, "Error al escribir el archivo %d para el proceso %d: El archivo pedido nunca fue abierto por el proceso\n", archivo, pid);
-			return -4;
+			return -12;
 		}
 	}
 	log_info(kernelLog, "La escritura se realizo correctamente\n");
@@ -2232,7 +2231,7 @@ int execute_delete(int pid, int fd){
 	{
 		printf("Ocurrio un error al cerrar un archivo, revisar el log\n");
 		log_error(kernelLog, "Error al cerrar el archivo %d para el proceso %d: El archivo nunca fue abierto\n", fd, pid);
-		return -3;
+		return -12;
 	}
 
 	pthread_mutex_lock(&mutex_archivos_globales);
@@ -2269,14 +2268,14 @@ int execute_delete(int pid, int fd){
 		else
 		{
 			log_info(kernelLog, "Error: el Filesystem no pudo borrar el archivo %d\n");
-			return -20;
+			return -15;
 		}
 	}
 	else
 	{
 		log_info(kernelLog, "Error: varios procesos tienen abierto el archivo %d\n");
 		//Hay varios procesos que lo abrieron => No se puede borrar
-		return -21;
+		return -16;
 	}
 }
 
@@ -2460,7 +2459,7 @@ int main(int argc, char** argv) {
 							{
 								log_info(kernelLog, "Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
 								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
-								end_process(cpu_a_quitar->proceso, -20, consola, true);
+								end_process(cpu_a_quitar->proceso, -17, consola, true);
 
 								pthread_mutex_unlock(&mutex_planificacion);
 								pthread_mutex_lock(&mutex_in_exec);
@@ -3054,9 +3053,10 @@ int main(int argc, char** argv) {
 							{
 								//Posibles errores:
 								// > -2 -> El archivo no existe
-								// > -3 -> Permisos no validos o hubo problemas al acceder al archivo para leerlo
-								// > -20 -> Fallo del FS
-								abort_process(pid,-20,i);
+								// > -3 -> Permisos no validos
+								// > -12 -> El archivo nunca fue abierto por el proceso
+								// > -13 -> Fallo el FS en la lectura
+								abort_process(pid,error,i);
 							}
 							else
 							{
@@ -3090,6 +3090,11 @@ int main(int argc, char** argv) {
 							int resultado = execute_write(pid, archivo, message, messageLength, sockfd_memoria);
 
 							if(resultado < 0)
+								//Posibles errores:
+								// > -2 -> El archivo no existe
+								// > -3 -> Permisos no validos
+								// > -12 -> El archivo nunca fue abierto
+								// > -14 -> Fallo el FS en la escritura
 								abort_process(pid, resultado, i);
 							else
 								enviar(i, &resultado, sizeof(int));
@@ -3115,13 +3120,12 @@ int main(int argc, char** argv) {
 							if(fd != 1)
 								resultado = execute_close(pid, fd);
 
-							if(resultado == -1)
+							if(resultado < 0)
 							{
-								//Codigo de error -12
-								//Error al cerrar el archivo - No existe el proceso en la tabla de archivos
-								//o no esta el fd en la tabla de archivos del proceso
-								int32_t codigo_error = -12;
-								abort_process(pid, codigo_error, i);
+								//Posibles errores:
+								// > -2 -> El archivo no existe
+								// > -12 -> El archivo nunca fue abierto
+								abort_process(pid, &resultado, i);
 
 							}
 							else
@@ -3343,6 +3347,11 @@ int main(int argc, char** argv) {
 
 							resultado = execute_delete(PID,fd);
 							if(resultado < 0)
+								//Posibles errores:
+								// > -2 -> El archivo no existe
+								// > -12 -> El archivo nunca fue abierto
+								// > -15 -> Fallo el FS en el borrado
+								// > -16 -> Se quiso borrar un archivo abierto por varios procesos
 								abort_process(PID,resultado,fd);
 							else
 								enviar(i, &resultado, sizeof(int));
