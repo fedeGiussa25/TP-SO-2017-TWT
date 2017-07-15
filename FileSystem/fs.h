@@ -22,52 +22,42 @@ int32_t bloque_offset(int32_t offset,int32_t sizeBloque){
     return i;
 }
 
-Bloque_t *blocks_to_process(int32_t sizeBloque,int32_t offset,int32_t sizeOp){
-    int32_t readed = 0,counter = 0;
-    Bloque_t *returned = NULL;
-    while(readed < sizeOp){
-        if(readed == 0)
-            returned = malloc(sizeof(Bloque_t));
-        else
-            returned = realloc(returned,sizeof(Bloque_t)*(counter+1));
-        int32_t data = bloque_offset(offset+readed,sizeBloque);
-        int32_t proximoLeer;
-        if(readed == 0){
-            if(sizeOp > sizeBloque)
-                proximoLeer=(offset-(data-1)*sizeBloque);
-            else
-                proximoLeer = sizeOp;
-        }
-        else{
-            if(sizeOp-readed >sizeBloque)
-                proximoLeer = sizeBloque;
-            else
-                proximoLeer = sizeOp - readed;
-        }
-        int32_t actualOffset;
-        if(readed ==0){
-            actualOffset = proximoLeer;
-            proximoLeer = sizeBloque - proximoLeer;
-            readed+=proximoLeer;
-        }
-        else{
-            actualOffset = 0;
-            readed +=proximoLeer;
-        }
-        returned[counter].id = data -1;
-        returned[counter].offset = actualOffset;
-        returned[counter].size = proximoLeer;
-        counter++;
-    }
-    returned = realloc(returned,sizeof(Bloque_t)*(counter+1));
-    returned[counter].id = -1;
-    return returned;
-}
 
-typedef struct {
-    char* puerto;
-    char* montaje;
-} fs_config;
+Bloque_t *blocks_to_process(int32_t sizeBloque,int32_t offset,int32_t size){
+    Bloque_t *arrayBloques = NULL;
+    int32_t bytesProcess = 0,cuentaVueltas = 0;
+    while(bytesProcess<size){
+        int32_t partialSize;
+        if(bytesProcess== 0)
+            arrayBloques = malloc(sizeof(Bloque_t));
+        else
+            arrayBloques = realloc(arrayBloques,sizeof(Bloque_t)*(cuentaVueltas+1));
+        int32_t idBloque = bloque_offset(offset,sizeBloque) - 1;
+        int32_t actualOffset = offset-idBloque*sizeBloque;
+        if(size+actualOffset<=sizeBloque){
+            arrayBloques[cuentaVueltas].id = idBloque;
+            arrayBloques[cuentaVueltas].offset = actualOffset;
+            arrayBloques[cuentaVueltas].size = size;
+            partialSize+=size;
+        }else{
+            int32_t idBloque = bloque_offset(offset+bytesProcess,sizeBloque) - 1;
+            int32_t actualOffset = offset+bytesProcess-idBloque*sizeBloque;
+            arrayBloques[cuentaVueltas].id = idBloque;
+            arrayBloques[cuentaVueltas].offset =actualOffset;
+            if(size-bytesProcess <= sizeBloque-actualOffset){
+                arrayBloques[cuentaVueltas].size =  size-bytesProcess;
+            }else{
+                arrayBloques[cuentaVueltas].size=sizeBloque-actualOffset;
+            }
+            partialSize=arrayBloques[cuentaVueltas].size;
+        }
+        bytesProcess+=partialSize;
+        cuentaVueltas++;
+    }
+    arrayBloques = realloc(arrayBloques,sizeof(Bloque_t)*(cuentaVueltas+1));
+    arrayBloques[cuentaVueltas].id = -1;
+    return arrayBloques;
+}
 
 char *unir_str(char* str1,char* str2){
     char *retorno = malloc(strlen(str1) + strlen(str2) + 1);
@@ -75,6 +65,29 @@ char *unir_str(char* str1,char* str2){
     strcat(retorno,str2);
     return retorno;
 }
+
+void dirPathCreate(char *path,char *montaje){
+    if(path[strlen(path)] == '/')
+        return;
+    char *fullPath = unir_str(montaje,path);
+    int i,lugarBar=0;
+    for (i = 0; i < strlen(fullPath); i++)
+        if(fullPath[i] == '/')
+            lugarBar = i;
+    char *text =malloc(lugarBar + 1);
+    strncpy(text,fullPath,lugarBar);
+    free(fullPath);
+    char *command=unir_str("mkdir -p ",text);
+    free(text);
+    system(command);
+    free(command);
+}
+
+typedef struct {
+    char* puerto;
+    char* montaje;
+} fs_config;
+
 
 void checkArguments(int argc){
     if(argc == 1)
@@ -121,7 +134,7 @@ uint32_t exist(char *nombreArchivo,char *rutaBase){
 	return var;
 }
 
-char* obtieneNombreArchivo(uint32_t socketReceiver){
+char *obtieneNombreArchivo(uint32_t socketReceiver){
 	uint32_t size_name;
 	char *nombre;
 	recibir(socketReceiver,(void *)&size_name,sizeof(uint32_t));
@@ -339,6 +352,7 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	if(exist(path,montaje)==true)
 		return false;
 	log_info(log,"Tratando de Crear un Archivo en %s\n",path );
+    dirPathCreate(path,montaje);
 	char* fullPath = unir_str(montaje,path);
 	FILE *archivo = fopen(fullPath,"w");
 	if(archivo == NULL)
@@ -352,15 +366,9 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
     log_info(log,"El primer bloque libre fue el %d\n",bloque);
 	agregarBloque(aux,bloque,log);
 	bitarray_set_bit(data,bloque);
-	t_config *config = config_create(fullPath);
-	config_set_value(config,"TAMANIO", "0");
-	char *array = array_to_write(aux);
-	config_set_value(config,"BLOQUES",array);
-
-	config_save(config);
-	free(array);
-	config_destroy(config);
-
+	Archivo_guardar(path,montaje,aux,log);
+    kill_archivo(aux);
+    log_info(log,"ARCHIVO CREADO CORRECTAMENTE");
 	free(fullPath);
 	return true;
 }
@@ -398,20 +406,20 @@ void cleanBloques(Archivo_t *aux,t_bitarray *data){
 int32_t delete_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	char* fullPath = unir_str(montaje,path);
 
-    t_config *config = config_create(fullPath);
-    if(config == NULL){
+    t_config *configDL = config_create(fullPath);
+    if(configDL == NULL){
         free(fullPath);
 		log_error(log,"EL ARCHIVO NO EXISTE");
         return false;
     }
-    if((!config_has_property(config,"BLOQUES") ||  !config_has_property(config,"TAMANIO"))){
+    if((!config_has_property(configDL,"BLOQUES") ||  !config_has_property(configDL,"TAMANIO"))){
         log_info(log,"EL ARCHIVO NO TIENE EL FORMATO PERO IGUALEMENTE ES BORRADO");
 		remove(fullPath);
-        config_destroy(config);
+        config_destroy(configDL);
         free(fullPath);
         return true;
     }
-    config_destroy(config);
+    config_destroy(configDL);
 	Archivo_t *aux = get_data_Archivo(fullPath);
 	if(aux == NULL){
 		log_error(log,"no se pudo crear el ARCHIVO_T --- SALIENDO ");
@@ -421,6 +429,7 @@ int32_t delete_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	cleanBloques(aux,data);
 	remove(fullPath);
 	free(fullPath);
+    log_info(log, "ARCHIVO ELIMINADO CORRECTAMENTE");
 	return true;
 }
 int32_t validar_archivo(char* path,char* montaje,t_log *log){
@@ -469,6 +478,7 @@ int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,v
         return NULL;
     int i;
     fseek(writer,offset,SEEK_SET);
+    printf("%d",size);
     for(i=0;i<size;i++)
         fwrite(buffer+i,sizeof(char),1,writer);
     fclose(writer);
@@ -479,6 +489,7 @@ int32_t writeToBlock(char* block,char* montajeBlck,int32_t offset,int32_t size,v
 
 void* obtener_datos(char* path,char* montaje, int32_t offset,int32_t size,int32_t sizeBloque,char* pathBloques,t_log *log,int32_t *error){
 	*error = 0;
+    log_info(log,"INICIO OBTENER DATOS");
     if(validar_archivo(path,montaje,log) == false){
         log_info(log,"ARCHIVO %s NO VALIDO",path);
         *error =-FNF;
@@ -544,7 +555,8 @@ int32_t max(int32_t numA,int32_t numB){
     return numB;
 }
 int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void* buffer,t_bitarray* bitmap,int32_t sizeBloque,char* pathBloques,t_log *log){
-	log_info(log,"Recibi para verificar %s con %d offset y %d size",path,offset,size);
+	log_info(log,"INICIO GUARDAR DATOS");
+    log_info(log,"Recibi para verificar %s con %d offset y %d size",path,offset,size);
     if(validar_archivo(path,montaje,log) == false){
         log_error(log,"ARCHIVO %s NO VALIDO",path);
 		return -FNF;
