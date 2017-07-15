@@ -3104,7 +3104,8 @@ int main(int argc, char** argv) {
 
 						if(codigo == CERRAR_ARCHIVO)
 						{
-							uint32_t fd, pid, resultado = 1;
+							uint32_t fd, pid;
+							int resultado = 1;
 
 							//Recibo pid y fd
 							recibir(i, &pid, sizeof(uint32_t));
@@ -3125,7 +3126,7 @@ int main(int argc, char** argv) {
 								//Posibles errores:
 								// > -2 -> El archivo no existe
 								// > -12 -> El archivo nunca fue abierto
-								abort_process(pid, &resultado, i);
+								abort_process(pid, resultado, i);
 
 							}
 							else
