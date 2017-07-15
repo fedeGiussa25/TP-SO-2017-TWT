@@ -829,7 +829,7 @@ void clean_heap(uint32_t direccion){
 			if(otroPuntero->isFree == true){
 				uint32_t valor_anterior = (unPuntero->size);
 				unPuntero->size = (unPuntero->size) + (otroPuntero->size) + sizeof(heapMetadata);
-				printf("El heapMetadata que apuntaba a %d ya no existe y el puntero que apuntaba a %d ahora apunta a %d\n", otroPuntero->size, valor_anterior,unPuntero->size);
+				//printf("El heapMetadata que apuntaba a %d ya no existe y el puntero que apuntaba a %d ahora apunta a %d\n", otroPuntero->size, valor_anterior,unPuntero->size);
 			}else{
 				corrimiento = corrimiento + sizeof(heapMetadata) + unPuntero->size;
 			}
