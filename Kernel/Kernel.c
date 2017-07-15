@@ -2717,15 +2717,15 @@ int main(int argc, char** argv) {
 							datos_proceso* dp = get_datos_proceso(PID);
 							dp->syscalls ++;
 
-							log_info(kernelLog, "CPU pide: Wait en semaforo: %s\n\n", id_sem);
-
-							pthread_mutex_lock(&mutex_semaforos_ansisop);
-							existe = existeSemaforo(id_sem);
-							pthread_mutex_unlock(&mutex_semaforos_ansisop);
-
 							int posicion = proceso_para_borrar(PID);
-
 							if(posicion < 0){
+
+								log_info(kernelLog, "CPU pide: Wait en semaforo: %s\n\n", id_sem);
+
+								pthread_mutex_lock(&mutex_semaforos_ansisop);
+								existe = existeSemaforo(id_sem);
+								pthread_mutex_unlock(&mutex_semaforos_ansisop);
+
 								if(existe == true)
 								{
 
@@ -2789,13 +2789,21 @@ int main(int argc, char** argv) {
 							}
 							else
 							{
-								int consola_con = -1;
+								pthread_mutex_lock(&mutex_in_exec);
+								remove_by_fd_socket(lista_en_ejecucion, i);
+								pthread_mutex_unlock(&mutex_in_exec);
+
+								int consola_con = -1, resultado = -1;
 								consola_con = buscar_consola_de_proceso(PID);
+
 								log_info(kernelLog, "El proceso %d estaba para borrar\n", PID);
+
 								pthread_mutex_lock(&mutex_to_delete);
 								just_a_pid* peide = list_remove(procesos_a_borrar,posicion);
 								pthread_mutex_unlock(&mutex_to_delete);
+
 								log_info(kernelLog, "El proceso estaba para borrar\n");
+
 								if(peide->exit_code == -7)
 									end_process(PID, peide->exit_code, peide->consola_askeadora, peide->connection);
 								else
@@ -2807,6 +2815,8 @@ int main(int argc, char** argv) {
 								pthread_mutex_unlock(&mutex_fd_cpus);
 
 								cpu->proceso = 0;
+
+								enviar(i,&resultado,sizeof(int));
 
 								log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
 								pthread_mutex_unlock(&mutex_planificacion);
