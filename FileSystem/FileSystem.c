@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 	config_destroy(config);
 
 	free(miMetadata);
-	if(!exist("Bitmap.bin",pathMetadata))
+	if(!exist("Bitmap.bin",pathMetadata) || sizeFile("Bitmap.bin",pathMetadata)!= cantidadBloques/8)
 		create_binFile(pathMetadata,"Bitmap",cantidadBloques/8);
 	char *miBitmap = unir_str(pathMetadata,"Bitmap.bin");
 	void* dataArchivo;
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 	int32_t msg,offset,size;
 	while(1){
 		if(recibir(kernel,&msg,sizeof(int32_t))==NULL)
-			exit(6);
+			break;
 		switch(msg){
 			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);

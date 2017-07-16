@@ -1,9 +1,23 @@
 begin
-  variables a, f
-  alocar a 100
+  variables a, f, p, i, t
+
+  t=65
+  i=24
+  alocar a t
+  *a=60
   abrir f LEC /largeFile.bin
-  *a=88
-  escribir f a 332280
+
+  p=0
+  p= p-1
+  :escribeotro
+  escribir f a t
+  i=i-1
+
+  p=p+64
+  buscar f p
+
+  jnz i escribeotro
+
   cerrar f
   liberar a
 end
