@@ -236,6 +236,17 @@ void dump_de_proceso(int pid){
 	}
 }
 
+uint32_t marcos_libres(){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	int i, cant_marcos = data_config.marcos, cant_libres = 0;
+	for(i=0; i<cant_marcos; i++){
+		if(tabla[i].PID == -2){
+			cant_libres ++;
+		}
+	}
+	return cant_libres;
+}
+
 //Funciones de indice de Hash
 
 unsigned int calcular_posicion(int pid, int num_pagina) {
@@ -564,6 +575,60 @@ uint32_t paginas_de_proceso(uint32_t pid){
 	return cant_paginas;
 }
 
+espacio_reservado *buscar_espacioV2(uint32_t pid, uint32_t paginas_necesarias){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
+
+	int paginas_libres = marcos_libres();
+
+	if(paginas_necesarias <= paginas_libres){
+		int i;
+		for(i=0; i<paginas_necesarias; i++){
+			int posicion_hash = calcular_posicion(pid, i), j=0;
+			printf("La posicion calculada es: %d\n", posicion_hash);
+			bool encontrado = false;
+			while(encontrado == false && (posicion_hash+j) < data_config.marcos){
+				if(tabla[posicion_hash+j].PID == -2){
+					tabla[posicion_hash+j].PID = pid;
+					tabla[posicion_hash+j].pagina = i;
+					agregar_frame_en_indice(posicion_hash, (posicion_hash+j));
+					encontrado = true;
+				}else{
+					j++;
+				}
+			}
+			if(encontrado == false){
+				j=0;
+				while(encontrado == false){
+					if(tabla[posicion_hash+j].PID == -2){
+						tabla[posicion_hash+j].PID = pid;
+						tabla[posicion_hash+j].pagina = i;
+						agregar_frame_en_indice(posicion_hash, (posicion_hash+j));
+						encontrado = true;
+					}else{
+						j++;
+					}
+				}
+			}
+		}
+		int posicion_en_hash = calcular_posicion(pid, 0);
+		int frame = buscar_en_indice(posicion_en_hash, pid, 0);
+
+		espacio->page_counter = paginas_necesarias;
+		espacio->direccion = frame*(data_config.marco_size);
+
+		printf("Se ha guardado el script correctamente\n");
+		log_info(messagesLog,"Se ha guardado el script correctamente\n");
+
+		return espacio;
+	}else{
+		log_error(messagesLog,"No hay espacio suficiente para el pedido\n");
+		espacio->direccion = -1;
+		espacio->page_counter = -1;
+		return espacio;
+	}
+}
+
 espacio_reservado *buscar_espacio(u_int32_t PID, int size, void *script, int stack){
 	entrada_tabla *tabla = (entrada_tabla *) memoria;
 	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
@@ -730,6 +795,71 @@ void *lectura(u_int32_t PID, int pagina, int inicio, int offset){
 			aumentar_referencias();
 			set_zero_ref(unaCache.pid, unaCache.pagina);
 		}
+	return instruccion;
+}
+
+void *lecturaV2(u_int32_t PID, int pagina, int inicio, int offset){
+	int frame, posicion_en_indice;
+	int tamanio_pagina = data_config.marco_size;
+
+	void *instruccion = malloc(offset);
+
+	if((inicio+offset) <= tamanio_pagina){
+		if(esta_en_cache(PID, pagina) == false){
+			usleep(data_config.retardo_memoria * 1000);
+
+			posicion_en_indice = calcular_posicion(PID, pagina);
+			frame = buscar_en_indice(posicion_en_indice, PID, pagina);
+			if(frame < 0){
+				printf("Page not Found\n");
+				//memcpy(instruccion, "\0", strlen("\0"));
+				instruccion = NULL;
+				return instruccion;
+			}
+
+
+			int direccion_fisica = frame*tamanio_pagina;
+			//Copiamos la instruccion
+			memcpy(instruccion, memoria+direccion_fisica+inicio, offset);
+
+			//Insertamos la pagina en la cache
+			aumentar_referencias();
+			insertar_entrada(PID, pagina, frame);
+
+			}else{
+				log_info(messagesLog,"La pagina esta en cache\n");
+				entrada_cache unaCache = buscar_entrada(PID, pagina);
+				memcpy(instruccion, (unaCache.contenido+inicio), offset);
+				aumentar_referencias();
+				set_zero_ref(unaCache.pid, unaCache.pagina);
+			}
+	}else{
+		int resto = (inicio+offset) % tamanio_pagina;
+		int primera_parte = offset - resto;
+
+		printf("primera parte %d, resto %d \n", primera_parte, resto);
+
+		usleep(data_config.retardo_memoria * 1000);
+
+		posicion_en_indice = calcular_posicion(PID, pagina);
+		frame = buscar_en_indice(posicion_en_indice, PID, pagina);
+
+		if(frame < 0){
+			printf("Page not Found\n");
+			//memcpy(instruccion, "\0", strlen("\0"));
+			instruccion = NULL;
+			return instruccion;
+		}
+		int direccion_fisica = frame*tamanio_pagina;
+
+
+		memcpy(instruccion, memoria+direccion_fisica+inicio, primera_parte);
+		memcpy(instruccion+primera_parte, memoria+direccion_fisica+tamanio_pagina, resto);
+
+		aumentar_referencias();
+		insertar_entrada(PID, pagina, frame);
+	}
+
 	return instruccion;
 }
 
@@ -964,7 +1094,7 @@ void *thread_proceso(int fd){
 			pthread_mutex_lock(&mutex_memoria);
 			if(codigo == HANDSHAKE){
 				send(fd, &data_config.marco_size, sizeof(int), 0);
-			}
+			}/*
 			if(codigo == NUEVO_PROCESO){
 				espacio_reservado *espacio;
 				bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
@@ -986,6 +1116,46 @@ void *thread_proceso(int fd){
 
 				free(espacio);
 				free(aux);
+			}*/
+			if(codigo == NUEVO_PROCESO){
+				espacio_reservado *espacio;
+				bytes = recv(fd, &PID, sizeof(u_int32_t), 0);
+				recv(fd, &paginas_stack, sizeof(int), 0);
+				recv(fd, &messageLength, sizeof(int), 0);
+				void* aux = malloc(messageLength+2);
+				memset(aux,0,messageLength+2);
+				recv(fd, aux, messageLength, 0);
+				memset(aux+messageLength+1,'\0',1);
+
+				div_t paginas_necesarias;
+				int marcos_size = data_config.marco_size;
+				int paginas_usadas;
+
+				paginas_necesarias = div(messageLength+2, marcos_size);
+				paginas_usadas = paginas_necesarias.quot;
+				if(paginas_necesarias.rem > 0){
+					paginas_usadas = paginas_usadas + 1;
+				}
+
+				espacio = buscar_espacioV2(PID, paginas_usadas+paginas_stack);
+
+				if(espacio->page_counter > 0){
+
+					if(paginas_necesarias.quot == 0){
+						escritura(PID, paginas_usadas-1, 0, messageLength+2, aux);
+					}else{
+						int i;
+						for(i=0; i<paginas_usadas-1; i++){
+							escritura(PID, i, 0, marcos_size, aux+i*marcos_size);
+						}
+						escritura(PID, paginas_usadas-1, 0, paginas_necesarias.rem, aux+(paginas_necesarias.quot*marcos_size));
+					}
+				}
+				send(fd, &espacio->page_counter, sizeof(int), 0);
+				send(fd, &espacio->direccion, sizeof(int), 0);
+
+				free(espacio);
+				free(aux);
 			}
 			if(codigo == LEER){
 
@@ -995,7 +1165,7 @@ void *thread_proceso(int fd){
 				recv(fd, &offset, sizeof(int), 0);
 
 				//char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
-				void *instruccion = lectura(PID, pagina, inicio, offset);
+				void *instruccion = lecturaV2(PID, pagina, inicio, offset);
 				int error;
 				if(instruccion != NULL){
 					int tamanio = offset - 1;

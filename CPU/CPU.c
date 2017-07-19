@@ -820,14 +820,16 @@ char* obtener_instruccion(PCB *pcb){
 	int messageLength, bytes, instruccion_a_buscar, inicio, offset, pagina_de_codigo = 0;
 
 	instruccion_a_buscar = pcb->program_counter;
-	inicio = pcb->indice_de_codigo[instruccion_a_buscar].inicio;
+	//inicio = pcb->indice_de_codigo[instruccion_a_buscar].inicio;
 	offset = pcb->indice_de_codigo[instruccion_a_buscar].offset;
+
+	div_t division = div(pcb->indice_de_codigo[instruccion_a_buscar].inicio, tamanioPagina);
 
 	void *buffer = malloc(sizeof(u_int32_t)+ sizeof(int)*4);
 	memcpy(buffer,&codigo,sizeof(int));
 	memcpy(buffer+sizeof(int),&(pcb->pid),sizeof(u_int32_t));
-	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &pagina_de_codigo, sizeof(int));
-	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &inicio, sizeof(int));
+	memcpy(buffer+sizeof(int)+sizeof(u_int32_t), &(division.quot), sizeof(int));
+	memcpy(buffer+sizeof(int)*2+sizeof(u_int32_t), &(division.rem), sizeof(int));
 	memcpy(buffer+sizeof(int)*3+sizeof(u_int32_t), &offset, sizeof(int));
 
 	send(fd_memoria, buffer, sizeof(u_int32_t)+ sizeof(int)*4,0);
