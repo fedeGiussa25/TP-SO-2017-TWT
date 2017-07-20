@@ -10,7 +10,7 @@
 #include <string.h>
 #include <commons/collections/queue.h>
 
-struct sockaddr_in initAddr(in_addr_t address,uint32_t puerto){
+struct sockaddr_in initAddr(in_addr_t address,int32_t puerto){
 	struct sockaddr_in my_addr;
 	my_addr.sin_family = AF_INET;
 	// Ordenación de máquina
@@ -25,16 +25,22 @@ struct sockaddr_in initAddr(in_addr_t address,uint32_t puerto){
 	return my_addr;
 }
 
-uint32_t enviar(uint32_t socketd, void *buf,uint32_t bytestoSend){
-	uint32_t numbytes;
-	if (numbytes = send(socketd, buf, bytestoSend, 0) < 0){
-		exit(10);
-	}
+int32_t enviar(int32_t socketd, void *buf,int32_t bytestoSend){
+	int32_t numbytes =0;
+    int32_t tempSend;
+    while (bytestoSend - numbytes >0){
+        if (tempSend = send(socketd, buf+numbytes, bytestoSend-numbytes, 0) < 0){
+            return -1;
+        }
+        numbytes+=tempSend;
+        if(tempSend == 0)
+            return 0;
+    }
 	return numbytes;
 }
 
-uint32_t recibir(uint32_t socketd, void *buf,uint32_t bytestoRecv){
-	uint32_t numbytes =recv(socketd, buf, bytestoRecv, 0);
+int32_t recibir(int32_t socketd, void *buf,int32_t bytestoRecv){
+	int32_t numbytes =recv(socketd, buf, bytestoRecv,MSG_WAITALL);
 	if(numbytes <=0){
 		if ((numbytes) <0) {
 			perror("recv");	
@@ -45,8 +51,8 @@ uint32_t recibir(uint32_t socketd, void *buf,uint32_t bytestoRecv){
 	}
 	return numbytes;
 }
-uint32_t initSocket(void){
-	uint32_t sockfd;
+int32_t initSocket(void){
+	int32_t sockfd;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);// ¡Comprueba que no hay errores!
 	if(sockfd ==-1 ){
 		perror("Socket:");
@@ -54,31 +60,31 @@ uint32_t initSocket(void){
 	}
 	return sockfd;
 }
-void setsocket(uint32_t sockfd,uint32_t *num){
+void setsocket(int32_t sockfd,int32_t *num){
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, num,sizeof(*num)) == -1) {
 		perror("setsockopt");
 		exit(1);
 	}
 }
-void bindeo(uint32_t sockfd,struct sockaddr_in *hostServer ){
+void bindeo(int32_t sockfd,struct sockaddr_in *hostServer ){
 	if (bind(sockfd, (struct sockaddr *)hostServer, sizeof(*hostServer)) == -1) {
 		perror("bind");
 		exit(1);
 	}
 }
 
-void makeConnection(uint32_t sockfd,struct sockaddr_in *hostServer,uint32_t handshake){
+void makeConnection(int32_t sockfd,struct sockaddr_in *hostServer,int32_t handshake){
 	if (connect(sockfd, (struct sockaddr *)hostServer,sizeof(struct sockaddr)) == -1) {
 		perror("connect");
 		exit(1);
 	}
-	uint32_t numbytes;
-	uint32_t aux = handshake;
+	int32_t numbytes;
+	int32_t aux = handshake;
 	if(numbytes= enviar(sockfd,&aux,sizeof(aux)) <0 ){
 		perror("connect -- 2");
 		exit(1);
 	}
-	uint32_t var;
+	int32_t var;
 	printf("envio HANDSHAKE\n");
 	if(numbytes = recibir(sockfd,&var,sizeof(var)) <=0){
 		if(var!=1){
@@ -88,7 +94,7 @@ void makeConnection(uint32_t sockfd,struct sockaddr_in *hostServer,uint32_t hand
 	}
 }
 
-void escuchando(uint32_t sockfd,uint32_t cantConnections)
+void escuchando(int32_t sockfd,int32_t cantConnections)
 {
 	if (listen(sockfd, cantConnections) == -1) {
 		perror("listen");
@@ -96,7 +102,7 @@ void escuchando(uint32_t sockfd,uint32_t cantConnections)
 	}
 }
 
-void selecteando(uint32_t fdmax, fd_set *read_fds){
+void selecteando(int32_t fdmax, fd_set *read_fds){
 
 	if (select(fdmax+1, read_fds, NULL, NULL, NULL) == -1) {
 		perror("select");
@@ -104,9 +110,9 @@ void selecteando(uint32_t fdmax, fd_set *read_fds){
 	}
 }
 
-int32_t servidor(uint32_t puerto,uint32_t cantidadConexiones){
-	uint32_t socketServer = initSocket();
-	uint32_t yes=1;
+int32_t servidor(int32_t puerto,int32_t cantidadConexiones){
+	int32_t socketServer = initSocket();
+	int32_t yes=1;
 	setsocket(socketServer,&yes);
 	struct sockaddr_in direccion;
 	direccion = initAddr(INADDR_ANY,puerto);
@@ -115,13 +121,13 @@ int32_t servidor(uint32_t puerto,uint32_t cantidadConexiones){
 	return socketServer;
 }
 
-void cliente(char *ip,uint32_t puerto,uint32_t handshake){
-	uint32_t sockCliente = initSocket();
+void cliente(char *ip,int32_t puerto,int32_t handshake){
+	int32_t sockCliente = initSocket();
 	struct sockaddr_in direccion = initAddr(inet_addr(ip),puerto);
 	makeConnection(sockCliente,&direccion,handshake);
 }
 
-int32_t verificarPaquete(uint32_t sockCliente,uint32_t handshake){
+int32_t verificarPaquete(int32_t sockCliente,int32_t handshake){
 	int32_t recibido;
 	int32_t bytes = recibir(sockCliente,&recibido,sizeof(recibido));
 	if( bytes >0 && recibido==handshake){
@@ -131,10 +137,10 @@ int32_t verificarPaquete(uint32_t sockCliente,uint32_t handshake){
 		return -1;
 	}
 }
-int32_t aceptarCliente(uint32_t sockfd, int32_t handshake){
+int32_t aceptarCliente(int32_t sockfd, int32_t handshake){
 	struct sockaddr_in remoteaddr;
-	uint32_t newfd;
-	uint32_t addrlen = sizeof(remoteaddr);
+	int32_t newfd;
+	int32_t addrlen = sizeof(remoteaddr);
 
 	if ((newfd = accept(sockfd, (struct sockaddr*)&remoteaddr,&addrlen)) == -1)
 	{
@@ -144,7 +150,7 @@ int32_t aceptarCliente(uint32_t sockfd, int32_t handshake){
 		printf("aceptando A.. %s\n",inet_ntoa(remoteaddr.sin_addr));
 		if(!verificarPaquete(newfd,handshake)){
 			printf("selectserver: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr),newfd);
-			uint32_t var = 1;
+			int32_t var = 1;
 			enviar(newfd,&var,sizeof(var));
 			return newfd;
 		}

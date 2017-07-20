@@ -12,5 +12,5 @@ begin
 	alocar c 30
 	alocar d 30
 	alocar e 20
-	wait c
+	
 end
