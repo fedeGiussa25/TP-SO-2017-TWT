@@ -2212,12 +2212,13 @@ int move_cursor(int pid, int fd, int position)
 		return -2;
 	}
 
+	/*
 	if(position > tamanio_pagina)
 	{
 		printf("Ocurrio un error al leer un archivo, revisar el log\n");
 		log_error(kernelLog, "Error de lectura en el proceso %d\n", pid);
 		return -15;
-	}
+	}*/
 
 	tabla_de_archivos_de_proceso* tabla_archivos = obtener_tabla_archivos_proceso(pid);
 
@@ -2412,7 +2413,8 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 					int size_arch = strlen(arch->ruta_del_archivo) +1;
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
-					int offset = 0;
+					int offset = arch_aux->offset;
+					printf("Offset: %d\n", offset);
 
 					memcpy(buffer, &codigo, sizeof(uint32_t));
 					memcpy(buffer + sizeof(uint32_t), &size_arch, sizeof(uint32_t));
