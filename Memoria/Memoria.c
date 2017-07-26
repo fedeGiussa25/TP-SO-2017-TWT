@@ -1249,7 +1249,7 @@ void *thread_proceso(int fd){
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &inicio, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
-				printf("Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
+				log_info(messagesLog,"Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
 				//char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
 				void *instruccion = lecturaV2(PID, pagina, inicio, offset);
 				int error;
@@ -1279,7 +1279,7 @@ void *thread_proceso(int fd){
 				recv(fd, &offset, sizeof(int), 0);
 				recv(fd, &tamanio, sizeof(int), 0);
 
-				printf("Escritura: pid:%d, pagina %d,desplazamiento %d, tamanio %d\n", PID, pagina, offset, tamanio);
+				log_info(messagesLog,"Escritura: pid:%d, pagina %d,desplazamiento %d, tamanio %d\n", PID, pagina, offset, tamanio);
 
 				void *datos = malloc(tamanio);
 
@@ -1298,7 +1298,7 @@ void *thread_proceso(int fd){
 				recv(fd, &inicio, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
 
-				printf("Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
+				log_info(messagesLog,"Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
 
 				void *valor = malloc(offset);
 				valor = lectura(PID, pagina, inicio, offset);

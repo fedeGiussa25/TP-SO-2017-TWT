@@ -831,6 +831,26 @@ void borrarTablaDeArchivos(int PID){
 	free(tabla_archivos);
 }
 
+int paginas_de_proceso(int PID){
+	int i, cant_elem = list_size(paginas_heap), contador = 0;
+	for(i=0; i< cant_elem; i++){
+		t_heap *unHeap = list_get(paginas_heap, i);
+		if(unHeap->pid == PID){
+			contador++;
+		}
+	}
+	return contador;
+}
+
+t_heap *remove_page_by_PID(int PID){
+	bool _remove_socket(void* unH)
+	    {
+		t_heap *unHeap = (t_heap*) unH;
+			return unHeap->pid == PID;
+	    }
+	t_heap* elemento_encontrado =  list_remove_by_condition(paginas_heap,*_remove_socket);
+	return elemento_encontrado;
+}
 
 //Devuelve bytes liberados
 int liberarHeap(int PID){
@@ -851,6 +871,12 @@ int liberarHeap(int PID){
 		}
 		i++;
 	}
+	int j, cant_proceso = paginas_de_proceso(PID);
+	for(j=0; j<cant_proceso;j++){
+		t_heap *page = remove_page_by_PID(PID);
+		free(page);
+	}
+
 	return bytes_liberados;
 }
 
@@ -1677,7 +1703,7 @@ void compactar_pagina(t_heap *heap_page){
 				send(sockfd_memoria, newBuffer, sizeof(uint32_t)*5+sizeof(heapMetadata), 0);
 				heap_page->espacio_libre += sizeof(heapMetadata);
 
-				printf("El puntero que apuntaba a %d ya no existe y el puntero que apuntaba a %d, ahora apunta a %d\n", otroPuntero->size, aux2, unPuntero->size);
+				//printf("El puntero que apuntaba a %d ya no existe y el puntero que apuntaba a %d, ahora apunta a %d\n", otroPuntero->size, aux2, unPuntero->size);
 
 				free(newBuffer);
 			}else{
