@@ -1,0 +1,594 @@
+[INFO] 14:09:10:48 FileSystem/(1799:1799): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 14:27:40:945 FileSystem/(1799:1799): /archivo.bin es un archivo inexistente
+
+[ERROR] 14:27:40:945 FileSystem/(1799:1799): EL ARCHIVO NO EXISTE
+[INFO] 14:28:01:713 FileSystem/(1799:1799): /archivo.bin es un archivo inexistente
+
+[ERROR] 14:28:01:713 FileSystem/(1799:1799): EL ARCHIVO NO EXISTE
+[INFO] 14:28:01:752 FileSystem/(1799:1799): Tratando de Crear un Archivo en /archivo.bin
+
+[INFO] 14:28:01:770 FileSystem/(1799:1799): El primer bloque libre fue el 0
+
+[INFO] 14:28:01:770 FileSystem/(1799:1799): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 14:28:01:770 FileSystem/(1799:1799): el Path de todos lo Pathes FS/Archivos/archivo.bin hijo de FS/Archivos y /archivo.bin
+[INFO] 14:28:01:770 FileSystem/(1799:1799): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 14:28:13:583 FileSystem/(1799:1799): Quieren escribir 100 desde 0 para /archivo.bin
+[INFO] 14:28:13:583 FileSystem/(1799:1799): INICIO GUARDAR DATOS
+[INFO] 14:28:13:583 FileSystem/(1799:1799): Recibi para verificar /archivo.bin con 0 offset y 100 size
+[INFO] 14:28:13:583 FileSystem/(1799:1799): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:28:13:583 FileSystem/(1799:1799): CANTIDAD ELEMNTOS == 1 -- TAMAÑO 0
+[INFO] 14:28:13:583 FileSystem/(1799:1799): elemnto 	0	'0'
+
+[INFO] 14:28:13:583 FileSystem/(1799:1799): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 14:28:13:584 FileSystem/(1799:1799): POR OPERAR CON EL BLOQUE 1, los datos de size 36 offset 0 
+[INFO] 14:28:13:584 FileSystem/(1799:1799): SALIENDO DE GUARDAR
+[INFO] 14:28:13:584 FileSystem/(1799:1799): el Path de todos lo Pathes FS/Archivos/archivo.bin hijo de FS/Archivos y /archivo.bin
+[INFO] 14:28:13:584 FileSystem/(1799:1799): EL CODIGO DE OPERACION ES 1
+[INFO] 14:29:58:55 FileSystem/(1824:1824): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 14:39:04:136 FileSystem/(1824:1824): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:39:46:813 FileSystem/(1824:1824): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:47:20:785 FileSystem/(2013:2013): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 14:48:35:686 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:48:47:148 FileSystem/(2013:2013): Quieren escribir 100 desde 0 para /archivo.bin
+[INFO] 14:48:47:148 FileSystem/(2013:2013): INICIO GUARDAR DATOS
+[INFO] 14:48:47:148 FileSystem/(2013:2013): Recibi para verificar /archivo.bin con 0 offset y 100 size
+[INFO] 14:48:47:149 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:48:47:149 FileSystem/(2013:2013): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 14:48:47:149 FileSystem/(2013:2013): POR OPERAR CON EL BLOQUE 1, los datos de size 36 offset 0 
+[INFO] 14:48:47:149 FileSystem/(2013:2013): SALIENDO DE GUARDAR
+[INFO] 14:48:47:149 FileSystem/(2013:2013): el Path de todos lo Pathes FS/Archivos/archivo.bin hijo de FS/Archivos y /archivo.bin
+[INFO] 14:48:47:149 FileSystem/(2013:2013): EL CODIGO DE OPERACION ES 1
+[INFO] 14:49:06:409 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:49:06:993 FileSystem/(2013:2013): Quieren Leer 100 desde 0 para /archivo.bin
+[INFO] 14:49:06:993 FileSystem/(2013:2013): INICIO OBTENER DATOS
+[INFO] 14:49:06:993 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:49:06:994 FileSystem/(2013:2013): ENVIANDO BUFFER LEIDO
+[INFO] 14:49:18:973 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:49:28:829 FileSystem/(2013:2013): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:55:26:899 FileSystem/(2022:2022): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 14:56:22:714 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:56:34:202 FileSystem/(2022:2022): Quieren escribir 100 desde 0 para /archivo.bin
+[INFO] 14:56:34:202 FileSystem/(2022:2022): INICIO GUARDAR DATOS
+[INFO] 14:56:34:202 FileSystem/(2022:2022): Recibi para verificar /archivo.bin con 0 offset y 100 size
+[INFO] 14:56:34:202 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:56:34:203 FileSystem/(2022:2022): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 14:56:34:203 FileSystem/(2022:2022): POR OPERAR CON EL BLOQUE 1, los datos de size 36 offset 0 
+[INFO] 14:56:34:203 FileSystem/(2022:2022): SALIENDO DE GUARDAR
+[INFO] 14:56:34:203 FileSystem/(2022:2022): el Path de todos lo Pathes FS/Archivos/archivo.bin hijo de FS/Archivos y /archivo.bin
+[INFO] 14:56:34:203 FileSystem/(2022:2022): EL CODIGO DE OPERACION ES 1
+[INFO] 14:56:43:338 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:56:43:922 FileSystem/(2022:2022): Quieren Leer 100 desde 0 para /archivo.bin
+[INFO] 14:56:43:922 FileSystem/(2022:2022): INICIO OBTENER DATOS
+[INFO] 14:56:43:922 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:56:43:922 FileSystem/(2022:2022): ENVIANDO BUFFER LEIDO
+[INFO] 14:56:56:522 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:57:07:998 FileSystem/(2022:2022): Quieren escribir 100 desde 0 para /archivo.bin
+[INFO] 14:57:07:998 FileSystem/(2022:2022): INICIO GUARDAR DATOS
+[INFO] 14:57:07:998 FileSystem/(2022:2022): Recibi para verificar /archivo.bin con 0 offset y 100 size
+[INFO] 14:57:07:998 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:57:07:998 FileSystem/(2022:2022): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 14:57:07:998 FileSystem/(2022:2022): POR OPERAR CON EL BLOQUE 1, los datos de size 36 offset 0 
+[INFO] 14:57:07:999 FileSystem/(2022:2022): SALIENDO DE GUARDAR
+[INFO] 14:57:07:999 FileSystem/(2022:2022): el Path de todos lo Pathes FS/Archivos/archivo.bin hijo de FS/Archivos y /archivo.bin
+[INFO] 14:57:07:999 FileSystem/(2022:2022): EL CODIGO DE OPERACION ES 1
+[INFO] 14:57:19:245 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:57:19:825 FileSystem/(2022:2022): Quieren Leer 100 desde 0 para /archivo.bin
+[INFO] 14:57:19:825 FileSystem/(2022:2022): INICIO OBTENER DATOS
+[INFO] 14:57:19:825 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:57:19:825 FileSystem/(2022:2022): ENVIANDO BUFFER LEIDO
+[INFO] 14:57:29:561 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 14:57:37:417 FileSystem/(2022:2022): /archivo.bin es un archivo Valido y completo
+
+[INFO] 15:01:16:835 FileSystem/(2028:2028): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 15:31:00:755 FileSystem/(2061:2061): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 15:43:55:428 FileSystem/(2078:2078): Cada bloque sera de 64 bytes
+Habra 5192 Bloques 
+
+[INFO] 15:47:20:168 FileSystem/(2089:2089): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 15:49:52:140 FileSystem/(2089:2089): /smallFile.bin es un archivo inexistente
+
+[ERROR] 15:49:52:140 FileSystem/(2089:2089): EL ARCHIVO NO EXISTE
+[INFO] 15:49:52:180 FileSystem/(2089:2089): Tratando de Crear un Archivo en /smallFile.bin
+
+[INFO] 15:49:52:198 FileSystem/(2089:2089): El primer bloque libre fue el 0
+
+[INFO] 15:49:52:198 FileSystem/(2089:2089): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 15:49:52:198 FileSystem/(2089:2089): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 15:49:52:198 FileSystem/(2089:2089): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 15:49:53:622 FileSystem/(2089:2089): Quieren escribir 10 desde 0 para /smallFile.bin
+[INFO] 15:49:53:623 FileSystem/(2089:2089): INICIO GUARDAR DATOS
+[INFO] 15:49:53:623 FileSystem/(2089:2089): Recibi para verificar /smallFile.bin con 0 offset y 10 size
+[INFO] 15:49:53:623 FileSystem/(2089:2089): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:49:53:623 FileSystem/(2089:2089): POR OPERAR CON EL BLOQUE 0, los datos de size 10 offset 0 
+[INFO] 15:49:53:623 FileSystem/(2089:2089): SALIENDO DE GUARDAR
+[INFO] 15:49:53:623 FileSystem/(2089:2089): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 15:49:53:623 FileSystem/(2089:2089): EL CODIGO DE OPERACION ES 1
+[INFO] 15:53:45:269 FileSystem/(2089:2089): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:53:46:236 FileSystem/(2089:2089): Quieren Leer 10 desde 0 para /smallFile.bin
+[INFO] 15:53:46:236 FileSystem/(2089:2089): INICIO OBTENER DATOS
+[INFO] 15:53:46:236 FileSystem/(2089:2089): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:53:46:237 FileSystem/(2089:2089): ENVIANDO BUFFER LEIDO
+[INFO] 15:55:02:236 FileSystem/(2089:2089): ARCHIVO A Borrar /smallFile.bin
+[INFO] 15:55:02:240 FileSystem/(2089:2089): ARCHIVO ELIMINADO CORRECTAMENTE
+[INFO] 15:57:24:393 FileSystem/(2124:2124): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 15:58:30:109 FileSystem/(2124:2124): /smallFile.bin es un archivo inexistente
+
+[ERROR] 15:58:30:109 FileSystem/(2124:2124): EL ARCHIVO NO EXISTE
+[INFO] 15:58:30:148 FileSystem/(2124:2124): Tratando de Crear un Archivo en /smallFile.bin
+
+[INFO] 15:58:30:166 FileSystem/(2124:2124): El primer bloque libre fue el 0
+
+[INFO] 15:58:30:166 FileSystem/(2124:2124): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 15:58:30:166 FileSystem/(2124:2124): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 15:58:30:167 FileSystem/(2124:2124): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 15:58:31:188 FileSystem/(2124:2124): Quieren escribir 10 desde 0 para /smallFile.bin
+[INFO] 15:58:31:188 FileSystem/(2124:2124): INICIO GUARDAR DATOS
+[INFO] 15:58:31:188 FileSystem/(2124:2124): Recibi para verificar /smallFile.bin con 0 offset y 10 size
+[INFO] 15:58:31:188 FileSystem/(2124:2124): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:58:31:188 FileSystem/(2124:2124): POR OPERAR CON EL BLOQUE 0, los datos de size 10 offset 0 
+[INFO] 15:58:31:188 FileSystem/(2124:2124): SALIENDO DE GUARDAR
+[INFO] 15:58:31:188 FileSystem/(2124:2124): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 15:58:31:189 FileSystem/(2124:2124): EL CODIGO DE OPERACION ES 1
+[INFO] 15:58:45:478 FileSystem/(2124:2124): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:58:46:441 FileSystem/(2124:2124): Quieren Leer 10 desde 0 para /smallFile.bin
+[INFO] 15:58:46:442 FileSystem/(2124:2124): INICIO OBTENER DATOS
+[INFO] 15:58:46:442 FileSystem/(2124:2124): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 15:58:46:442 FileSystem/(2124:2124): ENVIANDO BUFFER LEIDO
+[INFO] 16:00:21:861 FileSystem/(2124:2124): ARCHIVO A Borrar /smallFile.bin
+[INFO] 16:00:21:861 FileSystem/(2124:2124): ARCHIVO ELIMINADO CORRECTAMENTE
+[INFO] 16:03:37:893 FileSystem/(2145:2145): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:07:48:777 FileSystem/(2145:2145): /largeFile.bin es un archivo inexistente
+
+[ERROR] 16:07:48:778 FileSystem/(2145:2145): EL ARCHIVO NO EXISTE
+[INFO] 16:07:48:816 FileSystem/(2145:2145): Tratando de Crear un Archivo en /largeFile.bin
+
+[INFO] 16:07:48:834 FileSystem/(2145:2145): El primer bloque libre fue el 0
+
+[INFO] 16:07:48:834 FileSystem/(2145:2145): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 16:07:48:835 FileSystem/(2145:2145): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:07:48:835 FileSystem/(2145:2145): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 16:09:34:589 FileSystem/(2173:2173): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:10:27:625 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:29:196 FileSystem/(2173:2173): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:10:29:204 FileSystem/(2173:2173): INICIO GUARDAR DATOS
+[INFO] 16:10:29:205 FileSystem/(2173:2173): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:10:29:216 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:29:220 FileSystem/(2173:2173): CANTIDAD ELEMNTOS == 1 -- TAMAÑO 0
+[INFO] 16:10:29:221 FileSystem/(2173:2173): elemnto 	0	'0'
+
+[INFO] 16:10:29:223 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:10:29:225 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:10:29:227 FileSystem/(2173:2173): SALIENDO DE GUARDAR
+[INFO] 16:10:29:227 FileSystem/(2173:2173): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:10:29:229 FileSystem/(2173:2173): EL CODIGO DE OPERACION ES 1
+[INFO] 16:10:30:804 FileSystem/(2173:2173): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:10:30:807 FileSystem/(2173:2173): INICIO GUARDAR DATOS
+[INFO] 16:10:30:808 FileSystem/(2173:2173): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:10:30:810 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:30:812 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:10:30:815 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:10:30:817 FileSystem/(2173:2173): SALIENDO DE GUARDAR
+[INFO] 16:10:30:818 FileSystem/(2173:2173): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:10:30:820 FileSystem/(2173:2173): EL CODIGO DE OPERACION ES 1
+[INFO] 16:10:31:894 FileSystem/(2173:2173): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:10:31:899 FileSystem/(2173:2173): INICIO GUARDAR DATOS
+[INFO] 16:10:31:900 FileSystem/(2173:2173): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:10:31:903 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:31:907 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:10:31:912 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:10:31:915 FileSystem/(2173:2173): SALIENDO DE GUARDAR
+[INFO] 16:10:31:917 FileSystem/(2173:2173): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:10:31:919 FileSystem/(2173:2173): EL CODIGO DE OPERACION ES 1
+[INFO] 16:10:32:993 FileSystem/(2173:2173): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:10:32:997 FileSystem/(2173:2173): INICIO GUARDAR DATOS
+[INFO] 16:10:32:998 FileSystem/(2173:2173): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:10:32:1 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:33:6 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:10:33:8 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:10:33:10 FileSystem/(2173:2173): SALIENDO DE GUARDAR
+[INFO] 16:10:33:11 FileSystem/(2173:2173): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:10:33:13 FileSystem/(2173:2173): EL CODIGO DE OPERACION ES 1
+[INFO] 16:10:35:95 FileSystem/(2173:2173): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:10:35:100 FileSystem/(2173:2173): INICIO GUARDAR DATOS
+[INFO] 16:10:35:101 FileSystem/(2173:2173): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:10:35:104 FileSystem/(2173:2173): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:10:35:107 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:10:35:109 FileSystem/(2173:2173): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:10:35:111 FileSystem/(2173:2173): SALIENDO DE GUARDAR
+[INFO] 16:10:35:112 FileSystem/(2173:2173): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:10:35:114 FileSystem/(2173:2173): EL CODIGO DE OPERACION ES 1
+[INFO] 16:26:35:371 FileSystem/(2202:2202): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:29:09:409 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:10:978 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:10:978 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:10:978 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:10:979 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:10:979 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:10:979 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:10:979 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:10:979 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:10:979 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:12:553 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:12:553 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:12:554 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:12:554 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:12:554 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:12:554 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:12:554 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:12:554 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:12:555 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:13:624 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:13:624 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:13:624 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:13:625 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:13:625 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:13:625 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:13:625 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:13:625 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:13:625 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:14:699 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:14:699 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:14:699 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:14:700 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:14:700 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:14:700 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:14:700 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:14:700 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:14:701 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:16:782 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:16:782 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:16:782 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:16:782 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:16:782 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:16:782 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:16:782 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:16:782 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:16:783 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:18:359 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:18:359 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:18:359 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:18:360 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:18:360 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:18:360 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:18:360 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:18:360 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:18:360 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:19:434 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:19:434 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:19:434 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:19:434 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:19:434 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:19:434 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:19:434 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:19:435 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:19:435 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:20:507 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:20:507 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:20:507 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:20:507 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:20:508 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:20:508 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:20:508 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:20:508 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:20:508 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:22:591 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:22:591 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:22:591 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:22:591 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:22:591 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:22:592 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:22:592 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:22:592 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:22:592 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:24:164 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:24:164 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:24:164 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:24:164 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:24:164 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:24:164 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:24:165 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:24:165 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:24:165 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:25:236 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:25:236 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:25:236 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:25:236 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:25:236 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:25:236 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:25:236 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:25:236 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:25:237 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:26:309 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:26:309 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:26:309 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:26:309 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:26:309 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:26:310 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:26:310 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:26:310 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:26:310 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:28:390 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:28:390 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:28:390 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:28:390 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:28:390 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:28:390 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:28:390 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:28:390 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:28:390 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:29:964 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:29:964 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:29:964 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:29:964 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:29:964 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:29:965 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:29:965 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:29:965 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:29:965 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:31:36 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:31:36 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:31:36 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:31:36 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:31:36 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:31:36 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:31:36 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:31:36 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:31:37 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:32:107 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:32:107 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:32:107 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:32:107 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:32:108 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:32:108 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:32:108 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:32:108 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:32:108 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:34:190 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:34:190 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:34:190 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:34:190 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:34:190 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:34:190 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:34:190 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:34:190 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:34:191 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:35:777 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:35:777 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:35:777 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:35:777 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:35:777 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:35:777 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:35:777 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:35:778 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:35:778 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:36:848 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:36:848 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:36:848 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:36:848 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:36:848 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:36:849 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:36:849 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:36:849 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:36:849 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:37:919 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:37:919 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:37:919 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:37:919 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:37:919 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:37:919 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:37:919 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:37:919 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:37:920 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:39:0 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:39:0 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:39:0 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:39:0 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:39:0 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:39:0 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:39:0 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:39:0 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:39:1 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:41:577 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:41:577 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:41:577 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:41:577 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:41:577 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:41:577 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:41:577 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:41:577 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:41:578 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:42:654 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:42:654 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:42:654 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:42:655 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:42:655 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:42:655 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:42:655 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:42:655 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:42:655 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:29:43:729 FileSystem/(2202:2202): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:29:43:729 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:29:43:729 FileSystem/(2202:2202): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:29:43:729 FileSystem/(2202:2202): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:29:43:729 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:29:43:729 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 0 
+[INFO] 16:29:43:729 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:29:43:729 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:29:43:730 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:31:20:53 FileSystem/(2202:2202): /smallFile.bin es un archivo inexistente
+
+[ERROR] 16:31:20:53 FileSystem/(2202:2202): EL ARCHIVO NO EXISTE
+[INFO] 16:31:20:92 FileSystem/(2202:2202): Tratando de Crear un Archivo en /smallFile.bin
+
+[INFO] 16:31:20:110 FileSystem/(2202:2202): El primer bloque libre fue el 0
+
+[INFO] 16:31:20:110 FileSystem/(2202:2202): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 16:31:20:110 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 16:31:20:110 FileSystem/(2202:2202): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 16:31:21:538 FileSystem/(2202:2202): Quieren escribir 10 desde 0 para /smallFile.bin
+[INFO] 16:31:21:538 FileSystem/(2202:2202): INICIO GUARDAR DATOS
+[INFO] 16:31:21:538 FileSystem/(2202:2202): Recibi para verificar /smallFile.bin con 0 offset y 10 size
+[INFO] 16:31:21:538 FileSystem/(2202:2202): /smallFile.bin es un archivo Valido y completo
+
+[INFO] 16:31:21:538 FileSystem/(2202:2202): POR OPERAR CON EL BLOQUE 0, los datos de size 10 offset 0 
+[INFO] 16:31:21:538 FileSystem/(2202:2202): SALIENDO DE GUARDAR
+[INFO] 16:31:21:538 FileSystem/(2202:2202): el Path de todos lo Pathes FS/Archivos/smallFile.bin hijo de FS/Archivos y /smallFile.bin
+[INFO] 16:31:21:539 FileSystem/(2202:2202): EL CODIGO DE OPERACION ES 1
+[INFO] 16:39:38:344 FileSystem/(2231:2231): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:43:40:139 FileSystem/(2320:2320): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:45:12:708 FileSystem/(2328:2328): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:46:05:689 FileSystem/(2328:2328): /largeFile.bin es un archivo inexistente
+
+[ERROR] 16:46:05:689 FileSystem/(2328:2328): EL ARCHIVO NO EXISTE
+[INFO] 16:46:05:728 FileSystem/(2328:2328): Tratando de Crear un Archivo en /largeFile.bin
+
+[INFO] 16:46:05:746 FileSystem/(2328:2328): El primer bloque libre fue el 0
+
+[INFO] 16:46:05:746 FileSystem/(2328:2328): CANTIDAD ELEMNTOS == 0 -- TAMAÑO 0
+[INFO] 16:46:05:746 FileSystem/(2328:2328): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:46:05:747 FileSystem/(2328:2328): ARCHIVO CREADO CORRECTAMENTE
+[INFO] 16:46:07:316 FileSystem/(2328:2328): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:46:07:316 FileSystem/(2328:2328): INICIO GUARDAR DATOS
+[INFO] 16:46:07:316 FileSystem/(2328:2328): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:46:07:316 FileSystem/(2328:2328): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:46:07:316 FileSystem/(2328:2328): CANTIDAD ELEMNTOS == 1 -- TAMAÑO 0
+[INFO] 16:46:07:316 FileSystem/(2328:2328): elemnto 	0	'0'
+
+[INFO] 16:46:07:316 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:46:07:317 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE 1, los datos de size 1 offset 0 
+[INFO] 16:46:07:317 FileSystem/(2328:2328): SALIENDO DE GUARDAR
+[INFO] 16:46:07:317 FileSystem/(2328:2328): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:46:07:317 FileSystem/(2328:2328): EL CODIGO DE OPERACION ES 1
+[INFO] 16:46:08:892 FileSystem/(2328:2328): Quieren escribir 65 desde 63 para /largeFile.bin
+[INFO] 16:46:08:892 FileSystem/(2328:2328): INICIO GUARDAR DATOS
+[INFO] 16:46:08:892 FileSystem/(2328:2328): Recibi para verificar /largeFile.bin con 63 offset y 65 size
+[INFO] 16:46:08:892 FileSystem/(2328:2328): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:46:08:892 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 63 
+[INFO] 16:46:08:892 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE 1, los datos de size 64 offset 0 
+[INFO] 16:46:08:892 FileSystem/(2328:2328): SALIENDO DE GUARDAR
+[INFO] 16:46:08:892 FileSystem/(2328:2328): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:46:08:893 FileSystem/(2328:2328): EL CODIGO DE OPERACION ES 1
+[INFO] 16:46:09:961 FileSystem/(2328:2328): Quieren escribir 65 desde 127 para /largeFile.bin
+[INFO] 16:46:09:961 FileSystem/(2328:2328): INICIO GUARDAR DATOS
+[INFO] 16:46:09:961 FileSystem/(2328:2328): Recibi para verificar /largeFile.bin con 127 offset y 65 size
+[INFO] 16:46:09:962 FileSystem/(2328:2328): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:46:09:962 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE 1, los datos de size 1 offset 63 
+[INFO] 16:46:09:962 FileSystem/(2328:2328): POR OPERAR CON EL BLOQUE (null), los datos de size 64 offset 0 
+[INFO] 16:51:48:303 FileSystem/(2355:2355): Cada bloque sera de 64 bytes
+Habra 24 Bloques 
+
+[INFO] 16:56:11:457 FileSystem/(2355:2355): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:56:13:30 FileSystem/(2355:2355): Quieren escribir 65 desde 0 para /largeFile.bin
+[INFO] 16:56:13:32 FileSystem/(2355:2355): INICIO GUARDAR DATOS
+[INFO] 16:56:13:33 FileSystem/(2355:2355): Recibi para verificar /largeFile.bin con 0 offset y 65 size
+[INFO] 16:56:13:35 FileSystem/(2355:2355): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:56:13:38 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE 0, los datos de size 64 offset 0 
+[INFO] 16:56:13:40 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE 1, los datos de size 1 offset 0 
+[INFO] 16:56:13:50 FileSystem/(2355:2355): SALIENDO DE GUARDAR
+[INFO] 16:56:13:54 FileSystem/(2355:2355): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:56:13:57 FileSystem/(2355:2355): EL CODIGO DE OPERACION ES 1
+[INFO] 16:56:14:634 FileSystem/(2355:2355): Quieren escribir 65 desde 63 para /largeFile.bin
+[INFO] 16:56:14:636 FileSystem/(2355:2355): INICIO GUARDAR DATOS
+[INFO] 16:56:14:637 FileSystem/(2355:2355): Recibi para verificar /largeFile.bin con 63 offset y 65 size
+[INFO] 16:56:14:639 FileSystem/(2355:2355): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:56:14:642 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE 0, los datos de size 1 offset 63 
+[INFO] 16:56:14:645 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE 1, los datos de size 64 offset 0 
+[INFO] 16:56:14:647 FileSystem/(2355:2355): SALIENDO DE GUARDAR
+[INFO] 16:56:14:648 FileSystem/(2355:2355): el Path de todos lo Pathes FS/Archivos/largeFile.bin hijo de FS/Archivos y /largeFile.bin
+[INFO] 16:56:14:650 FileSystem/(2355:2355): EL CODIGO DE OPERACION ES 1
+[INFO] 16:56:15:723 FileSystem/(2355:2355): Quieren escribir 65 desde 127 para /largeFile.bin
+[INFO] 16:56:15:727 FileSystem/(2355:2355): INICIO GUARDAR DATOS
+[INFO] 16:56:15:728 FileSystem/(2355:2355): Recibi para verificar /largeFile.bin con 127 offset y 65 size
+[INFO] 16:56:15:730 FileSystem/(2355:2355): /largeFile.bin es un archivo Valido y completo
+
+[INFO] 16:56:15:733 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE 1, los datos de size 1 offset 63 
+[INFO] 16:56:15:734 FileSystem/(2355:2355): POR OPERAR CON EL BLOQUE (null), los datos de size 64 offset 0 
