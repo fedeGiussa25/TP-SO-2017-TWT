@@ -147,6 +147,17 @@ typedef struct{
 
 typedef struct{
 	uint32_t pid;
+	uint32_t pagina;
+	uint32_t espacio_libre ;
+} t_heap;
+
+typedef struct {
+	uint32_t size;
+	_Bool isFree;
+} __attribute__((packed)) heapMetadata;
+
+typedef struct{
+	uint32_t pid;
 	t_list* heap;
 } heap_de_proceso;
 
@@ -205,6 +216,7 @@ t_list* semaforos;
 
 //Lista de Heaps de Procesos
 t_list* heap;
+t_list* paginas_heap;
 
 //Colas de planificacion
 t_queue* ready_queue;
@@ -1567,6 +1579,236 @@ void print_heap(t_list* heap_proceso){
 	}
 }
 
+//TODO heap segunda parte
+
+bool hay_pagina_con_espacio(uint32_t pid, uint32_t espacio){
+	int i, cantidad_paginas = list_size(paginas_heap);
+	bool encontrado = false;
+	for(i=0; i<cantidad_paginas; i++){
+		t_heap *unaPagina = list_get(paginas_heap, i);
+		if(unaPagina->pid == pid && unaPagina->espacio_libre >= (espacio+sizeof(heapMetadata))){
+			encontrado = true;
+		}
+	}
+	return encontrado;
+}
+
+t_heap *buscar_pagina_con_espacio(uint32_t pid, uint32_t espacio){
+	int i=0, cantidad_paginas = list_size(paginas_heap);
+	bool encontrado = false;
+	t_heap *paginaEncontrada;
+	while(i<cantidad_paginas && encontrado == false){
+		t_heap *unaPagina = list_get(paginas_heap, i);
+		if(unaPagina->pid == pid && unaPagina->espacio_libre >= (espacio+sizeof(heapMetadata))){
+			encontrado = true;
+			paginaEncontrada = list_get(paginas_heap, i);
+		}else{
+			i++;
+		}
+	}
+
+	return paginaEncontrada;
+}
+
+t_heap *buscar_pagina(uint32_t pid, uint32_t pagina){
+	int i=0, cantidad_paginas = list_size(paginas_heap);
+	bool encontrado = false;
+	t_heap *paginaEncontrada;
+	while(i<cantidad_paginas && encontrado == false){
+		t_heap *unaPagina = list_get(paginas_heap, i);
+		if(unaPagina->pid == pid && unaPagina->pagina){
+			encontrado = true;
+			paginaEncontrada = list_get(paginas_heap, i);
+		}else{
+			i++;
+		}
+	}
+
+	return paginaEncontrada;
+}
+
+
+void compactar_pagina(t_heap *heap_page){
+	uint32_t corrimiento = 0;
+	void *buffer = malloc(sizeof(uint32_t)*5);
+	uint32_t codigo = 6, offset = sizeof(heapMetadata);
+
+	while(corrimiento < tamanio_pagina){
+		heapMetadata *unPuntero = malloc(sizeof(heapMetadata));
+		memset(buffer, 0, sizeof(uint32_t)*5);
+		memcpy(buffer, &codigo, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t), &heap_page->pid, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*2, &heap_page->pagina, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*3, &corrimiento, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+
+		send(sockfd_memoria, buffer, sizeof(uint32_t)*5, 0);
+
+		recv(sockfd_memoria, unPuntero, sizeof(heapMetadata), 0);
+
+		if(unPuntero->isFree == true){
+			heapMetadata *otroPuntero = malloc(sizeof(heapMetadata));
+			uint32_t aux = corrimiento + sizeof(heapMetadata) + unPuntero->size;
+			memset(buffer, 0, sizeof(uint32_t)*5);
+			memcpy(buffer, &codigo, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t), &heap_page->pid, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t)*2, &heap_page->pagina, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t)*3, &aux, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+
+			send(sockfd_memoria, buffer, sizeof(uint32_t)*5, 0);
+
+			recv(sockfd_memoria, otroPuntero, sizeof(heapMetadata), 0);
+
+			int aux2 = unPuntero->size;
+
+			if(otroPuntero->isFree == true){
+				uint32_t cod = 4;
+				void *newBuffer = malloc(sizeof(uint32_t)*5+sizeof(heapMetadata));
+				unPuntero->size = unPuntero->size + sizeof(heapMetadata) + otroPuntero->size;
+
+				memcpy(newBuffer, &cod, sizeof(uint32_t));
+				memcpy(newBuffer+sizeof(uint32_t), &heap_page->pid, sizeof(uint32_t));
+				memcpy(newBuffer+sizeof(uint32_t)*2, &heap_page->pagina, sizeof(uint32_t));
+				memcpy(newBuffer+sizeof(uint32_t)*3, &corrimiento, sizeof(uint32_t));
+				memcpy(newBuffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+				memcpy(newBuffer+sizeof(uint32_t)*5, unPuntero, offset);
+
+				send(sockfd_memoria, newBuffer, sizeof(uint32_t)*5+sizeof(heapMetadata), 0);
+				heap_page->espacio_libre += sizeof(heapMetadata);
+
+				printf("El puntero que apuntaba a %d ya no existe y el puntero que apuntaba a %d, ahora apunta a %d\n", otroPuntero->size, aux2, unPuntero->size);
+
+				free(newBuffer);
+			}else{
+				corrimiento = corrimiento + sizeof(heapMetadata) + aux2;
+			}
+			free(otroPuntero);
+		}
+		corrimiento = corrimiento + sizeof(heapMetadata) + unPuntero->size;
+		free(unPuntero);
+	}
+	free(buffer);
+}
+
+bool esta_ocupada(heap_de_proceso *heap_buscado, uint32_t pagina){
+	bool encontrado = false;
+	int32_t cant_elem = list_size(heap_buscado->heap), i;
+	for(i=0; i<cant_elem; i++){
+		puntero *unPuntero = list_get(heap_buscado->heap, i);
+		if(unPuntero->pagina == pagina){
+			encontrado = true;
+		}
+	}
+	return encontrado;
+}
+
+void remover_pagina_reservada(uint32_t pid, uint32_t pagina){
+	int i=0;
+	bool encontrado = false;
+
+	while(encontrado == false){
+		t_heap *page = list_get(paginas_heap, i);
+		if(page->pagina == pagina && page->pid == pid){
+			encontrado = true;
+			t_heap *page_to_remove = list_remove(paginas_heap, i);
+			uint32_t cod = 10;
+			void *buffer = malloc(sizeof(uint32_t)*3);
+			memcpy(buffer, &cod, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t), &page_to_remove->pid, sizeof(uint32_t));
+			memcpy(buffer+sizeof(uint32_t)*2, &page_to_remove->pagina, sizeof(uint32_t));
+
+			send(sockfd_memoria, buffer, sizeof(uint32_t)*3, 0);
+			free(buffer);
+			free(page_to_remove);
+		}else{
+			i++;
+		}
+	}
+}
+
+uint32_t alocar(uint32_t pid, uint32_t pagina, uint32_t espacio){
+	printf("En alocar, pid:%d, pagina:%d, espacio %d\n", pid, pagina, espacio);
+	uint32_t codigo = 6, offset = sizeof(heapMetadata), corrimiento = 0;
+	void *buffer = malloc(sizeof(uint32_t)*5);
+	bool encontrado = false;
+	int32_t error,tamanio;
+	heapMetadata *el_puntero, *otroPuntero;
+
+	while(encontrado == false){
+		memset(buffer, 0, sizeof(uint32_t)*5);
+		memcpy(buffer, &codigo, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*2, &pagina, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*3, &corrimiento, sizeof(uint32_t));
+		memcpy(buffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+
+		send(sockfd_memoria, buffer, sizeof(uint32_t)*5, 0);
+
+		//recv(sockfd_memoria, &error, sizeof(int32_t), 0);
+		//recv(sockfd_memoria, &tamanio, sizeof(int32_t), 0);
+
+		el_puntero = malloc(sizeof(heapMetadata));
+
+		recv(sockfd_memoria, el_puntero, offset, 0);
+
+		printf("El puntero recibido tiene: espacio:%d, isFree = %d \n", el_puntero->size, el_puntero->isFree);
+
+		if(el_puntero->isFree == true && el_puntero->size >= (espacio + sizeof(heapMetadata))){
+			printf("Encontramos un espacio en %d\n", corrimiento);
+			encontrado = true;
+			int cod = 4;
+			int aux = el_puntero->size;
+			void *otrobuffer = malloc(sizeof(uint32_t)*5+sizeof(heapMetadata));
+			tamanio = sizeof(heapMetadata);
+			el_puntero->isFree = false;
+			el_puntero->size = espacio;
+
+			memcpy(otrobuffer, &cod, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*2, &pagina, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*3, &corrimiento, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*5, el_puntero, offset);
+
+			send(sockfd_memoria, otrobuffer, sizeof(uint32_t)*5+offset, 0);
+
+			otroPuntero = malloc(offset);
+
+			otroPuntero->isFree = true;
+			otroPuntero->size = aux - (espacio + tamanio);
+
+			int32_t nuevo = corrimiento + espacio+offset;
+
+			memset(otrobuffer, 0, sizeof(uint32_t)*5+tamanio);
+
+			memcpy(otrobuffer, &cod, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*2, &pagina, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*3, &nuevo, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*4, &offset, sizeof(uint32_t));
+			memcpy(otrobuffer+sizeof(uint32_t)*5, otroPuntero, offset);
+
+			send(sockfd_memoria, otrobuffer, sizeof(uint32_t)*5+offset, 0);
+
+			free(otrobuffer);
+			free(otroPuntero);
+			free(el_puntero);
+		}else{
+			corrimiento += (el_puntero->size + sizeof(heapMetadata));
+			free(el_puntero);
+		}
+	}
+	heap_de_proceso *heap_buscado = buscar_heap(pid);
+	puntero *unPuntero = malloc(sizeof(puntero));
+	unPuntero->direccion = corrimiento + sizeof(heapMetadata) + pagina*tamanio_pagina;
+	unPuntero->size = espacio;
+	unPuntero->pagina = pagina;
+	list_add(heap_buscado->heap, unPuntero);
+	list_add(heap, heap_buscado);
+	free(buffer);
+	return corrimiento + sizeof(heapMetadata) + pagina*tamanio_pagina;
+}
 
 int esta_en_uso(int fd){
 	int i;
@@ -2331,6 +2573,7 @@ int main(int argc, char** argv) {
 
 	//Heap :P
 	heap = list_create();
+	paginas_heap = list_create();
 
 	//Lista con los datos de los procesos
 	lista_datos_procesos = list_create();
@@ -3151,7 +3394,7 @@ int main(int argc, char** argv) {
 							else
 								enviar(i, &resultado, sizeof(int));
 						}
-						if(codigo == RESERVAR_MEMORIA)
+						/*if(codigo == RESERVAR_MEMORIA)
 						{
 							uint32_t pid;
 							int espacio;
@@ -3246,8 +3489,61 @@ int main(int argc, char** argv) {
 								error = -8;
 								abort_process(pid, error, i);
 							}
+						}*/
+						if(codigo == RESERVAR_MEMORIA){//todo
+							uint32_t pid;
+							int espacio;
+							recibir(i, &pid, sizeof(uint32_t));
+							recibir(i, &espacio, sizeof(int));
+							int32_t paginas_totales, error = -1, tam_max_disponible = tamanio_pagina - sizeof(heapMetadata)*2;
+
+							datos_proceso* dp = get_datos_proceso(pid);
+							dp->syscalls ++;
+							dp->op_alocar ++;
+
+							if(hay_pagina_con_espacio(pid, espacio) == false && espacio <= tam_max_disponible){
+								uint32_t cod = SOLICITAR_HEAP;
+								void *buffer = malloc(2*sizeof(uint32_t));
+								memcpy(buffer, &cod, sizeof(uint32_t));
+								memcpy(buffer + sizeof(uint32_t), &pid, sizeof(uint32_t));
+								enviar(sockfd_memoria, buffer, sizeof(uint32_t)*2);
+
+								recibir(sockfd_memoria, &paginas_totales, sizeof(int32_t));
+
+								if(paginas_totales > 0){
+									if(tiene_heap(pid)== false){
+										heap_de_proceso *nuevoHeap = malloc(sizeof(heap_de_proceso));
+										nuevoHeap->heap = list_create();
+										nuevoHeap->pid = pid;
+										list_add(heap, nuevoHeap);
+									}
+									printf("Se ha reservado la pagina %d\n", paginas_totales);
+									t_heap *nuevaPagina = malloc(sizeof(t_heap));
+									nuevaPagina->pagina = paginas_totales;
+									nuevaPagina->pid = pid;
+									nuevaPagina->espacio_libre = tamanio_pagina - sizeof(heapMetadata);
+									list_add(paginas_heap, nuevaPagina);
+								}else{
+									log_error(kernelLog, "Abortar proceso, no hay espacio suficiente para el pedido\n");
+									error = -9;
+									abort_process(pid, error, i);
+								}
+							}
+							if(hay_pagina_con_espacio(pid, espacio) == true && espacio <= tam_max_disponible){
+								t_heap *lugar = buscar_pagina_con_espacio(pid, espacio);
+								printf("Se alocara en la pagina %d del proceso %d. La pagina tiene %d bytes libres\n", lugar->pagina, pid, lugar->espacio_libre);
+								uint32_t corrimiento = alocar(pid, lugar->pagina, espacio);
+								lugar->espacio_libre = lugar->espacio_libre - (espacio + sizeof(heapMetadata));
+								enviar(i, &corrimiento, sizeof(int32_t));
+							}else{
+								printf("Ocurrio un error al reservar memoria, revisar el log\n");
+								log_error(kernelLog, "Error: No es posible reservar un espacio mayor que una pagina\n");
+								error = -8;
+								abort_process(pid, error, i);
+							}
+
 						}
-						if(codigo == LIBERAR_MEMORIA)
+						/*if(codigo == LIBERAR_MEMORIA)
 						{
 							uint32_t pid, direccion;
 							int32_t error = -1, ok = 1;
@@ -3274,6 +3570,70 @@ int main(int argc, char** argv) {
 
 									enviar(sockfd_memoria, buffer, sizeof(uint32_t)*4);
 									dp->bytes_liberar += unPuntero->size;
+									free(unPuntero);
+									list_add(heap, heap_buscado);
+									log_info(kernelLog, "El espacio ha sido liberado!\n");
+									enviar(i, &ok, sizeof(int32_t));
+									free(buffer);
+								}
+								else{
+									log_info(kernelLog, "Abortar el proceso, no tiene dicha direccion reservada\n");
+									error = -5;
+									abort_process(pid, error, i);
+								}
+							}
+							else{
+								log_error(kernelLog, "Abortar el proceso, no tiene paginas alocadas\n");
+								error = -5;
+								abort_process(pid, error, i);
+							}
+						}*/
+						if(codigo == LIBERAR_MEMORIA){//todo liberar
+							uint32_t pid, direccion;
+							int32_t error = -1, ok = 1;
+							recibir(i, &pid, sizeof(uint32_t));
+							recibir(i, &direccion, sizeof(uint32_t));
+
+							datos_proceso* dp = get_datos_proceso(pid);
+							dp->syscalls ++;
+							dp->op_liberar ++;
+
+							if(tiene_heap(pid) == true){
+								heap_de_proceso *heap_buscado = buscar_heap(pid);
+								print_heap(heap_buscado->heap);
+								if(puntero_existe(heap_buscado->heap, direccion)){
+									puntero *unPuntero = remove_puntero(heap_buscado->heap, direccion);
+
+									uint32_t corrimiento = unPuntero->direccion - (unPuntero->pagina * tamanio_pagina) - sizeof(heapMetadata);
+									uint32_t cod = 4, tamanio = sizeof(heapMetadata);
+
+									heapMetadata *heapM = malloc(sizeof(heapMetadata));
+									heapM->isFree = true;
+									heapM->size = unPuntero->size;
+
+									void *buffer = malloc(sizeof(uint32_t)*5 + sizeof(heapMetadata));
+									memcpy(buffer, &cod, sizeof(uint32_t));
+									memcpy(buffer+sizeof(uint32_t), &pid, sizeof(uint32_t));
+									memcpy(buffer+sizeof(uint32_t)*2, &(unPuntero->pagina), sizeof(uint32_t));
+									memcpy(buffer+sizeof(uint32_t)*3, &corrimiento, sizeof(uint32_t));
+									memcpy(buffer+sizeof(uint32_t)*4, &tamanio, sizeof(uint32_t));
+									memcpy(buffer+sizeof(uint32_t)*5, heapM, tamanio);
+
+									enviar(sockfd_memoria, buffer, sizeof(uint32_t)*5 + sizeof(heapMetadata));
+									dp->bytes_liberar += unPuntero->size;
+
+									t_heap *page = buscar_pagina(pid, unPuntero->pagina);
+
+									page->espacio_libre += unPuntero->size;
+
+									compactar_pagina(page);
+
+									if(esta_ocupada(heap_buscado, page->pagina) == false){
+										printf("Se liberara la pagina %d del proceso %d\n", page->pagina, page->pid);
+										log_info(kernelLog,"Se liberara la pagina %d del proceso %d\n", page->pagina, page->pid);
+										remover_pagina_reservada(page->pid, page->pagina);
+									}
+
 									free(unPuntero);
 									list_add(heap, heap_buscado);
 									log_info(kernelLog, "El espacio ha sido liberado!\n");

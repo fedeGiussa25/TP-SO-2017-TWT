@@ -28,7 +28,8 @@ enum{
 	OBTENER_VALOR = 6,
 	SOLICITAR_HEAP = 7,
 	ALOCAR = 8,
-	LIBERAR = 9
+	LIBERAR = 9,
+	LIBERAR_PAGINA = 10
 };
 
 typedef struct{
@@ -600,10 +601,10 @@ espacio_reservado *buscar_espacioV2(uint32_t pid, uint32_t paginas_necesarias){
 			if(encontrado == false){
 				j=0;
 				while(encontrado == false){
-					if(tabla[posicion_hash+j].PID == -2){
-						tabla[posicion_hash+j].PID = pid;
-						tabla[posicion_hash+j].pagina = i;
-						agregar_frame_en_indice(posicion_hash, (posicion_hash+j));
+					if(tabla[j].PID == -2){
+						tabla[j].PID = pid;
+						tabla[j].pagina = i;
+						agregar_frame_en_indice(posicion_hash, j);
 						encontrado = true;
 					}else{
 						j++;
@@ -726,6 +727,66 @@ espacio_reservado *buscar_espacio_para_heap(uint32_t pid){
 
 	espacio->page_counter = paginas_de_proceso(pid);
 	espacio->direccion = marcos_size*i;
+
+	return espacio;
+}
+
+espacio_reservado *asignar_nueva_pagina(uint32_t pid){
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+	espacio_reservado *espacio = malloc(sizeof(espacio_reservado));
+	int libres = marcos_libres();
+	int marcos_size = data_config.marco_size, frame;
+
+	if(libres >= 1){
+
+		uint32_t numero_de_pagina = paginas_de_proceso(pid);
+
+		int posicion_hash = calcular_posicion(pid, numero_de_pagina), j=0;
+
+		printf("La posicion calculada es: %d\n", posicion_hash);
+		bool encontrado = false;
+		while(encontrado == false && (posicion_hash+j) < data_config.marcos){
+			if(tabla[posicion_hash+j].PID == -2){
+				tabla[posicion_hash+j].PID = pid;
+				tabla[posicion_hash+j].pagina = numero_de_pagina;
+				agregar_frame_en_indice(posicion_hash, (posicion_hash+j));
+				encontrado = true;
+				frame = posicion_hash+j;
+			}else{
+				j++;
+			}
+		}
+		if(encontrado == false){
+			j=0;
+			while(encontrado == false){
+				if(tabla[j].PID == -2){
+					tabla[j].PID = pid;
+					tabla[j].pagina = numero_de_pagina;
+					agregar_frame_en_indice(posicion_hash, (j));
+					encontrado = true;
+					frame = j;
+				}else{
+					j++;
+				}
+			}
+		}
+
+		log_info(messagesLog,"Se ha reservado la pagina %d para el Heap del proceso %d\n", numero_de_pagina,pid);
+		printf("Se ha reservado la pagina %d para el Heap del proceso %d\n", numero_de_pagina,pid);
+
+		espacio->page_counter = numero_de_pagina;
+		espacio->direccion = marcos_size*frame;
+
+		heapMetadata *unPuntero = malloc(sizeof(heapMetadata));
+		unPuntero->isFree = true;
+		unPuntero->size = data_config.marco_size - sizeof(heapMetadata);
+
+		memcpy(memoria+(marcos_size*frame), unPuntero, sizeof(heapMetadata));
+		free(unPuntero);
+	}else{
+		espacio->page_counter = -1;
+		espacio->direccion = -1;
+	}
 
 	return espacio;
 }
@@ -1002,6 +1063,31 @@ void liberar(uint32_t PID, uint32_t pagina, uint32_t direccion){
 	}
 }
 
+void liberar_pagina(uint32_t PID, uint32_t pagina){
+	int frame, posicion_hash;
+	entrada_tabla *tabla = (entrada_tabla *) memoria;
+
+	posicion_hash = calcular_posicion(PID, pagina);
+	frame = buscar_en_indice(posicion_hash, PID, pagina);
+
+	printf("Se liberara la pagina %d del proceso %d, correspondiente al frame %d\n", pagina, PID, frame);
+
+	tabla[frame].pagina = -2;
+	tabla[frame].PID = -2;
+
+	borrar_de_indice(posicion_hash, tabla[frame].frame);
+
+	if(esta_en_cache(PID, pagina) == true){
+		int i;
+		for(i=0; i< data_config.entradas_cache; i++){
+			if(cache[i].pagina == pagina && cache[i].pid == PID){
+				cache[i].pagina = -1;
+				cache[i].pid = -1;
+			}
+		}
+	}
+}
+
 void *thread_consola(){
 	printf("Ingrese un comando \nComandos disponibles:\n dump tabla		Muestra tabla de paginas\n dump cache		Muestra la cache\n"
 			" dump memoria		Muestra la memoria\n dump proceso <PID>	Muestra memoria de un proceso\n"
@@ -1163,7 +1249,7 @@ void *thread_proceso(int fd){
 				recv(fd, &pagina, sizeof(int), 0);
 				recv(fd, &inicio, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
-
+				printf("Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
 				//char *instruccion = (char *) lectura(PID, pagina, inicio, offset);
 				void *instruccion = lecturaV2(PID, pagina, inicio, offset);
 				int error;
@@ -1193,9 +1279,11 @@ void *thread_proceso(int fd){
 				recv(fd, &offset, sizeof(int), 0);
 				recv(fd, &tamanio, sizeof(int), 0);
 
+				printf("Escritura: pid:%d, pagina %d,desplazamiento %d, tamanio %d\n", PID, pagina, offset, tamanio);
+
 				void *datos = malloc(tamanio);
 
-				recv(fd, datos, sizeof(int), 0);
+				recv(fd, datos, tamanio, 0);
 				escritura(PID, pagina, offset, tamanio, datos);
 				free(datos);
 			}
@@ -1210,18 +1298,20 @@ void *thread_proceso(int fd){
 				recv(fd, &inicio, sizeof(int), 0);
 				recv(fd, &offset, sizeof(int), 0);
 
-				int *valor = malloc(sizeof(int));
-				valor = (int *) lectura(PID, pagina, inicio, offset);
+				printf("Lectura: pid:%d, pagina:%d, inicio:%d, offset:%d\n", PID, pagina, inicio, offset);
 
-				value = *valor;
-				send(fd, &value, sizeof(int), 0);
+				void *valor = malloc(offset);
+				valor = lectura(PID, pagina, inicio, offset);
+
+				//value = *valor;
+				send(fd, valor, offset, 0);
 				free(valor);
 			}
 			if(codigo == SOLICITAR_HEAP){
 				recibir(fd, &PID, sizeof(uint32_t));
 				espacio_reservado *espacio;
-				espacio = buscar_espacio_para_heap(PID);
-
+				//espacio = buscar_espacio_para_heap(PID);
+				espacio = asignar_nueva_pagina(PID);
 				enviar(fd, &(espacio->page_counter), sizeof(int32_t));
 			}
 			if(codigo == ALOCAR){
@@ -1245,6 +1335,13 @@ void *thread_proceso(int fd){
 				recibir(fd, &direccion, sizeof(uint32_t));
 
 				liberar(PID, pagina, direccion);
+			}
+			if(codigo == LIBERAR_PAGINA){
+				uint32_t pagina;
+				recibir(fd, &PID, sizeof(uint32_t));
+				recibir(fd, &pagina, sizeof(uint32_t));
+
+				liberar_pagina(PID, pagina);
 			}
 		}
 		pthread_mutex_unlock(&mutex_memoria);

@@ -740,46 +740,46 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 
 	PCB* pcb = malloc(sizeof(PCB));
 
-	recv(fd_socket, &pid, sizeof(u_int32_t),0);
+	recv(fd_socket, &pid, sizeof(u_int32_t),MSG_WAITALL);
 
-	recv(fd_socket, &page_counter, sizeof(uint32_t),0);
+	recv(fd_socket, &page_counter, sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &direccion_inicio_codigo, sizeof(uint32_t),0);
+	recv(fd_socket, &direccion_inicio_codigo, sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &program_counter, sizeof(uint32_t),0);
+	recv(fd_socket, &program_counter, sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &cantidad_de_instrucciones, sizeof(uint32_t),0);
+	recv(fd_socket, &cantidad_de_instrucciones, sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &tamanio_indice_codigo, sizeof(uint32_t),0);
+	recv(fd_socket, &tamanio_indice_codigo, sizeof(uint32_t),MSG_WAITALL);
 
 	entrada_indice_de_codigo *indice_de_codigo = malloc(tamanio_indice_codigo);
 
-	recv(fd_socket, indice_de_codigo, tamanio_indice_codigo,0);
+	recv(fd_socket, indice_de_codigo, tamanio_indice_codigo,MSG_WAITALL);
 
-	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
+	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),MSG_WAITALL);
 
 	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
 
 	if(tamanio_indice_etiquetas>0)
 	{
-		recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
+		recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,MSG_WAITALL);
 	}
 
-	recv(fd_socket, &tamanio_estado, sizeof(uint32_t),0);
+	recv(fd_socket, &tamanio_estado, sizeof(uint32_t),MSG_WAITALL);
 
 	char *estado = malloc(tamanio_estado);
 
-	recv(fd_socket, estado, tamanio_estado,0);
+	recv(fd_socket, estado, tamanio_estado,MSG_WAITALL);
 
-	recv(fd_socket, &exit_code, sizeof(int32_t),0);
+	recv(fd_socket, &exit_code, sizeof(int32_t),MSG_WAITALL);
 
-	recv(fd_socket, &primerPagStack,sizeof(uint32_t),0);
+	recv(fd_socket, &primerPagStack,sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &stack_pointer,sizeof(uint32_t),0);
+	recv(fd_socket, &stack_pointer,sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &stack_size,sizeof(uint32_t),0);
+	recv(fd_socket, &stack_size,sizeof(uint32_t),MSG_WAITALL);
 
-	recv(fd_socket, &cantRegistros,sizeof(uint32_t),0);
+	recv(fd_socket, &cantRegistros,sizeof(uint32_t),MSG_WAITALL);
 
 	//Recibo STACK
 
@@ -793,7 +793,7 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 
 	while(registrosAgregados < cantRegistros)
 	{
-		recv(fd_socket, &cantArgumentos, sizeof(uint32_t),0);
+		recv(fd_socket, &cantArgumentos, sizeof(uint32_t),MSG_WAITALL);
 
 		printf("cant argums: %d\n", cantArgumentos);
 		registroStack* nuevoReg = malloc(sizeof(registroStack));
@@ -810,20 +810,20 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 		{
 			variable *nuevoArg = malloc(sizeof(variable));
 
-			recv(fd_socket, &(nuevoArg->id), sizeof(char),0);
+			recv(fd_socket, &(nuevoArg->id), sizeof(char),MSG_WAITALL);
 
-			recv(fd_socket, &(nuevoArg->offset), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoArg->offset), sizeof(uint32_t),MSG_WAITALL);
 
-			recv(fd_socket, &(nuevoArg->page), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoArg->page), sizeof(uint32_t),MSG_WAITALL);
 
-			recv(fd_socket, &(nuevoArg->size), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoArg->size), sizeof(uint32_t),MSG_WAITALL);
 
 			list_add(nuevoReg->args, nuevoArg);
 			argumentosAgregados++;
 			}
 		} //Fin recepcion argumentos
 
-			recv(fd_socket, &cantVariables, sizeof(int),0);
+			recv(fd_socket, &cantVariables, sizeof(int),MSG_WAITALL);
 
 			nuevoReg->vars= list_create();
 			printf("cant vars: %d\n", cantVariables);
@@ -837,13 +837,13 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 			{
 				variable *nuevaVar = malloc(sizeof(variable));
 
-				recv(fd_socket, &(nuevaVar->id), sizeof(char),0);
+				recv(fd_socket, &(nuevaVar->id), sizeof(char),MSG_WAITALL);
 
-				recv(fd_socket, &(nuevaVar->offset), sizeof(uint32_t),0);
+				recv(fd_socket, &(nuevaVar->offset), sizeof(uint32_t),MSG_WAITALL);
 
-				recv(fd_socket, &(nuevaVar->page), sizeof(uint32_t),0);
+				recv(fd_socket, &(nuevaVar->page), sizeof(uint32_t),MSG_WAITALL);
 
-				recv(fd_socket, &(nuevaVar->size), sizeof(uint32_t),0);
+				recv(fd_socket, &(nuevaVar->size), sizeof(uint32_t),MSG_WAITALL);
 
 
 				list_add(nuevoReg->vars, nuevaVar);
@@ -855,16 +855,16 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 
 			//Recibo retPos
 
-			recv(fd_socket, &(nuevoReg->ret_pos), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoReg->ret_pos), sizeof(uint32_t),MSG_WAITALL);
 
 
 			//Recibo retVar
 
-			recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoReg->ret_var.offset), sizeof(uint32_t),MSG_WAITALL);
 
-			recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoReg->ret_var.page), sizeof(uint32_t),MSG_WAITALL);
 
-			recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(uint32_t),0);
+			recv(fd_socket, &(nuevoReg->ret_var.size), sizeof(uint32_t),MSG_WAITALL);
 
 			list_add(pcb->stack_index, nuevoReg);
 
