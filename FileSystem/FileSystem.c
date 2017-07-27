@@ -142,8 +142,11 @@ int main(int argc, char** argv)
 	char *nameArchRequest;
 	int32_t msg,offset,size;
 	while(1){
+		log_info(miLog,"ESPERANDO INSTRUCCION");
 		if(recibir(kernel,&msg,sizeof(int32_t))==NULL)
 			break;
+		log_info(miLog,"INSTRUCCION RECIBIDA -- %d",msg);
+
 		switch(msg){
 			case VALIDAR_MSG:
 				nameArchRequest = obtieneNombreArchivo(kernel);
