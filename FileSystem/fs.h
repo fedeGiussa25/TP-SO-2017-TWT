@@ -571,7 +571,7 @@ int32_t guardar_datos(char* path,char* montaje,int32_t offset,int32_t size,void*
     int32_t i;
     Bloque_t *aux = blocks_to_process(sizeBloque,offset,size);
     for(i=0;aux[i].id != -1;i++);
-    int32_t bloquesNecesarios = i- archivo->cantidadElementos;
+    int32_t bloquesNecesarios = aux[i-1].id +1- archivo->cantidadElementos;
 
     if(bloquesNecesarios >0){
         int32_t bloques = cantidadBloquesLibres(bitmap);
