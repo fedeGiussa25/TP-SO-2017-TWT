@@ -2155,11 +2155,13 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 			existe = true;
 			aux->instancias_abiertas++;
 			log_info(kernelLog, "Se ha encontrado el archivo en la tabla global\n");
+			referencia_tabla_global = i;
 		}
 		i++;
 	}
 	pthread_mutex_unlock(&mutex_archivos_globales);
 	//Si no esta en la tabla global, creo otra entrada en dicha tabla
+
 	if(!existe)
 	{
 		log_info(kernelLog, "No se ha encontrado el archivo en la tabla global por lo que sera creado\n");
@@ -2169,11 +2171,8 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 		pthread_mutex_lock(&mutex_archivos_globales);
 		list_add(tabla_global_de_archivos,nuevo);
 		pthread_mutex_unlock(&mutex_archivos_globales);
+		referencia_tabla_global = i;
 	}
-
-	//Si no encuentra el path en la tabla global -> i = list_size (tamanio de la tabla global de archivos)
-	//eso referencia a la posicion de la nueva entrada agregada a la tabla
-	referencia_tabla_global = i;
 
 	tabla_archivos = obtener_tabla_archivos_proceso(pid);
 	archivo_de_proceso* archivoAbierto = malloc(sizeof(archivo_de_proceso));
@@ -2184,21 +2183,23 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	archivoAbierto->fd = tabla_archivos->current_fd;
 
 	t_banderas* banderita = malloc(sizeof(t_banderas));
+
 	if(permisos->creacion)
 		banderita->creacion = 1;
 	else banderita->creacion = 0;
 
-		if(permisos->creacion)
-			banderita->escritura = 1;
-		else banderita->escritura = 0;
+	if(permisos->escritura)
+		banderita->escritura = 1;
+	else banderita->escritura = 0;
 
-		if(permisos->creacion)
-			banderita->lectura = 1;
-		else banderita->lectura = 0;
+	if(permisos->lectura)
+		banderita->lectura = 1;
+	else banderita->lectura = 0;
 
 	archivoAbierto->flags = banderita;
 	archivoAbierto->offset = 0;
 	archivoAbierto->referencia_a_tabla_global = referencia_tabla_global;
+	printf("Referencia a tabla global: %d\n", referencia_tabla_global);
 	list_add(tabla_archivos->lista_de_archivos, archivoAbierto);
 	return archivoAbierto->fd;
 }
@@ -2248,9 +2249,9 @@ int move_cursor(int pid, int fd, int position)
 	return 1;
 }
 
-void* execute_read(int pid, int fd, int messageLength, int32_t *error)
+char* execute_read(int pid, int fd, int messageLength, int32_t *error)
 {
-	void* readText = malloc(messageLength);
+	char* readText = malloc(messageLength);
 
 	if(fd < 3)
 	{
@@ -2320,7 +2321,8 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	recv(sockfd_fs,(void*)&codigo_recv, sizeof(int32_t),0);
 	if(codigo_recv == 1){
 		log_info(kernelLog, "El FS realizo la lecutra exitosamente\n");
-		recv(sockfd_fs,(void*)readText, messageLength,0);
+		recv(sockfd_fs, readText, messageLength, 0);
+		printf("Lei: %s\n", readText);
 		*error = 1;
 	}
 	else{
@@ -2329,7 +2331,6 @@ void* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	}
 
 	free(buffer);
-
 	return readText;
 }
 
@@ -2410,6 +2411,7 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 					//Primero serializo
 					codigo = ESCRIBIR_ARCHIVO_FS;
+					printf("%s\n",arch->ruta_del_archivo);
 					int size_arch = strlen(arch->ruta_del_archivo) +1;
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
@@ -2521,7 +2523,7 @@ int execute_delete(int pid, int fd){
 		memcpy(buffer + sizeof(uint32_t)*2, arch->ruta_del_archivo, size);
 
 		log_info(kernelLog, "Se ha enviado el archivo a borrar al FS\n");
-		enviar(sockfd_fs, buffer, sizeof(uint32_t) + size);
+		enviar(sockfd_fs, buffer, sizeof(uint32_t)*2 + size);
 		recibir(sockfd_fs, &reciever, sizeof(uint32_t));
 		log_info(kernelLog, "Se ha recibido una respuesta del FS\n");
 
@@ -3318,7 +3320,7 @@ int main(int argc, char** argv) {
 							dp->syscalls ++;
 
 							int32_t error = 0;
-							void* resultado = execute_read(pid, fd, messageLength,&error);
+							char* resultado = execute_read(pid, fd, messageLength,&error);
 
 							if(error < 0)
 							{
@@ -3335,8 +3337,11 @@ int main(int argc, char** argv) {
 								log_info(kernelLog, "Se realizo exitosamente una lectura del archivo %d para el proceso %d\n", fd, pid);
 								enviar(i, &codigo, sizeof(int));
 								enviar(i, resultado, messageLength);
+								log_info(kernelLog, "Se enviaron los datos leidos a la CPU\n", i);
 							}
 
+							free(resultado);
+							log_info(kernelLog, "Libere el texto que mande");
 						}
 
 						if(codigo == ESCRIBIR_ARCHIVO)
