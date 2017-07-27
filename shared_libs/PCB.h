@@ -553,7 +553,7 @@ void send_PCBV2(uint32_t sock_fd, PCB *pcb, int32_t codigo){
 
 	send(sock_fd, ultimateBuffer, sizeof(int32_t) + tamanio_total_buffer,0);
 
-	printf("Mande un PCB :D\n\n");
+	printf("Se ha enviado un PCB\n\n");
 	free(ultraBuffer);	//Cumpliste con tu mision. Ya eres libre.
 	free(ultimateBuffer); //Vos tambien.
 }
@@ -600,12 +600,12 @@ PCB* recibirPCB(uint32_t fd_socket)
 
 	//recibo indice etiquetas:
 
-	printf("\nRECIBI TODO MENOS ETIQUETAS\n");
+	//printf("\nRECIBI TODO MENOS ETIQUETAS\n");
 
 	recv(fd_socket, &tamanio_indice_etiquetas, sizeof(uint32_t),0);
 
 
-	printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
+	//printf("RECIBI TAMANIO ETIQUETAS Y ES: %d\n", tamanio_indice_etiquetas);
 
 	char* indice_de_etiquetas = malloc(tamanio_indice_etiquetas);
 
@@ -614,7 +614,7 @@ PCB* recibirPCB(uint32_t fd_socket)
 	recv(fd_socket, indice_de_etiquetas, tamanio_indice_etiquetas,0);
 
 
-	printf("RECIBI indice ETIQUETAS\n\n");
+	//printf("RECIBI indice ETIQUETAS\n\n");
 
 	}
 
@@ -795,7 +795,7 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 	{
 		recv(fd_socket, &cantArgumentos, sizeof(uint32_t),MSG_WAITALL);
 
-		printf("cant argums: %d\n", cantArgumentos);
+		//printf("cant argums: %d\n", cantArgumentos);
 		registroStack* nuevoReg = malloc(sizeof(registroStack));
 
 		nuevoReg->args = list_create();
@@ -826,7 +826,7 @@ PCB* recibirPCBV2(uint32_t fd_socket)
 			recv(fd_socket, &cantVariables, sizeof(int),MSG_WAITALL);
 
 			nuevoReg->vars= list_create();
-			printf("cant vars: %d\n", cantVariables);
+			//printf("cant vars: %d\n", cantVariables);
 			if(cantVariables>0) //Si tiene variables
 			{
 			//Recibo variables:

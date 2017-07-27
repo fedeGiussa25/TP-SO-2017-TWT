@@ -973,7 +973,7 @@ int main(int argc, char **argv) {
 		printf("Se recibio codigo: %d\n", codigo);
 		log_info(messagesLog, "Se recibio codigo: %d\n", codigo);
 		nuevaPCB = recibirPCBV2(fd_kernel);
-		printf("RECIBI PCB\n");
+		printf("Se recibio un PCB\n");
 		log_info(messagesLog, "Se recibio un PCB\n");
 
 		print_PCB(nuevaPCB);
