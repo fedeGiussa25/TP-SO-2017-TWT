@@ -352,17 +352,18 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	if(exist(path,montaje)==true)
 		return false;
 	log_info(log,"Tratando de Crear un Archivo en %s\n",path );
-    dirPathCreate(path,montaje);
-	char* fullPath = unir_str(montaje,path);
-	FILE *archivo = fopen(fullPath,"w");
-	if(archivo == NULL)
-		return false;
-	fclose(archivo);
     int bloque = primer_bloque_libre(data);
     if(bloque == -1){
         log_error(log,"NO HAY BLOQUES PARA ASIGNAR");
         return false;
     }
+    dirPathCreate(path,montaje);
+    char* fullPath = unir_str(montaje,path);
+    FILE *archivo = fopen(fullPath,"w");
+    if(archivo == NULL) {
+        return false;
+    }
+    fclose(archivo);
     Archivo_t *aux = malloc(sizeof(Archivo_t));
     aux->tamanio = 0;
     aux->cantidadElementos = 0;
