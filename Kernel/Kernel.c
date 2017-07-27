@@ -3568,7 +3568,7 @@ int main(int argc, char** argv) {
 								uint32_t corrimiento = alocar(pid, lugar->pagina, espacio);
 								lugar->espacio_libre = lugar->espacio_libre - (espacio + sizeof(heapMetadata));
 								enviar(i, &corrimiento, sizeof(int32_t));
-							}else{
+							}else if(espacio > tam_max_disponible){
 								printf("Ocurrio un error al reservar memoria, revisar el log\n");
 								log_error(kernelLog, "Error: No es posible reservar un espacio mayor que una pagina\n");
 								error = -8;
