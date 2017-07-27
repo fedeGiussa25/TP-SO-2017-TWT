@@ -685,7 +685,7 @@ void twt_leer (t_descriptor_archivo descriptor_archivo, t_puntero informacion, t
 		memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*3, &tamanio, sizeof(int));
 		memcpy(buffer+sizeof(u_int32_t)+sizeof(int)*4, informacion_leida,tamanio);
 
-		send(fd_memoria, buffer, sizeof(int)*5+sizeof(u_int32_t),0);
+		send(fd_memoria, buffer, sizeof(int)*4+sizeof(u_int32_t)+tamanio,0);
 
 	//twt_asignar(informacion, informacion_leida);     //Voy a preguntar bien si esto es asi
 	}

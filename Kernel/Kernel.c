@@ -1754,11 +1754,11 @@ void remover_pagina_reservada(uint32_t pid, uint32_t pagina){
 }
 
 uint32_t alocar(uint32_t pid, uint32_t pagina, uint32_t espacio){
-	printf("En alocar, pid:%d, pagina:%d, espacio %d\n", pid, pagina, espacio);
+	log_info(kernelLog,"En alocar, pid:%d, pagina:%d, espacio %d\n", pid, pagina, espacio);
 	uint32_t codigo = 6, offset = sizeof(heapMetadata), corrimiento = 0;
 	void *buffer = malloc(sizeof(uint32_t)*5);
 	bool encontrado = false;
-	int32_t error,tamanio;
+	int32_t tamanio;
 	heapMetadata *el_puntero, *otroPuntero;
 
 	while(encontrado == false){
@@ -1778,10 +1778,10 @@ uint32_t alocar(uint32_t pid, uint32_t pagina, uint32_t espacio){
 
 		recv(sockfd_memoria, el_puntero, offset, 0);
 
-		printf("El puntero recibido tiene: espacio:%d, isFree = %d \n", el_puntero->size, el_puntero->isFree);
+		log_info(kernelLog,"El puntero recibido tiene: espacio:%d, isFree = %d \n", el_puntero->size, el_puntero->isFree);
 
 		if(el_puntero->isFree == true && el_puntero->size >= (espacio + sizeof(heapMetadata))){
-			printf("Encontramos un espacio en %d\n", corrimiento);
+			log_info(kernelLog,"Encontramos un espacio en %d\n", corrimiento);
 			encontrado = true;
 			int cod = 4;
 			int aux = el_puntero->size;
@@ -3550,7 +3550,7 @@ int main(int argc, char** argv) {
 										nuevoHeap->pid = pid;
 										list_add(heap, nuevoHeap);
 									}
-									printf("Se ha reservado la pagina %d\n", paginas_totales);
+									log_info(kernelLog,"Se ha reservado la pagina %d\n", paginas_totales);
 									t_heap *nuevaPagina = malloc(sizeof(t_heap));
 									nuevaPagina->pagina = paginas_totales;
 									nuevaPagina->pid = pid;
@@ -3564,7 +3564,7 @@ int main(int argc, char** argv) {
 							}
 							if(hay_pagina_con_espacio(pid, espacio) == true && espacio <= tam_max_disponible){
 								t_heap *lugar = buscar_pagina_con_espacio(pid, espacio);
-								printf("Se alocara en la pagina %d del proceso %d. La pagina tiene %d bytes libres\n", lugar->pagina, pid, lugar->espacio_libre);
+								log_info(kernelLog,"Se alocara en la pagina %d del proceso %d. La pagina tiene %d bytes libres\n", lugar->pagina, pid, lugar->espacio_libre);
 								uint32_t corrimiento = alocar(pid, lugar->pagina, espacio);
 								lugar->espacio_libre = lugar->espacio_libre - (espacio + sizeof(heapMetadata));
 								enviar(i, &corrimiento, sizeof(int32_t));
