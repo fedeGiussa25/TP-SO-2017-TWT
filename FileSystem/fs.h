@@ -358,12 +358,17 @@ int32_t create_archivo(char* path,char* montaje,t_bitarray *data,t_log *log){
 	if(archivo == NULL)
 		return false;
 	fclose(archivo);
-	Archivo_t *aux = malloc(sizeof(Archivo_t));
-	aux->tamanio = 0;
-	aux->cantidadElementos = 0;
-	aux->array = NULL;
-	int bloque = primer_bloque_libre(data);
+    int bloque = primer_bloque_libre(data);
+    if(bloque == -1){
+        log_error(log,"NO HAY BLOQUES PARA ASIGNAR");
+        return false;
+    }
+    Archivo_t *aux = malloc(sizeof(Archivo_t));
+    aux->tamanio = 0;
+    aux->cantidadElementos = 0;
+    aux->array = NULL;
     log_info(log,"El primer bloque libre fue el %d\n",bloque);
+
 	agregarBloque(aux,bloque,log);
 	bitarray_set_bit(data,bloque);
 	Archivo_guardar(path,montaje,aux,log);
