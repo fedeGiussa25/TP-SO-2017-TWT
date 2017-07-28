@@ -918,6 +918,7 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				borrar_PBCs_usados(PID);
 				borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
+				remove_from_semaphore(PID);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
@@ -953,7 +954,6 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				log_info(kernelLog, "Memory leak: se perdieron %d bytes\n",bytes_lost);
 			else
 				log_info(kernelLog, "No hubo Memory leaks\n");
-
 		//Le aviso a memoria que le saque las paginas asignadas
 		void* sendbuf_mem = malloc(sizeof(uint32_t)*2);
 		uint32_t codigo_para_borrar_paginas = 5;
@@ -1174,6 +1174,15 @@ datos_proceso* get_datos_proceso(int PID){
 	return 0;
 }
 
+void semaforos_print(){
+	int i = 0, dimension = list_size(semaforos);
+	while(dimension > i){
+		semaforo_cola* cola = list_get(semaforos,i);
+		printf("Semaforo %s, valor %d\n",cola->sem->ID,cola->sem->valor);
+		i++;
+	}
+}
+
 void data_menu(int PID, datos_proceso* datapro){
 	char* data = malloc(sizeof(char)*20);
 	printf("\nOpciones\n");
@@ -1284,6 +1293,15 @@ void set_qsleep(){
 	printf("\n");
 }
 
+void odio_a_dami(){
+	int i = 0, dimension = list_size(variables_compartidas);
+	while(dimension > i){
+		variable_compartida* alguna = list_get(variables_compartidas,i);
+		printf("Variable %s, valor %d\n",alguna->ID,alguna->valor);
+		i++;
+	}
+}
+
 void menu()
 {
 	while(1)
@@ -1325,6 +1343,10 @@ void menu()
 			printf("%d\n",list_size(lista_en_ejecucion));
 		else if((strcmp(command, "giussa") == 0))
 			printf("%d\n",list_size(procesos_a_borrar));
+		else if((strcmp(command, "dami") == 0))
+			odio_a_dami();
+		else if((strcmp(command, "pija") == 0))
+			semaforos_print();
 		else if((strcmp(command, "qsleep") == 0))
 			set_qsleep();
 		else
@@ -1514,6 +1536,7 @@ void asignar_valor_variable_compartida(char* ID, u_int32_t value){
 	variable_a_modificar->valor = value;
 	list_add(variables_compartidas, variable_a_modificar);
 }
+
 
 u_int32_t obtener_valor_variable_compartida(char* ID){
 	u_int32_t value;
@@ -2334,12 +2357,15 @@ char* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	return readText;
 }
 
+
 int execute_write(int pid, int archivo, char* message, int messageLength, int sock_mem)
 {
 	int sock_consola, codigo;
 	bool escritura_correcta = false;
 
 	sock_consola = obtener_consola_asignada_al_proceso(pid);
+
+	printf("Mandanding a mensaje\n");
 
 	if(archivo == 1)
 	{
@@ -2530,11 +2556,11 @@ int execute_delete(int pid, int fd){
 		free(buffer);
 		if(reciever)
 		{
-			list_remove(tabla_global_de_archivos, referencia_tabla_global);
-			free(arch);
-			list_remove(tabla_archivos->lista_de_archivos,ubicacion_tabla_archivos);
-			free(arch_aux);
-			log_info(kernelLog, "Se han eliminado las entradas del archivo en las tablas local y global %d\n");
+		//	list_remove(tabla_global_de_archivos, referencia_tabla_global);
+		//	free(arch);
+		//	list_remove(tabla_archivos->lista_de_archivos,ubicacion_tabla_archivos);
+		//	free(arch_aux);
+			log_info(kernelLog, "Se ha eliminado exitosamente el archivo %d\n");
 			return reciever;
 		}
 		else
@@ -2877,7 +2903,7 @@ int main(int argc, char** argv) {
 
 							printf("Recibi una operacion de eliminacion de proceso desde una consola\n");
 
-							if(strcmp(actual_PCB->estado,"Exec") == 0){
+							if(proceso_en_ejecucion(pid)){
 								//Si esta en ejecucion lo dejo esperando a que lo cancelen
 								just_a_pid* aux = malloc(sizeof(just_a_pid));
 								aux->proceso = actual_PCB->pid;
@@ -2891,6 +2917,7 @@ int main(int argc, char** argv) {
 								list_add(procesos_a_borrar,aux);
 								pthread_mutex_unlock(&mutex_to_delete);
 							}
+
 							else{
 								//Saco a la cpu de la lista de ejecucion
 								log_info(kernelLog, "El proceso no esta en ejecucion, se borrara ahora\n");
@@ -3017,7 +3044,6 @@ int main(int argc, char** argv) {
 
 								if(existe == true)
 								{
-
 									head = 1; //Existe el semaforo
 
 									valor = wait(id_sem, PID);
@@ -3056,7 +3082,7 @@ int main(int argc, char** argv) {
 										queue_push(unSem->cola_de_bloqueados, unPCB);
 										list_add(semaforos, unSem);
 										pthread_mutex_unlock(&mutex_semaforos_ansisop);
-										log_info(kernelLog, "El proceso %d paso de Exec a Blockn",unPCB->pid);
+										log_info(kernelLog, "El proceso %d paso de Exec a Block\n",unPCB->pid);
 										log_info(kernelLog, "Termino todo el envio\n");
 
 										pthread_mutex_lock(&mutex_fd_cpus);

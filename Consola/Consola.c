@@ -255,19 +255,13 @@ void script_thread(thread_setup* ts)
 	FILE *file;
 	int scriptLength = 0;
 	struct stat st;
-	off_t fileSize;	//uso esto para despues determinar el tamaño de la variable script
-					// sabiendo que 1 char = 1 byte, al sacar el nro de bytes del archivo, se cuantos char tiene
-					// "off_t" = unsigned int 64
+	off_t fileSize;
 
 	char id_string[15];
 	sprintf(id_string,"%d",ts->threadID);
 	sockfd_kernel = handshake_kernel(id_string);
 
-	//Le pongo un timeout a los recv del socket
-	struct timeval tv;
-	tv.tv_sec = 2;  /* 30 Secs Timeout */
-	tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-	setsockopt(sockfd_kernel, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(struct timeval));
+//	setsockopt(sockfd_kernel, SOL_SOCKET, NULL, NULL, NULL);
 
 	if(sockfd_kernel == -1)
 	{
@@ -400,7 +394,8 @@ void script_thread(thread_setup* ts)
 
 	while(!closeAllThreads)
 	{
-		if(recv(sockfd_kernel, &respuesta2, sizeof(int), 0) == 0) 	//recibe el codigo que indica si llego al final del programa (del script enviado) o no
+		int bytes_recv = recv(sockfd_kernel, &respuesta2, sizeof(int), 0);
+		if(bytes_recv == 0) 	//recibe el codigo que indica si llego al final del programa (del script enviado) o no
 		{
 			printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", esteHilo->thread);
 			log_error(messagesLog, "Se terminara el hilo %d debido a que el kernel se encuentra desconectado\n", esteHilo->thread);
@@ -410,8 +405,6 @@ void script_thread(thread_setup* ts)
 
 		if(respuesta2 == 5)	// el kernel quiere imprimir algo
 		{
-			char *messageToPrint = malloc(65); // el mensaje no tiene mas de 64 chars
-
 			if(recv(sockfd_kernel, &messageSize, sizeof(int), 0) == 0)
 			{
 				printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", esteHilo->thread);
@@ -419,6 +412,9 @@ void script_thread(thread_setup* ts)
 				remover_de_lista(esteHilo);
 				break;
 			}
+
+			char *messageToPrint = malloc(messageSize); // el mensaje no tiene mas de 64 chars
+
 			if(recv(sockfd_kernel, messageToPrint, messageSize, 0) == 0)
 			{
 				printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", esteHilo->thread);
@@ -428,8 +424,8 @@ void script_thread(thread_setup* ts)
 			}
 
 			printCounter++;
+			printf("Mensaje del script \"%s\" (PID: %d): %s\n", ts->script, esteHilo->pid, messageToPrint);
 
-			log_info(messagesLog, "Mensaje del script \"%s\" (PID: %d): %s\n", ts->script, esteHilo->pid, messageToPrint);
 			free(messageToPrint);
 		}
 
@@ -479,6 +475,7 @@ void script_thread(thread_setup* ts)
 	free(ts);
 	free(esteHilo);
 	close(sockfd_kernel);
+	pthread_exit(NULL);
 }
 
 
