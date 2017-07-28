@@ -282,6 +282,14 @@ void print_metadata(t_metadata_program* metadata){
 	log_info(kernelLog, "***FIN DE LA METADATA***\n\n");
 }
 
+void imprimir_semaforos(){
+	int i = 0, dimension = list_size(semaforos);
+	while(dimension > i){
+		semaforo_cola* semco = list_get(semaforos,i);
+		printf("Semaforo %s, Valor %d\n",semco->sem->ID,semco->sem->valor);
+		i++;
+	}
+}
 
 void print_PCB(PCB* pcb){
 	int i;
@@ -1345,7 +1353,7 @@ void menu()
 			printf("%d\n",list_size(procesos_a_borrar));
 		else if((strcmp(command, "dami") == 0))
 			odio_a_dami();
-		else if((strcmp(command, "pija") == 0))
+		else if((strcmp(command, "sem") == 0))
 			semaforos_print();
 		else if((strcmp(command, "qsleep") == 0))
 			set_qsleep();
@@ -1503,7 +1511,7 @@ void print_vars(){
 	int max_sem = list_size(semaforos);
 	int i = 0, j=0;
 
-	printf("Se imprime informacion de variables compartidas y semaforos en el log\n");
+	//printf("Se imprime informacion de variables compartidas y semaforos en el log\n");
 	log_info(kernelLog, "Variables Compartidas:\n");
 
 	while(i < max_var)
@@ -2055,7 +2063,7 @@ void manejador_de_scripts(script_manager_setup* sms){
 	//free(sms);
 }
 
-int obtener_consola_asignada_al_proceso(int pid)
+int obtener_consola_asignada_al_proceso(int PID)
 {
 	int i = 0, sock_consola = 0;
 	bool encontrado = false;
@@ -2064,7 +2072,7 @@ int obtener_consola_asignada_al_proceso(int pid)
 	while(i < list_size(lista_consolas) && !encontrado)
 	{
 		proceso_conexion* aux = list_get(lista_consolas, i);
-		if(pid == aux->proceso)
+		if(PID == aux->proceso)
 		{
 			sock_consola = aux->sock_fd;
 			encontrado = true;
@@ -2228,7 +2236,7 @@ int execute_open(uint32_t pid, t_banderas* permisos, char* path, uint32_t path_l
 	archivoAbierto->flags = banderita;
 	archivoAbierto->offset = 0;
 	archivoAbierto->referencia_a_tabla_global = referencia_tabla_global;
-	printf("Referencia a tabla global: %d\n", referencia_tabla_global);
+	//printf("Referencia a tabla global: %d\n", referencia_tabla_global);
 	list_add(tabla_archivos->lista_de_archivos, archivoAbierto);
 	return archivoAbierto->fd;
 }
@@ -2351,7 +2359,7 @@ char* execute_read(int pid, int fd, int messageLength, int32_t *error)
 	if(codigo_recv == 1){
 		log_info(kernelLog, "El FS realizo la lecutra exitosamente\n");
 		recv(sockfd_fs, readText, messageLength, 0);
-		printf("Lei: %s\n", readText);
+	//	printf("Lei: %s\n", readText);
 		*error = 1;
 	}
 	else{
@@ -2370,8 +2378,6 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 	bool escritura_correcta = false;
 
 	sock_consola = obtener_consola_asignada_al_proceso(pid);
-
-	printf("Mandanding a mensaje\n");
 
 	if(archivo == 1)
 	{
@@ -2443,12 +2449,12 @@ int execute_write(int pid, int archivo, char* message, int messageLength, int so
 
 					//Primero serializo
 					codigo = ESCRIBIR_ARCHIVO_FS;
-					printf("%s\n",arch->ruta_del_archivo);
+			//		printf("%s\n",arch->ruta_del_archivo);
 					int size_arch = strlen(arch->ruta_del_archivo) +1;
 					void* buffer = malloc((sizeof(uint32_t)*4) + size_arch + messageLength);
 
 					int offset = arch_aux->offset;
-					printf("Offset: %d\n", offset);
+			//		printf("Offset: %d\n", offset);
 
 					memcpy(buffer, &codigo, sizeof(uint32_t));
 					memcpy(buffer + sizeof(uint32_t), &size_arch, sizeof(uint32_t));
@@ -3695,7 +3701,7 @@ int main(int argc, char** argv) {
 									compactar_pagina(page);
 
 									if(esta_ocupada(heap_buscado, page->pagina) == false){
-										printf("Se liberara la pagina %d del proceso %d\n", page->pagina, page->pid);
+										//printf("Se liberara la pagina %d del proceso %d\n", page->pagina, page->pid);
 										log_info(kernelLog,"Se liberara la pagina %d del proceso %d\n", page->pagina, page->pid);
 										remover_pagina_reservada(page->pid, page->pagina);
 									}
@@ -3720,8 +3726,8 @@ int main(int argc, char** argv) {
 						}
 						if(codigo == PROCESO_FINALIZO_ERRONEAMENTE)
 						{
-							void* buffer_codigo = malloc(4);
-							recibir(i, buffer_codigo, 4);
+							int buffer_codigo;
+							recibir(i, &buffer_codigo, 4);
 							PCB *unPCB = recibirPCBV2(i);
 							print_PCB(unPCB);
 							uint32_t PID = unPCB->pid;
@@ -3739,12 +3745,12 @@ int main(int argc, char** argv) {
 							if(!proceso_para_borrar(PID))
 							{
 								log_info(kernelLog, "El proceso no estaba para borrar\n");
-								end_process(PID, *(int*)buffer_codigo, fd_consola, true);
+								end_process(PID, buffer_codigo, fd_consola, true);
 							}
 							else
 							{
 								log_info(kernelLog, "El proceso estaba para borrar\n");
-								end_process(PID, *(int*)buffer_codigo, fd_consola, false);
+								end_process(PID, buffer_codigo, fd_consola, true);
 							}
 
 							log_info(kernelLog, "Ya termine toda la operacion de borrado\n");
@@ -3756,7 +3762,6 @@ int main(int argc, char** argv) {
 							cpu->proceso = 0;
 
 							log_info(kernelLog, "Settee el proceso actual de la CPU en 0\n");
-							free(buffer_codigo);
 							pthread_mutex_unlock(&mutex_planificacion);
 						}
 						if(codigo == BORRAR_ARCHIVO)
