@@ -1053,6 +1053,7 @@ int main(int argc, char **argv) {
 		}
 		else{
 			printf("Estoy ejecutando en Round Robin\n");
+			usleep(quantum_sleep*1000);
 			while((quantum > 0)/* && (nuevaPCB->program_counter) < (nuevaPCB->cantidad_de_instrucciones)*/ && (programaTerminado == false) && (excepcionMemoria==false) && (procesoBloqueado == false) && (procesoAbortado == false))
 			{
 				char *instruccion = obtener_instruccion(nuevaPCB);
@@ -1099,7 +1100,6 @@ int main(int argc, char **argv) {
 				if(desconectarCPU==false)
 				{
 				codigo = FIN_DE_QUANTUM;
-				usleep(quantum_sleep*1000);
 				send_PCBV2(fd_kernel, nuevaPCB, codigo);
 				log_info(messagesLog, "Fin de quantum del proceso: %d\n", nuevaPCB->pid);
 				liberar_PCB(nuevaPCB);

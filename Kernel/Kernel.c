@@ -61,6 +61,7 @@ pthread_mutex_t mutex_lista_datos;
 
 //Mutex para evitar espera activa
 pthread_mutex_t mutex_planificacion;
+pthread_mutex_t mutex_waits_recientes;
 
 
 // Structs de conexiones
@@ -190,6 +191,11 @@ typedef struct{
 	int bytes_liberar;
 } datos_proceso;
 
+typedef struct{
+	int pid;
+	char* sem;
+}wait_reciente;
+
 //Todo lo de variables globales
 int pid = 0;
 int mem_sock;
@@ -213,6 +219,7 @@ t_list* lista_en_ejecucion;
 //Lista de Variables y Semaforos Ansisop
 t_list* variables_compartidas;
 t_list* semaforos;
+t_list* waits_recientes;
 
 //Lista de Heaps de Procesos
 t_list* heap;
@@ -397,6 +404,13 @@ PCB* create_PCB(char* script, int fd_consola){
 	pthread_mutex_lock(&mutex_lista_datos);
 	list_add(lista_datos_procesos,dp);
 	pthread_mutex_unlock(&mutex_lista_datos);
+
+	pthread_mutex_lock(&mutex_waits_recientes);
+	wait_reciente* wr = malloc(sizeof(wait_reciente));
+	wr->pid = nuevo_PCB->pid;
+	wr->sem = "Nada";
+	list_add(waits_recientes,wr);
+	pthread_mutex_unlock(&mutex_waits_recientes);
 
 	return nuevo_PCB;
 }
@@ -591,8 +605,21 @@ int proceso_para_borrar(int processID){
 	return -1;
 }
 
-void signal(char *id_semaforo){
-	//pthread_mutex_lock(&mutex_semaforos_ansisop);
+wait_reciente* get_wr(int PID){
+	int i = 0, dimension = list_size(waits_recientes);
+	wait_reciente* el_posta;
+	while(dimension > i){
+		wait_reciente* aux = list_get(waits_recientes,i);
+		if(aux->pid == PID)
+			el_posta = aux;
+		i++;
+	}
+	return el_posta;
+}
+
+void signal(char *id_semaforo, bool mutexeado){
+	if(mutexeado)
+	  pthread_mutex_lock(&mutex_semaforos_ansisop);
 	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
 	unSem->sem->valor = unSem->sem->valor + 1;
 
@@ -603,19 +630,28 @@ void signal(char *id_semaforo){
 		int posicion = proceso_para_borrar(unPCB->pid);
 
 		if(posicion < 0){
-		//	pthread_mutex_lock(&mutex_process_list);
+			if(mutexeado)
+				pthread_mutex_lock(&mutex_process_list);
 			PCB *PCB_a_modif = get_PCB(unPCB->pid);
 			PCB_a_modif->estado = "Ready";
-		//	pthread_mutex_unlock(&mutex_process_list);
+			if(mutexeado)
+				pthread_mutex_unlock(&mutex_process_list);
+
+			pthread_mutex_lock(&mutex_waits_recientes);
+			wait_reciente* wr = get_wr(unPCB->pid);
+			wr->sem = id_semaforo;
+			pthread_mutex_unlock(&mutex_waits_recientes);
 
 			pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue, unPCB);
 			pthread_mutex_unlock(&mutex_ready_queue);
+
 			log_info(kernelLog, "El proceso %d paso de Wait a Ready\n",unPCB->pid);
 		}
 	}
 	list_add(semaforos, unSem);
-	//pthread_mutex_unlock(&mutex_semaforos_ansisop);
+	if(mutexeado)
+	 pthread_mutex_unlock(&mutex_semaforos_ansisop);
 }
 
 void remove_from_semaphore(uint32_t PID){
@@ -627,7 +663,7 @@ void remove_from_semaphore(uint32_t PID){
 		encontrado = queue_exists(PID, unSem->cola_de_bloqueados);
 		if(encontrado == 1){
 			remove_PCB_from_specific_queue(PID, unSem->cola_de_bloqueados);
-			signal(unSem->sem->ID);
+			signal(unSem->sem->ID,false);
 		}
 	}
 }
@@ -956,6 +992,9 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	}
 	if(encontrado == 1)
 	{
+		//Aca elimino su wait reciente
+		wait_reciente* wr = get_wr(PID);
+		free(wr);
 		//Aca indico cuantos bytes quedaron leakeando
 		int bytes_lost = liberarHeap(PID);
 		if(bytes_lost != 0)
@@ -2000,6 +2039,11 @@ void planificacion(){
 
 					PCB *pcb_to_use = queue_pop(ready_queue);
 
+					pthread_mutex_lock(&mutex_waits_recientes);
+					wait_reciente* wr = get_wr(pcb_to_use->pid);
+					wr->sem = "Nada";
+					pthread_mutex_unlock(&mutex_waits_recientes);
+
 					uint32_t codigo = 10;
 					int32_t el_quantum;
 					if(strcmp(data_config.algoritmo, "FIFO") == 0){
@@ -2638,6 +2682,7 @@ int main(int argc, char** argv) {
 	//Variables_compartidas y semaforos
 	variables_compartidas = list_create();
 	semaforos = list_create();
+	waits_recientes = list_create();
 
 	//Heap :P
 	heap = list_create();
@@ -2816,6 +2861,13 @@ int main(int argc, char** argv) {
 										}
 										else
 										{
+											pthread_mutex_lock(&mutex_waits_recientes);
+											wait_reciente* wr = get_wr(pcb->pid);
+											if(strcmp(wr->sem,"Nada")!=0){
+												signal(wr->sem,false);
+											}
+											pthread_mutex_unlock(&mutex_waits_recientes);
+
 											log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
 											end_process(pcb->pid, -6, i, false);
 											pthread_mutex_unlock(&mutex_planificacion);
@@ -2936,6 +2988,12 @@ int main(int argc, char** argv) {
 								pthread_mutex_lock(&mutex_in_exec);
 								remove_by_fd_socket(lista_en_ejecucion, i);
 								pthread_mutex_unlock(&mutex_in_exec);
+
+								pthread_mutex_lock(&mutex_waits_recientes);
+								wait_reciente* wr = get_wr(pid);
+								if(strcmp(wr->sem,"Nada")!=0)
+									signal(wr->sem,false);
+								pthread_mutex_unlock(&mutex_waits_recientes);
 
 								//Y llamo a la funcion que lo borra
 								end_process(pid, -7, i, true);
@@ -3159,7 +3217,7 @@ int main(int argc, char** argv) {
 							pthread_mutex_unlock(&mutex_semaforos_ansisop);
 
 							if(existe == true){
-								signal(id_sem);
+								signal(id_sem, true);
 								print_vars();
 								respuesta = 1;
 								enviar(i, &respuesta, sizeof(respuesta));
