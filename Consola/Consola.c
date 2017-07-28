@@ -46,6 +46,7 @@ typedef struct{
 typedef struct{
 	int pid;
 	int thread;
+	int socket_kernel;
 }hilo_t;
 
 typedef struct{
@@ -261,7 +262,8 @@ void script_thread(thread_setup* ts)
 	sprintf(id_string,"%d",ts->threadID);
 	sockfd_kernel = handshake_kernel(id_string);
 
-//	setsockopt(sockfd_kernel, SOL_SOCKET, NULL, NULL, NULL);
+//	setsockopt(sockfd_kernel, SOL_SOCKET, NULL, NULL, NULL);  //Se usaba esto para ponerle timer a los recv, asi no se colgaban cuando trataba de matar hilos con la variable global
+															 //Convierte los recv y send en no bloqueantes, puede llevar a problemas si no se esperaba eso
 
 	if(sockfd_kernel == -1)
 	{
@@ -368,6 +370,7 @@ void script_thread(thread_setup* ts)
 	hilo_t* esteHilo = malloc(sizeof(hilo_t));
 	esteHilo->thread = ts->threadID;
 	esteHilo->pid = respuesta;
+	esteHilo->socket_kernel = sockfd_kernel;
 	//esteHilo->printCount = 0;*/
 
 
@@ -405,9 +408,9 @@ void script_thread(thread_setup* ts)
 
 		if(respuesta2 == 5)	// el kernel quiere imprimir algo
 		{
-			if(recv(sockfd_kernel, &messageSize, sizeof(int), 0) == 0)
+			if(recv(sockfd_kernel, &messageSize, sizeof(int), 0) == 0) //esto pasa si se desconectan kernel o consola, o si le hago shutdown al socket
 			{
-				printf("\nHilo %d: el kernel esta desconectado, el hilo sera terminado\n", esteHilo->thread);
+				printf("\nHilo %d: este hilo fue desconectado del kernel, el hilo sera terminado\n", esteHilo->thread);
 				log_error(messagesLog, "Se terminara el hilo %d debido a que el kernel se encuentra desconectado\n", ts->threadID);
 				remover_de_lista(esteHilo);
 				break;
@@ -559,45 +562,38 @@ void finalizar_programa(int pid)
 
 void desconectar_consola()
 {
+	//Documentacion de ideas de desconexion (dejarlo, es info util)
+	//1- Desconectar por variable global 'closeAllThreads' -> un hilo podia colgarse en un recv y nunca morir
+	//2- Guardar algunas variables dinamicas de cada hilo en la estructura que va en la lista de hilos, con tal de liberar esas variables por fuera y matarlo -> nunca se pudo hacer porque rompian 'pthread_cancel' y 'pthread_kill'
+	//3- Idea final, guardar el socket de cada hilo en la estructura que va en la lista y hacer shutdown de cada socket -> obliga a salir de los recv
+
 	printf("Se desconectaron los hilos\n");
 	log_info(messagesLog, "Se desconectaron los hilos\n");
 
-	closeAllThreads = true;
-
-	sleep(2);
-
-	closeAllThreads = false;
-
-
-	//Recorro la lista de hilos y por cada uno libero esa estructura y el nombre de script (es lo unico que queda sin liberar)
-	//despues mato el hilo con pthread_cancel
-/*
 	int i = 0, dimension = list_size(thread_list);
 
 	if(dimension > 0)
 	{
-		int tid = 0;
-
+		//Busco la estructura de cada hilo y mato el socket de cada uno
 		while(i < dimension)
 		{
 			hilo_t* aux = list_get(thread_list,i);
+			shutdown(aux->socket_kernel, SHUT_RDWR); //SHUT_RDWR evita que se puedan hacer send y recv con ese socket
+													 //Si el shutdown falla es porque el socket es invalido o no esta conectado; eso es lo que busco, asi que no miro errores
 			log_info(messagesLog, "Se desconecto el hilo: %d que ejecutaba el proceso: %d\n", aux->thread, aux->pid);
-
-			//dateTime* endTime = getTime();
-			//printData(aux->startDateTime, endTime, aux->printCount, aux->pid);
-			//free(aux->startDateTime);
-
-			tid = aux->thread;
-			list_remove(thread_list, i);
-			pthread_kill(tid, SIGINT);
 
 			i++;
 		}
-
-		free(tid);
 	}
 	else log_info(messagesLog, "No hay hilos abiertos para desconectar\n");
-	*/
+
+	/*Dejo esto por las dudas
+	 *
+	 * closeAllThreads = true;
+	 * sleep(2);
+	 * closeAllThreads = false;	 *
+	 */
+
 }
 
 
