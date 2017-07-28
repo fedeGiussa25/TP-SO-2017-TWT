@@ -3428,13 +3428,14 @@ int main(int argc, char** argv) {
 								//Posibles errores:
 								// > -2 -> El archivo no existe
 								// > -12 -> El archivo nunca fue abierto
-								abort_process(pid, resultado, i);
+								abort_process(pid, resultado, i); //Adentro de abort_process ya se manda el resultado a CPU
 
 							}
 							else
+							{
 								log_info(kernelLog, "Se ha cerrado el archivo %d para el proceso %d\n", fd, pid);
-
-							enviar(i, &resultado, sizeof(uint32_t));
+								enviar(i, &resultado, sizeof(uint32_t));
+							}
 						}
 
 						if(codigo == MOVER_CURSOR){
