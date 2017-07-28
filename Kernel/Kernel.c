@@ -1971,6 +1971,7 @@ void planificacion(){
 				{
 					new_pcb* new = queue_pop(new_queue);
 					guardado_en_memoria(new->sms,new->pcb);
+					free(new->sms);
 					free(new);
 				}
 			}
@@ -1999,6 +2000,7 @@ void planificacion(){
 					if(strcmp(data_config.algoritmo, "RR") == 0){
 						el_quantum = data_config.quantum;
 					}
+
 					enviar(cpu->sock_fd, &el_quantum, sizeof(int32_t));
 					enviar(cpu->sock_fd, &(data_config.quantum_sleep), sizeof(uint32_t));
 					log_info(kernelLog, "Mande Codigo: %d\n", codigo);
@@ -2032,7 +2034,10 @@ void manejador_de_scripts(script_manager_setup* sms){
 	pcb_to_use = create_PCB(script,sms->fd_consola);
 
 	if(procesos_actuales < data_config.grado_multiprog)
+	{
 		guardado_en_memoria(sms, pcb_to_use);
+		free(sms);
+	}
 	else
 	{
 		//Lo dejo en New sin guardar en memoria
@@ -2042,11 +2047,12 @@ void manejador_de_scripts(script_manager_setup* sms){
 		pthread_mutex_lock(&mutex_new_queue);
 		queue_push(new_queue,new);
 		pthread_mutex_unlock(&mutex_new_queue);
+
 		log_info(kernelLog, "El sistema ya llego a su tope de multiprogramacion. El proceso sera guardado pero no podra ejecutarse hasta que termine otro.\n");
 		send(sms->fd_consola, &pcb_to_use->pid,sizeof(int),0);
 	}
 
-	free(sms);
+	//free(sms);
 }
 
 int obtener_consola_asignada_al_proceso(int pid)
