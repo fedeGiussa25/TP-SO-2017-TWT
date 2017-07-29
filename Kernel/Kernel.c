@@ -365,6 +365,7 @@ PCB* create_PCB(char* script, int fd_consola){
 
 	nuevo_PCB->lista_de_etiquetas = metadata->etiquetas;
 	nuevo_PCB->lista_de_etiquetas_length = metadata->etiquetas_size;
+
 	nuevo_PCB->estado = "Nuevo";
 
 	nuevo_PCB->tamanioStack=data_config.stack_size;
@@ -1352,7 +1353,7 @@ void set_qsleep(){
 	printf("\n");
 }
 
-void odio_a_dami(){
+void mati_sape(){
 	int i = 0, dimension = list_size(variables_compartidas);
 	while(dimension > i){
 		variable_compartida* alguna = list_get(variables_compartidas,i);
@@ -1402,8 +1403,8 @@ void menu()
 			in_exec_print();
 		else if((strcmp(command, "giussa") == 0))
 			printf("%d\n",list_size(procesos_a_borrar));
-		else if((strcmp(command, "dami") == 0))
-			odio_a_dami();
+		else if((strcmp(command, "mati") == 0))
+			mati_sape();
 		else if((strcmp(command, "sem") == 0))
 			semaforos_print();
 		else if((strcmp(command, "qsleep") == 0))
@@ -2050,11 +2051,6 @@ void planificacion(){
 					pthread_mutex_unlock(&mutex_in_exec);
 
 					PCB *pcb_to_use = queue_pop(ready_queue);
-
-					pthread_mutex_lock(&mutex_waits_recientes);
-					wait_reciente* wr = get_wr(pcb_to_use->pid);
-					wr->sem = "Nada";
-					pthread_mutex_unlock(&mutex_waits_recientes);
 
 					uint32_t codigo = 10;
 					int32_t el_quantum;
@@ -2827,6 +2823,13 @@ int main(int argc, char** argv) {
 							{
 								log_info(kernelLog, "Se desconecto la CPU %d, que estaba ejecutando el proceso %d\n",cpu_a_quitar->sock_fd,cpu_a_quitar->proceso);
 								int consola = buscar_consola_de_proceso(cpu_a_quitar->proceso);
+
+								pthread_mutex_lock(&mutex_waits_recientes);
+								wait_reciente* wr = get_wr(cpu_a_quitar->proceso);
+								if(strcmp(wr->sem,"Nada")!=0)
+									signal(wr->sem,false);
+								pthread_mutex_unlock(&mutex_waits_recientes);
+
 								end_process(cpu_a_quitar->proceso, -17, consola, true);
 
 								pthread_mutex_unlock(&mutex_planificacion);
@@ -3151,7 +3154,7 @@ int main(int argc, char** argv) {
 										pthread_mutex_unlock(&mutex_exec_queue);
 
 										pthread_mutex_lock(&mutex_process_list);
-										PCB* PCB_a_modif = get_PCB(unPCB->pid);
+										PCB* PCB_a_modif = get_PCB(PID);
 										PCB_a_modif->estado = "Block";
 										pthread_mutex_unlock(&mutex_process_list);
 
