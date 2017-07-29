@@ -1626,6 +1626,14 @@ bool existeCompartida(char* id_compartida){
 	return existe;
 }
 
+void cancelar_wait(char *id_semaforo){
+	pthread_mutex_lock(&mutex_semaforos_ansisop);
+	semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_semaforo);
+	unSem->sem->valor = unSem->sem->valor + 1;
+	list_add(semaforos, unSem);
+	pthread_mutex_unlock(&mutex_semaforos_ansisop);
+}
+
 int32_t wait(char *id_semaforo, uint32_t PID){
 	uint32_t valorSemaforo;
 	pthread_mutex_lock(&mutex_semaforos_ansisop);
@@ -3141,36 +3149,43 @@ int main(int argc, char** argv) {
 									if(valor < 0)
 									{
 										uint32_t primerMensaje;
-										recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
+										int bytes_recv;
 
-										PCB *unPCB = recibirPCBV2(i);
+										bytes_recv = recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
-										pthread_mutex_lock(&mutex_in_exec);
-										remove_by_fd_socket(lista_en_ejecucion, i);
-										pthread_mutex_unlock(&mutex_in_exec);
+										if(bytes_recv < 0){
+											cancelar_wait(id_sem);
 
-										pthread_mutex_lock(&mutex_exec_queue);
-										remove_PCB_from_specific_queue(PID, exec_queue);
-										pthread_mutex_unlock(&mutex_exec_queue);
+										}else{
+											PCB *unPCB = recibirPCBV2(i);
 
-										pthread_mutex_lock(&mutex_process_list);
-										PCB* PCB_a_modif = get_PCB(PID);
-										PCB_a_modif->estado = "Block";
-										pthread_mutex_unlock(&mutex_process_list);
+											pthread_mutex_lock(&mutex_in_exec);
+											remove_by_fd_socket(lista_en_ejecucion, i);
+											pthread_mutex_unlock(&mutex_in_exec);
 
-										pthread_mutex_lock(&mutex_semaforos_ansisop);
-										semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
-										queue_push(unSem->cola_de_bloqueados, unPCB);
-										list_add(semaforos, unSem);
-										pthread_mutex_unlock(&mutex_semaforos_ansisop);
-										log_info(kernelLog, "El proceso %d paso de Exec a Block\n",unPCB->pid);
-										log_info(kernelLog, "Termino todo el envio\n");
+											pthread_mutex_lock(&mutex_exec_queue);
+											remove_PCB_from_specific_queue(PID, exec_queue);
+											pthread_mutex_unlock(&mutex_exec_queue);
 
-										pthread_mutex_lock(&mutex_fd_cpus);
-										proceso_conexion* cpu = buscar_conexion_de_cpu(i);
-										pthread_mutex_unlock(&mutex_fd_cpus);
+											pthread_mutex_lock(&mutex_process_list);
+											PCB* PCB_a_modif = get_PCB(PID);
+											PCB_a_modif->estado = "Block";
+											pthread_mutex_unlock(&mutex_process_list);
 
-										cpu->proceso = 0;
+											pthread_mutex_lock(&mutex_semaforos_ansisop);
+											semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
+											queue_push(unSem->cola_de_bloqueados, unPCB);
+											list_add(semaforos, unSem);
+											pthread_mutex_unlock(&mutex_semaforos_ansisop);
+											log_info(kernelLog, "El proceso %d paso de Exec a Block\n",unPCB->pid);
+											log_info(kernelLog, "Termino todo el envio\n");
+
+											pthread_mutex_lock(&mutex_fd_cpus);
+											proceso_conexion* cpu = buscar_conexion_de_cpu(i);
+											pthread_mutex_unlock(&mutex_fd_cpus);
+
+											cpu->proceso = 0;
+										}
 									}
 									pthread_mutex_unlock(&mutex_planificacion);
 								}
