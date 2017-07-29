@@ -641,7 +641,7 @@ void signal(char *id_semaforo, bool mutexeado){
 			if(mutexeado)
 				pthread_mutex_lock(&mutex_waits_recientes);
 			wait_reciente* wr = get_wr(unPCB->pid);
-			wr->sem = id_semaforo;
+			wr->sem = unSem->sem->ID;
 			if(mutexeado)
 				pthread_mutex_unlock(&mutex_waits_recientes);
 
