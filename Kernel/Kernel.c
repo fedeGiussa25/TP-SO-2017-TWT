@@ -637,14 +637,18 @@ void signal(char *id_semaforo, bool mutexeado){
 			if(mutexeado)
 				pthread_mutex_unlock(&mutex_process_list);
 
-			pthread_mutex_lock(&mutex_waits_recientes);
+			if(mutexeado)
+				pthread_mutex_lock(&mutex_waits_recientes);
 			wait_reciente* wr = get_wr(unPCB->pid);
 			wr->sem = id_semaforo;
-			pthread_mutex_unlock(&mutex_waits_recientes);
+			if(mutexeado)
+				pthread_mutex_unlock(&mutex_waits_recientes);
 
-			pthread_mutex_lock(&mutex_ready_queue);
+			if(mutexeado)
+				pthread_mutex_lock(&mutex_ready_queue);
 			queue_push(ready_queue, unPCB);
-			pthread_mutex_unlock(&mutex_ready_queue);
+			if(mutexeado)
+				pthread_mutex_unlock(&mutex_ready_queue);
 
 			log_info(kernelLog, "El proceso %d paso de Wait a Ready\n",unPCB->pid);
 		}
@@ -729,7 +733,6 @@ bool exist_PCB(int PId){
 	}
 	return encontrado;
 }
-
 
 bool proceso_en_ejecucion(int processID){
 	pthread_mutex_lock(&mutex_in_exec);
@@ -959,10 +962,13 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 		{
 			if(strcmp(PCB->estado,"Exit")!=0)
 			{
+				//Aca elimino su wait reciente
+				wait_reciente* wr = get_wr(PID);
+				wr->sem = "Nada";
+			//	free(wr);
 				borrar_PBCs_usados(PID);
 				borrarTablaDeArchivos(PID);
 				remove_from_queue(PCB);
-				remove_from_semaphore(PID);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
@@ -992,9 +998,6 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 	}
 	if(encontrado == 1)
 	{
-		//Aca elimino su wait reciente
-		wait_reciente* wr = get_wr(PID);
-		free(wr);
 		//Aca indico cuantos bytes quedaron leakeando
 		int bytes_lost = liberarHeap(PID);
 		if(bytes_lost != 0)
@@ -1221,6 +1224,15 @@ datos_proceso* get_datos_proceso(int PID){
 	return 0;
 }
 
+void in_exec_print(){
+	int i = 0, dimension = list_size(lista_en_ejecucion);
+	while(dimension > i){
+		proceso_conexion* pc = list_get(lista_en_ejecucion,i);
+		printf("Proceso %d, CPU %d\n",pc->proceso,pc->sock_fd);
+		i++;
+	}
+}
+
 void semaforos_print(){
 	int i = 0, dimension = list_size(semaforos);
 	while(dimension > i){
@@ -1314,7 +1326,7 @@ void set_multiprog(){
 		data_config.grado_multiprog = grado;
 		plan_go = true;
 		printf("El grado de multiprogramacion fue cambiado a %d\n", data_config.grado_multiprog);
-		int diferencia = procesos_actuales - data_config.grado_multiprog;
+		int diferencia = data_config.grado_multiprog - procesos_actuales;
 		while(diferencia > 0){
 			pthread_mutex_unlock(&mutex_planificacion);
 			diferencia--;
@@ -1387,7 +1399,7 @@ void menu()
 		else if((strcmp(command, "end") == 0))
 			finish_process();
 		else if((strcmp(command, "volo") == 0))
-			printf("%d\n",list_size(lista_en_ejecucion));
+			in_exec_print();
 		else if((strcmp(command, "giussa") == 0))
 			printf("%d\n",list_size(procesos_a_borrar));
 		else if((strcmp(command, "dami") == 0))
@@ -2868,6 +2880,10 @@ int main(int argc, char** argv) {
 											}
 											pthread_mutex_unlock(&mutex_waits_recientes);
 
+											pthread_mutex_lock(&mutex_in_exec);
+											remove_by_fd_socket(lista_en_ejecucion, i);
+											pthread_mutex_unlock(&mutex_in_exec);
+
 											log_info(kernelLog, "El proceso no esta en ejecucion, se puede finalizar ahora\n");
 											end_process(pcb->pid, -6, i, false);
 											pthread_mutex_unlock(&mutex_planificacion);
@@ -2985,9 +3001,6 @@ int main(int argc, char** argv) {
 							else{
 								//Saco a la cpu de la lista de ejecucion
 								log_info(kernelLog, "El proceso no esta en ejecucion, se borrara ahora\n");
-								pthread_mutex_lock(&mutex_in_exec);
-								remove_by_fd_socket(lista_en_ejecucion, i);
-								pthread_mutex_unlock(&mutex_in_exec);
 
 								pthread_mutex_lock(&mutex_waits_recientes);
 								wait_reciente* wr = get_wr(pid);
@@ -3128,17 +3141,11 @@ int main(int argc, char** argv) {
 										recv(i, &primerMensaje, sizeof(uint32_t), 0); //Este es el 10 que me mandan por ser PCB
 
 										PCB *unPCB = recibirPCBV2(i);
-										//print_PCB2(unPCB);
 
 										pthread_mutex_lock(&mutex_in_exec);
 										remove_by_fd_socket(lista_en_ejecucion, i);
 										pthread_mutex_unlock(&mutex_in_exec);
 
-										log_info(kernelLog, "check 1\n");
-										pthread_mutex_lock(&mutex_semaforos_ansisop);
-										semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
-
-										log_info(kernelLog, "check 2\n");
 										pthread_mutex_lock(&mutex_exec_queue);
 										remove_PCB_from_specific_queue(PID, exec_queue);
 										pthread_mutex_unlock(&mutex_exec_queue);
@@ -3148,7 +3155,8 @@ int main(int argc, char** argv) {
 										PCB_a_modif->estado = "Block";
 										pthread_mutex_unlock(&mutex_process_list);
 
-										log_info(kernelLog, "check 3\n");
+										pthread_mutex_lock(&mutex_semaforos_ansisop);
+										semaforo_cola *unSem = remove_semaforo_by_ID(semaforos, id_sem);
 										queue_push(unSem->cola_de_bloqueados, unPCB);
 										list_add(semaforos, unSem);
 										pthread_mutex_unlock(&mutex_semaforos_ansisop);
