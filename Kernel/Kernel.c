@@ -967,9 +967,9 @@ void end_process(int PID, int exit_code, int sock_consola, bool consola_conectad
 				wait_reciente* wr = get_wr(PID);
 				wr->sem = "Nada";
 			//	free(wr);
+				remove_from_queue(PCB);
 				borrar_PBCs_usados(PID);
 				borrarTablaDeArchivos(PID);
-				remove_from_queue(PCB);
 				PCB->exit_code = exit_code;
 				PCB->estado = "Exit";
 				delete_PCB(PCB);
